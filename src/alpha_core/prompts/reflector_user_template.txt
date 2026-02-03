@@ -1,0 +1,11 @@
+原始預測:
+- 股票代號: {ticker}
+- 情緒分數: {sentiment_score}
+- AI 理由: {ai_reasoning}
+
+市場實際表現:
+- 驗證⽇期: {verified_date}
+- 漲跌幅: {price_change_pct}%
+- 量能比: {volume_ratio}
+
+請評估預測是否準確,並提供反省建議。

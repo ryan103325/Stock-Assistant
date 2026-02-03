@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pkl
+.env
+.vscode/
+
+# Project Specific
+
+*.png
+*.log
+
+# Node
+node_modules/
+npm-debug.log
+
+manual_rescue.bat
+
+# Debug scripts (not needed in repo)
+debug_scripts/

@@ -1,0 +1,17 @@
+pandas
+numpy
+requests
+python-dotenv
+schedule
+matplotlib
+mplfinance
+selenium
+webdriver_manager
+beautifulsoup4
+lxml
+openpyxl
+finlab_crypto
+ta-lib-bin; sys_platform == 'win32'
+Pillow
+loguru
+imgkit

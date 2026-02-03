@@ -1,0 +1,91 @@
+{
+  "sentiment_score_definition": "x <= -0.35: Bearish; -0.35 < x < 0.35: Neutral; x >= 0.35: Bullish",
+  "feed": [
+    {
+      "title": "Thomson Reuters第四季度和2025年全年财报公告及电话会议安排",
+      "overall_sentiment_score": -0.1,
+      "overall_sentiment_label": "Neutral",
+      "topics": [
+        "Earnings"
+      ],
+      "ticker_sentiment": [
+        {
+          "ticker": "TRI",
+          "relevance_score": 0.9,
+          "ticker_sentiment_score": -0.2,
+          "ticker_sentiment_label": "Neutral",
+          "reasoning": "公告内容中性，未提及具体财务数据或正面负面评价"
+        }
+      ]
+    },
+    {
+      "title": "Thomson Reuters to Present at JP Morgan Ultimate Services Investor Conference",
+      "overall_sentiment_score": -0.2,
+      "overall_sentiment_label": "Neutral",
+      "topics": [
+        "Conference"
+      ],
+      "ticker_sentiment": [
+        {
+          "ticker": "TRI",
+          "relevance_score": 1.0,
+          "ticker_sentiment_score": -0.2,
+          "ticker_sentiment_label": "Neutral",
+          "reasoning": "未提及任何正面或負面評論，僅為會議通知"
+        }
+      ]
+    },
+    {
+      "title": "Thomson Reuters Reports Third-Quarter 2025 Results",
+      "overall_sentiment_score": 0.4,
+      "overall_sentiment_label": "Neutral",
+      "topics": [
+        "Financials",
+        "Revenue"
+      ],
+      "ticker_sentiment": [
+        {
+          "ticker": "TRI",
+          "relevance_score": 1.0,
+          "ticker_sentiment_score": 0.5,
+          "ticker_sentiment_label": "Neutral",
+          "reasoning": "Total company revenues up 3% / organic revenues up 7%"
+        }
+      ]
+    },
+    {
+      "title": "Thomson Reuters Third-Quarter 2025 Earnings Announcement and Webcast Scheduled for November 4, 2025",
+      "overall_sentiment_score": -0.3,
+      "overall_sentiment_label": "Neutral",
+      "topics": [
+        "Earnings"
+      ],
+      "ticker_sentiment": [
+        {
+          "ticker": "TRI",
+          "relevance_score": 1.0,
+          "ticker_sentiment_score": -0.2,
+          "ticker_sentiment_label": "Neutral",
+          "reasoning": "未提及任何正面或負面評論，僅為公告"
+        }
+      ]
+    },
+    {
+      "title": "Thomson Reuters 收購 Additive – AI 智能稅務文件處理專家",
+      "overall_sentiment_score": -0.2,
+      "overall_sentiment_label": "Neutral",
+      "topics": [
+        "Acquisition"
+      ],
+      "ticker_sentiment": [
+        {
+          "ticker": "2330",
+          "relevance_score": 0.5,
+          "ticker_sentiment_score": -0.1,
+          "ticker_sentiment_label": "Neutral",
+          "reasoning": "未提及任何與台積電相關的正面或負面評論"
+        }
+      ]
+    }
+  ]
+}
