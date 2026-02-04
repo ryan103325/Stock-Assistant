@@ -20,10 +20,10 @@ FINMIND_TOKEN = os.getenv("FINMIND_TOKEN", "")
 FINMIND_API = "https://api.finmindtrade.com/api/v4/data"
 
 # 目標日期 (補齊到這天為止)
-TARGET_DATE = "2026-01-30"
+TARGET_DATE = "2026-02-04"
 
 # 限速設定 (低於 600 檔不需顧慮 rate limit)
-REQUEST_DELAY = 0.5
+REQUEST_DELAY = 10
 
 # ================= 核心函數 =================
 
@@ -70,12 +70,16 @@ def fetch_finmind_stock(stock_id: str, start_date: str = "2026-01-01") -> pd.Dat
             time.sleep(60)
             resp = requests.get(FINMIND_API, params=params, timeout=20)
         
+        # 如果重試後還是 rate limit，回傳 None 表示 API 失敗
+        if resp.status_code == 402 or resp.status_code == 429:
+            return None
+        
         if resp.status_code != 200:
-            return pd.DataFrame()
+            return None
         
         data = resp.json().get('data', [])
         if not data:
-            return pd.DataFrame()
+            return pd.DataFrame()  # 空資料 = 真的無資料（可能下市）
         
         df = pd.DataFrame(data)
         
@@ -94,7 +98,7 @@ def fetch_finmind_stock(stock_id: str, start_date: str = "2026-01-01") -> pd.Dat
         return result
         
     except Exception as e:
-        return pd.DataFrame()
+        return None  # 例外 = API 失敗
 
 
 def update_stock_csv(stock_id: str, new_data: pd.DataFrame) -> int:
@@ -174,8 +178,12 @@ def main():
         
         df = fetch_finmind_stock(stock_id)
         
-        if df.empty:
-            # 無資料 = 下市股票，刪除 CSV
+        # None = API 失敗（rate limit 或網路錯誤）
+        if df is None:
+            print("⚠️ API 失敗，跳過")
+            failed_stocks.append(stock_id)
+        # 空 DataFrame = 真的無資料（下市）
+        elif df.empty:
             csv_path = os.path.join(DATA_FOLDER, f"{stock_id}.csv")
             if os.path.exists(csv_path):
                 os.remove(csv_path)
@@ -184,6 +192,7 @@ def main():
             else:
                 print("❌ 無資料")
             failed_stocks.append(stock_id)
+        # 有資料 = 正常更新
         else:
             new_rows = update_stock_csv(stock_id, df)
             if new_rows > 0:
