@@ -1,4 +1,4 @@
-name: "[Step] 00981a Fund"
+name: "[Step]strategies_Unified_Momentum"
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
         default: true
 
 jobs:
-  fund-strategy:
+  unified-momentum:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -34,17 +34,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run 00981a Fund Strategy
+      - name: Run Unified Momentum Strategy
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python src/strategies/00981a_fund/00981a.py --force
+          python src/strategies/unified_momentum/run_unified_momentum.py --force
 
       - name: Commit outputs
         run: |
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'actions@github.com'
-          git add src/strategies/00981a_fund/
-          git diff --staged --quiet || git commit -m "📊 [Step] 00981a Fund $(date +'%Y-%m-%d %H:%M')"
+          git add src/strategies/unified_momentum/ src/data_core/market_meta/
+          git diff --staged --quiet || git commit -m "📈 [Step] Unified Momentum $(date +'%Y-%m-%d %H:%M')"
           git push

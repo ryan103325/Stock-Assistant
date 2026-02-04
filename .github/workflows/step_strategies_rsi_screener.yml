@@ -1,4 +1,4 @@
-name: "[Step] RSI Screener"
+name: "[Step]strategies_RSI_Screener"
 
 on:
   workflow_dispatch:
