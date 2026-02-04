@@ -2,8 +2,8 @@ name: Daily Stock Analysis
 
 on:
   schedule:
-    # 每天晚上 20:30 (UTC+8 = 12:30 UTC) - 等融資券資料出來
-    - cron: '30 12 * * *'
+    # 每天午夜 00:00 (UTC+8 = 16:00 UTC)
+    - cron: '0 16 * * *'
   workflow_dispatch:  # 允許手動觸發
     inputs:
       force_mode:
