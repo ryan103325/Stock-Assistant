@@ -54,11 +54,11 @@ def render_to_image(html_content: str, output_path: str, config: dict = None) ->
     Returns:
         bool: 成功返回 True，失敗返回 False
     """
-    # 預設配置（優化檔案大小，符合 Telegram 10MB 限制）
+    # 預設配置（9:16 比例，適合手機直屏）
     default_options = {
         'format': 'png',
-        'width': 800,        # 縮小寬度
-        'quality': 80,       # 降低品質（減少檔案大小）
+        'width': 540,        # 9:16 比例寬度
+        'quality': 85,       # 較高品質
         'encoding': 'UTF-8',
         'enable-local-file-access': None,
         'quiet': '',

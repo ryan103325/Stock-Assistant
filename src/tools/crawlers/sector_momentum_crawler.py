@@ -34,9 +34,15 @@ os.makedirs(MARKET_META_DIR, exist_ok=True)
 
 # URLs
 URLS = {
-    "fund_flow": "https://www.cmoney.tw/finance/f00018.aspx?o=3&o2=1",      # 資金流向
-    "margin": "https://www.cmoney.tw/finance/f00020.aspx?o=1&o2=1",         # 融資增減
-    "short": "https://www.cmoney.tw/finance/f00020.aspx?o=1&o2=2",          # 融券增減
+    # 法人走向
+    "inst_total": "https://www.cmoney.tw/finance/f00019.aspx?o=1&o2=4",    # 三大法人合計
+    "foreign": "https://www.cmoney.tw/finance/f00019.aspx",                # 外資買超
+    "trust": "https://www.cmoney.tw/finance/f00019.aspx?o=1&o2=2",         # 投信買超
+    "dealer": "https://www.cmoney.tw/finance/f00019.aspx?o=1&o2=3",        # 自營商
+    # 資金融資券
+    "fund_flow": "https://www.cmoney.tw/finance/f00018.aspx?o=3&o2=1",     # 資金流向
+    "margin": "https://www.cmoney.tw/finance/f00020.aspx?o=1&o2=1",        # 融資增減
+    "short": "https://www.cmoney.tw/finance/f00020.aspx?o=1&o2=2",         # 融券增減
     "short_margin_ratio": "https://www.cmoney.tw/finance/f00020.aspx?o=1&o2=3"  # 券資比
 }
 
@@ -250,13 +256,77 @@ def parse_short_margin_ratio_data(raw_data):
     return df
 
 
-def merge_all_data(fund_flow_df, margin_df, short_df, ratio_df):
+def parse_institutional_data(raw_data, inst_type):
+    """
+    解析法人買超資料
+    
+    實際頁面結構: 分類, 外資, 投信, 自營商, 合計
+    
+    Args:
+        raw_data: 原始資料
+        inst_type: 法人類型 (inst_total/foreign/trust/dealer)
+    
+    Returns:
+        DataFrame
+    """
+    if not raw_data['data']:
+        return pd.DataFrame()
+    
+    df = pd.DataFrame(raw_data['data'])
+    
+    # 法人頁面欄位: 分類, 外資, 投信, 自營商, 合計
+    if len(df.columns) >= 5:
+        df.columns = ['SectorName', 'Foreign', 'Trust', 'Dealer', 'Total'] + list(df.columns[5:])
+        
+        # 根據法人類型選擇對應欄位
+        col_map = {
+            'inst_total': 'Total',
+            'foreign': 'Foreign', 
+            'trust': 'Trust',
+            'dealer': 'Dealer'
+        }
+        
+        target_col = col_map.get(inst_type, 'Total')
+        
+        # 只保留族群名稱和目標欄位
+        df = df[['SectorName', target_col]].copy()
+        df.columns = ['SectorName', f'{inst_type}_amount']
+        
+        # 轉換為數值
+        df[f'{inst_type}_amount'] = pd.to_numeric(
+            df[f'{inst_type}_amount'].astype(str).str.replace(',', ''), 
+            errors='coerce'
+        ).fillna(0)
+        
+    else:
+        print(f"   ⚠️ 法人買超欄位數量不符: {len(df.columns)}, 預期>=5")
+        return pd.DataFrame()
+    
+    # 過濾集團股
+    df = df[~df['SectorName'].str.contains(EXCLUDE_KEYWORD, na=False)]
+    
+    return df
+
+
+def merge_all_data(fund_flow_df, margin_df, short_df, ratio_df,
+                   inst_total_df=None, foreign_df=None, trust_df=None, dealer_df=None):
     """合併所有資料"""
     print("\n🔗 合併資料...")
     
-    # 找出第一個非空的 DataFrame 作為基礎
+    # 找出所有非空的 DataFrame
     dfs = [fund_flow_df, margin_df, short_df, ratio_df]
-    non_empty_dfs = [df for df in dfs if not df.empty]
+    
+    # 加入法人資料
+    if inst_total_df is not None and not inst_total_df.empty:
+        dfs.append(inst_total_df)
+    if foreign_df is not None and not foreign_df.empty:
+        dfs.append(foreign_df)
+    if trust_df is not None and not trust_df.empty:
+        dfs.append(trust_df)
+    if dealer_df is not None and not dealer_df.empty:
+        dfs.append(dealer_df)
+    
+    non_empty_dfs = [df for df in dfs if df is not None and not df.empty]
     
     if not non_empty_dfs:
         print("   ⚠️ 所有資料都是空的")
@@ -288,7 +358,19 @@ def main():
         return
     
     try:
-        # 抓取四個維度的資料
+        # 抓取法人走向 (4 個維度)
+        print("\n" + "=" * 50)
+        print("📊 抓取法人走向資料...")
+        print("=" * 50)
+        inst_total_raw = fetch_table_data(driver, URLS['inst_total'], 'inst_total')
+        foreign_raw = fetch_table_data(driver, URLS['foreign'], 'foreign')
+        trust_raw = fetch_table_data(driver, URLS['trust'], 'trust')
+        dealer_raw = fetch_table_data(driver, URLS['dealer'], 'dealer')
+        
+        # 抓取資金融資券 (4 個維度)
+        print("\n" + "=" * 50)
+        print("📊 抓取資金融資券資料...")
+        print("=" * 50)
         fund_flow_raw = fetch_table_data(driver, URLS['fund_flow'], 'fund_flow')
         margin_raw = fetch_table_data(driver, URLS['margin'], 'margin')
         short_raw = fetch_table_data(driver, URLS['short'], 'short')
@@ -296,13 +378,24 @@ def main():
         
         # 解析資料
         print("\n📊 解析資料...")
+        
+        # 法人資料
+        inst_total_df = parse_institutional_data(inst_total_raw, 'inst_total')
+        foreign_df = parse_institutional_data(foreign_raw, 'foreign')
+        trust_df = parse_institutional_data(trust_raw, 'trust')
+        dealer_df = parse_institutional_data(dealer_raw, 'dealer')
+        
+        # 資金融資券資料
         fund_flow_df = parse_fund_flow_data(fund_flow_raw)
         margin_df = parse_margin_data(margin_raw)
         short_df = parse_short_data(short_raw)
         ratio_df = parse_short_margin_ratio_data(ratio_raw)
         
         # 合併資料
-        final_df = merge_all_data(fund_flow_df, margin_df, short_df, ratio_df)
+        final_df = merge_all_data(
+            fund_flow_df, margin_df, short_df, ratio_df,
+            inst_total_df, foreign_df, trust_df, dealer_df
+        )
         
         # 儲存 CSV
         today = datetime.now().strftime('%Y%m%d')
@@ -312,6 +405,7 @@ def main():
         print(f"\n✅ 完成!")
         print(f"   檔案: {output_file}")
         print(f"   族群數: {len(final_df)}")
+        print(f"   欄位數: {len(final_df.columns)}")
         print(f"\n前5筆資料:")
         print(final_df.head().to_string())
         

@@ -15,6 +15,8 @@ on:
 jobs:
   daily-analysis:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 允許推送到 repo
     
     steps:
       - name: Checkout code

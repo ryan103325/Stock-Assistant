@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-統一動能策略 - 執行腳本
+CMoney 三維度策略 - 執行腳本
 """
 
 import os
@@ -10,7 +10,8 @@ import sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 
-from unified_strategy import main
+from cmoney_strategy import run_cmoney_strategy
 
 if __name__ == "__main__":
-    main()
+    run_cmoney_strategy()
+
