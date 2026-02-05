@@ -27,24 +27,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Test Telegram Connection
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          python -c "
-          import os, requests
-          token = os.getenv('TELEGRAM_TOKEN', '')
-          chat_id = os.getenv('TELEGRAM_CHAT_ID', '')
-          print(f'Token length: {len(token)}')
-          print(f'Chat ID: {chat_id}')
-          if token and chat_id:
-              r = requests.post(f'https://api.telegram.org/bot{token}/sendMessage', 
-                              json={'chat_id': chat_id, 'text': '🧪 [Test] GitHub Actions Telegram Test'})
-              print(f'Status: {r.status_code}')
-          else:
-              print('❌ Missing token or chat_id')
-          "
 
       - name: Run RSI Screener
         env:
