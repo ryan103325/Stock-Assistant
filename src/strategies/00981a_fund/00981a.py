@@ -601,8 +601,18 @@ try:
                             wt = 0
                         weight_map_old[row['股票名稱']] = wt
                     
-                    # 計算金額估算 (使用權重 * 淨資產)
-                    nav = net_assets_value if 'net_assets_value' in dir() else 10000000000  # 預設100億
+                    # 讀取收盤價函數
+                    def get_close_price(stock_code):
+                        """從 history 目錄讀取收盤價"""
+                        try:
+                            price_file = os.path.join(DATA_FOLDER, f'{stock_code}.csv')
+                            if os.path.exists(price_file):
+                                price_df = pd.read_csv(price_file)
+                                if not price_df.empty and 'Close' in price_df.columns:
+                                    return float(price_df.iloc[-1]['Close'])
+                        except:
+                            pass
+                        return 0
                     
                     for n in set(d_new.keys()) | set(d_old.keys()):
                         diff = d_new.get(n, 0) - d_old.get(n, 0)
@@ -610,11 +620,13 @@ try:
                             wt_new = weight_map_new.get(n, 0)
                             wt_old = weight_map_old.get(n, 0)
                             wt_change = wt_new - wt_old
-                            # 估算金額 = 權重變動 * 淨資產
-                            amount = abs(wt_change / 100 * nav) if wt_change != 0 else abs(diff) * 50  # 50元預設股價
+                            # 金額 = 收盤價 × 股數差異
+                            stock_code = id_map.get(n, '')
+                            close_price = get_close_price(stock_code)
+                            amount = abs(close_price * diff)
                             changes.append({
                                 'name': n,
-                                'code': id_map.get(n, ''),
+                                'code': stock_code,
                                 'diff': diff,
                                 'weight': wt_new,
                                 'weight_change': wt_change,
