@@ -36,8 +36,10 @@ jobs:
 
       - name: Run 00981a Fund Strategy
         env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_ACTIONS: true
         run: |
           python src/strategies/00981a_fund/00981a.py --force
 
