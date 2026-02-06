@@ -2,8 +2,8 @@ name: Daily Stock Analysis
 
 on:
   schedule:
-    # 每天午夜 00:00 (UTC+8 = 16:00 UTC)
-    - cron: '0 16 * * *'
+    # 每天早上 08:00 (UTC+8 = 00:00 UTC)
+    - cron: '0 0 * * *'
   workflow_dispatch:  # 允許手動觸發
     inputs:
       force_mode:
