@@ -71,12 +71,12 @@ function initCharts() {
     });
 
     candleSeries = mainChart.addCandlestickSeries({
-        upColor: '#3fb950',
-        downColor: '#f85149',
-        borderUpColor: '#3fb950',
-        borderDownColor: '#f85149',
-        wickUpColor: '#3fb950',
-        wickDownColor: '#f85149',
+        upColor: '#f85149',      // 紅漲
+        downColor: '#3fb950',    // 綠跌
+        borderUpColor: '#f85149',
+        borderDownColor: '#3fb950',
+        wickUpColor: '#f85149',
+        wickDownColor: '#3fb950',
     });
 
     // 成交量圖表
@@ -273,11 +273,11 @@ function updateCharts(data) {
         close: d.close,
     }));
 
-    // 成交量資料 (顏色根據漲跌)
+    // 成交量資料 (顏色根據漲跌 - 台灣紅漲綠跌)
     const volumeData = data.map(d => ({
         time: d.time,
         value: d.volume,
-        color: d.close >= d.open ? 'rgba(63, 185, 80, 0.6)' : 'rgba(248, 81, 73, 0.6)',
+        color: d.close >= d.open ? 'rgba(248, 81, 73, 0.6)' : 'rgba(63, 185, 80, 0.6)',
     }));
 
     candleSeries.setData(candleData);

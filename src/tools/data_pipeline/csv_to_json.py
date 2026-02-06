@@ -50,6 +50,9 @@ def convert_csv_to_json(csv_path: Path, stock_name: str) -> dict | None:
         # 移除有缺失值的行
         df = df.dropna(subset=required)
         
+        # 移除停止交易日 (OHLC 全為 0)
+        df = df[~((df['Open'] == 0) & (df['High'] == 0) & (df['Low'] == 0) & (df['Close'] == 0))]
+        
         # 取最後 MAX_DAYS 筆
         df = df.tail(MAX_DAYS).copy()
         

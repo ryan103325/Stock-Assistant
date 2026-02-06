@@ -125,13 +125,13 @@ body {
 }
 
 .stock-change.up {
-    background: rgba(63, 185, 80, 0.2);
-    color: var(--green);
+    background: rgba(248, 81, 73, 0.2);
+    color: var(--red);
 }
 
 .stock-change.down {
-    background: rgba(248, 81, 73, 0.2);
-    color: var(--red);
+    background: rgba(63, 185, 80, 0.2);
+    color: var(--green);
 }
 
 .stock-change.flat {
@@ -246,32 +246,32 @@ body {
     .container {
         padding: 12px;
     }
-    
+
     .header h1 {
         font-size: 1.2rem;
     }
-    
+
     .search-box {
         flex-direction: column;
     }
-    
+
     .search-box input {
         max-width: 100%;
     }
-    
+
     .stock-info {
         flex-direction: column;
         gap: 8px;
     }
-    
+
     .stock-price {
         margin-left: 0;
     }
-    
+
     #chart {
         height: 300px;
     }
-    
+
     #volumeChart {
         height: 80px;
     }
