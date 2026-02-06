@@ -20,7 +20,7 @@ FINMIND_TOKEN = os.getenv("FINMIND_TOKEN", "")
 FINMIND_API = "https://api.finmindtrade.com/api/v4/data"
 
 # 目標日期 (補齊到這天為止)
-TARGET_DATE = "2026-02-04"
+TARGET_DATE = "2026-02-06"
 
 # 限速設定 (低於 600 檔不需顧慮 rate limit)
 REQUEST_DELAY = 10

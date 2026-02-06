@@ -231,15 +231,23 @@ def calculate_indicators(stock_id, time_frame='D', days=1500):
     df_stock['Vol_MA5'] = df_stock['Volume'].rolling(5).mean()
     df_stock['Vol_MA20'] = df_stock['Volume'].rolling(20).mean()
     
-    # 5. RSI (Wilder's Smoothing)
+    # 5. RSI (TradingView ta.rsi 完全一致版本)
+    # TradingView 使用 ta.rma (Running Moving Average, aka Wilder's)
+    # 公式: rma = alpha * source + (1 - alpha) * prev_rma, where alpha = 1/period
     delta = df_stock['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).fillna(0)
-    loss = (-delta.where(delta < 0, 0)).fillna(0)
-    for p in [6, 12, 14]: # Add 14 just in case, keep 6/12 for legacy
-        # Wilder's Smoothing: alpha = 1/n or com = n-1
-        avg_gain = gain.ewm(com=p-1, adjust=False).mean()
-        avg_loss = loss.ewm(com=p-1, adjust=False).mean()
-        df_stock[f'RSI_{p}'] = 100 - (100 / (1 + avg_gain/avg_loss))
+    gains = delta.where(delta > 0, 0.0).fillna(0)
+    losses = (-delta).where(delta < 0, 0.0).fillna(0)
+    
+    for p in [6, 12, 14]:
+        alpha = 1 / p
+        
+        # TradingView RMA: 從第一筆開始累積 (不使用 SMA 初始化)
+        rma_gain = gains.ewm(alpha=alpha, adjust=False).mean()
+        rma_loss = losses.ewm(alpha=alpha, adjust=False).mean()
+        
+        # RSI = 100 - 100 / (1 + RS)
+        rs = rma_gain / rma_loss.replace(0, np.nan)
+        df_stock[f'RSI_{p}'] = 100 - (100 / (1 + rs))
 
     # 6. Indicator MAs (Mansfield/IBD)
     df_stock['Man_MA20'] = df_stock['Mansfield_PR'].rolling(20).mean()
@@ -530,7 +538,7 @@ async def process_stat_request(session, chat_id, stock_id, stock_name, time_fram
             return
 
         # Step 2: Draw Chart
-        plot_count = 120 if time_frame=='D' else 60
+        plot_count = 100 if time_frame=='D' else 60
         with ThreadPoolExecutor() as pool:
             img_path = await loop.run_in_executor(pool, draw_chart, stock_id, stock_name, df, plot_count, time_frame)
 

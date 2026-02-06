@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台股技術分析圖表</title>
+    <meta name="description" content="互動式台股技術分析 K 線圖表工具">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📈 台股技術分析圖表</h1>
+            <div class="search-box">
+                <input type="text" id="stockInput" placeholder="輸入股票代碼或名稱 (例: 2330、台積電)" autocomplete="off">
+                <button id="searchBtn">查詢</button>
+            </div>
+        </header>
+
+        <div class="stock-info" id="stockInfo">
+            <span class="stock-id" id="stockId">--</span>
+            <span class="stock-name" id="stockName">請輸入股票代碼</span>
+            <span class="stock-price" id="stockPrice">--</span>
+            <span class="stock-change" id="stockChange">--</span>
+        </div>
+
+        <div class="controls">
+            <div class="timeframe-btns">
+                <button class="tf-btn active" data-tf="D">日線</button>
+                <button class="tf-btn" data-tf="W">週線</button>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div id="chart"></div>
+        </div>
+
+        <div class="volume-container">
+            <div id="volumeChart"></div>
+        </div>
+
+        <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
