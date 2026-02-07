@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
+
 <body>
     <div class="container">
         <header class="header">
@@ -37,7 +39,19 @@
         </div>
 
         <div class="volume-container">
+            <div class="indicator-label">
+                <span>成交量</span>
+                <span id="volValues"></span>
+            </div>
             <div id="volumeChart"></div>
+        </div>
+
+        <div class="rsi-container">
+            <div class="indicator-label">
+                <span>RSI</span>
+                <span id="rsiValues"></span>
+            </div>
+            <div id="rsiChart"></div>
         </div>
 
         <div class="suggestions" id="suggestions"></div>
@@ -45,4 +59,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>
