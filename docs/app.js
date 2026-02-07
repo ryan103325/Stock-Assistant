@@ -17,7 +17,6 @@ const COLORS = {
     rsiLine: '#787B86',
 };
 
-// 隱藏價格線和標籤的通用設定
 const hidePriceLine = {
     lastValueVisible: false,
     priceLineVisible: false,
@@ -29,13 +28,10 @@ let stockMap = {};
 let nameMap = {};
 let currentStock = null;
 let currentTimeframe = 'D';
-let mainChart = null;
-let volumeChart = null;
-let rsiChart = null;
-let candleSeries = null;
-let volumeSeries = null;
-let rsiSeries6 = null;
-let rsiSeries12 = null;
+let currentData = [];
+let currentIndicators = {};
+let mainChart, volumeChart, rsiChart;
+let candleSeries, volumeSeries, rsiSeries6, rsiSeries12;
 let maSeries = {};
 let bbSeries = {};
 let volMaSeries = {};
@@ -48,7 +44,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadStock('2330');
 });
 
-// === 載入股票清單 ===
 async function loadStockList() {
     try {
         const resp = await fetch('./data/stock_list.json');
@@ -63,8 +58,9 @@ async function loadStockList() {
     }
 }
 
-// === 初始化圖表 ===
 function initCharts() {
+    const priceScaleWidth = 80;
+
     const chartOptions = {
         layout: {
             background: { type: 'solid', color: '#161b22' },
@@ -76,17 +72,24 @@ function initCharts() {
         },
         crosshair: {
             mode: LightweightCharts.CrosshairMode.Normal,
-            vertLine: { visible: false },
-            horzLine: { visible: false },
+            vertLine: { width: 1, color: '#758696', style: LightweightCharts.LineStyle.Dashed },
+            horzLine: { visible: true },
         },
-        rightPriceScale: { borderColor: '#30363d' },
-        timeScale: { borderColor: '#30363d', timeVisible: true },
+        rightPriceScale: {
+            borderColor: '#30363d',
+            minimumWidth: priceScaleWidth,
+        },
+        timeScale: {
+            borderColor: '#30363d',
+            timeVisible: true,
+            rightOffset: 5,
+        },
     };
 
     // === 主圖表 ===
     mainChart = LightweightCharts.createChart(document.getElementById('chart'), {
         ...chartOptions,
-        height: 400,
+        height: 380,
     });
 
     candleSeries = mainChart.addCandlestickSeries({
@@ -96,9 +99,11 @@ function initCharts() {
         borderDownColor: COLORS.down,
         wickUpColor: COLORS.up,
         wickDownColor: COLORS.down,
+        lastValueVisible: false,
+        priceLineVisible: false,
     });
 
-    // MA 均線 (關閉價格標籤和水平線)
+    // MA 均線
     maSeries.ma5 = mainChart.addLineSeries({ color: COLORS.ma5, lineWidth: 1, ...hidePriceLine });
     maSeries.ma10 = mainChart.addLineSeries({ color: COLORS.ma10, lineWidth: 1, ...hidePriceLine });
     maSeries.ma20 = mainChart.addLineSeries({ color: COLORS.ma20, lineWidth: 1, ...hidePriceLine });
@@ -111,63 +116,54 @@ function initCharts() {
     // === 成交量圖表 ===
     volumeChart = LightweightCharts.createChart(document.getElementById('volumeChart'), {
         ...chartOptions,
-        height: 100,
+        height: 130,
     });
 
     volumeSeries = volumeChart.addHistogramSeries({
         priceFormat: { type: 'volume' },
-        priceScaleId: '',
+        priceScaleId: 'right',
         ...hidePriceLine,
     });
-    volumeChart.priceScale('').applyOptions({ scaleMargins: { top: 0.1, bottom: 0 } });
+    volumeChart.priceScale('right').applyOptions({
+        scaleMargins: { top: 0.05, bottom: 0 },
+        minimumWidth: priceScaleWidth,
+    });
 
-    // 均量線
-    volMaSeries.ma5 = volumeChart.addLineSeries({ color: COLORS.ma5, lineWidth: 1, priceScaleId: '', ...hidePriceLine });
-    volMaSeries.ma10 = volumeChart.addLineSeries({ color: COLORS.ma10, lineWidth: 1, priceScaleId: '', ...hidePriceLine });
-    volMaSeries.ma20 = volumeChart.addLineSeries({ color: COLORS.ma20, lineWidth: 1, priceScaleId: '', ...hidePriceLine });
+    volMaSeries.ma5 = volumeChart.addLineSeries({ color: COLORS.ma5, lineWidth: 1, priceScaleId: 'right', ...hidePriceLine });
+    volMaSeries.ma10 = volumeChart.addLineSeries({ color: COLORS.ma10, lineWidth: 1, priceScaleId: 'right', ...hidePriceLine });
+    volMaSeries.ma20 = volumeChart.addLineSeries({ color: COLORS.ma20, lineWidth: 1, priceScaleId: 'right', ...hidePriceLine });
 
     // === RSI 圖表 ===
     rsiChart = LightweightCharts.createChart(document.getElementById('rsiChart'), {
         ...chartOptions,
-        height: 120,
+        height: 130,
     });
 
-    // RSI 使用左側價格軸避免衝突
-    rsiChart.priceScale('left').applyOptions({
-        visible: true,
+    rsiChart.priceScale('right').applyOptions({
         autoScale: true,
-        scaleMargins: { top: 0.1, bottom: 0.1 },
+        scaleMargins: { top: 0.02, bottom: 0.02 },
+        minimumWidth: priceScaleWidth,
     });
-    rsiChart.priceScale('right').applyOptions({ visible: false });
 
-    rsiSeries6 = rsiChart.addLineSeries({
-        color: COLORS.rsi6,
+    const rsiLineOpts = {
         lineWidth: 2,
-        priceScaleId: 'left',
+        priceScaleId: 'right',
         ...hidePriceLine,
-    });
+        autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }),
+    };
 
-    rsiSeries12 = rsiChart.addLineSeries({
-        color: COLORS.rsi12,
-        lineWidth: 2,
-        priceScaleId: 'left',
-        ...hidePriceLine,
-    });
+    rsiSeries6 = rsiChart.addLineSeries({ ...rsiLineOpts, color: COLORS.rsi6 });
+    rsiSeries12 = rsiChart.addLineSeries({ ...rsiLineOpts, color: COLORS.rsi12 });
 
-    // RSI 水平線 (70, 50, 30)
-    const rsiLineOpts = { lineWidth: 1, lineStyle: 2, priceScaleId: 'left', ...hidePriceLine };
-    const rsi70 = rsiChart.addLineSeries({ ...rsiLineOpts, color: COLORS.rsiLine });
-    const rsi50 = rsiChart.addLineSeries({ ...rsiLineOpts, color: COLORS.rsiLine, lineStyle: 1 });
-    const rsi30 = rsiChart.addLineSeries({ ...rsiLineOpts, color: COLORS.rsiLine });
+    const hLineOpts = {
+        lineWidth: 1, lineStyle: 2, priceScaleId: 'right', ...hidePriceLine,
+        autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }),
+    };
+    window.rsi70 = rsiChart.addLineSeries({ ...hLineOpts, color: COLORS.rsiLine });
+    window.rsi50 = rsiChart.addLineSeries({ ...hLineOpts, color: COLORS.rsiLine, lineStyle: 1 });
+    window.rsi30 = rsiChart.addLineSeries({ ...hLineOpts, color: COLORS.rsiLine });
 
-    // 水平線設一個很長的時間範圍
-    const startTime = '2000-01-01';
-    const endTime = '2030-12-31';
-    rsi70.setData([{ time: startTime, value: 70 }, { time: endTime, value: 70 }]);
-    rsi50.setData([{ time: startTime, value: 50 }, { time: endTime, value: 50 }]);
-    rsi30.setData([{ time: startTime, value: 30 }, { time: endTime, value: 30 }]);
-
-    // === 同步時間軸 ===
+    // === 時間軸同步 ===
     const syncTimeScale = (source, targets) => {
         source.timeScale().subscribeVisibleLogicalRangeChange(range => {
             if (range) targets.forEach(t => t.timeScale().setVisibleLogicalRange(range));
@@ -177,7 +173,34 @@ function initCharts() {
     syncTimeScale(volumeChart, [mainChart, rsiChart]);
     syncTimeScale(rsiChart, [mainChart, volumeChart]);
 
-    // 響應式
+    // === 十字線同步 + 浮動資訊面板 ===
+    const syncCrosshair = (sourceChart, sourceSeries, targetCharts) => {
+        sourceChart.subscribeCrosshairMove(param => {
+            targetCharts.forEach(({ chart, series }) => {
+                if (param.time) {
+                    chart.setCrosshairPosition(NaN, series, param.time);
+                } else {
+                    chart.clearCrosshairPosition();
+                }
+            });
+            // 更新浮動資訊面板
+            updateTooltip(param);
+        });
+    };
+
+    syncCrosshair(mainChart, candleSeries, [
+        { chart: volumeChart, series: volumeSeries },
+        { chart: rsiChart, series: rsiSeries6 },
+    ]);
+    syncCrosshair(volumeChart, volumeSeries, [
+        { chart: mainChart, series: candleSeries },
+        { chart: rsiChart, series: rsiSeries6 },
+    ]);
+    syncCrosshair(rsiChart, rsiSeries6, [
+        { chart: mainChart, series: candleSeries },
+        { chart: volumeChart, series: volumeSeries },
+    ]);
+
     window.addEventListener('resize', () => {
         mainChart.applyOptions({ width: document.getElementById('chart').clientWidth });
         volumeChart.applyOptions({ width: document.getElementById('volumeChart').clientWidth });
@@ -185,7 +208,92 @@ function initCharts() {
     });
 }
 
-// === 事件監聽 ===
+// === 浮動資訊面板 ===
+const tooltip = document.getElementById('tooltip');
+
+function updateTooltip(param) {
+    if (!param.time || currentData.length === 0) {
+        tooltip.classList.remove('show');
+        return;
+    }
+
+    const idx = currentData.findIndex(d => d.time === param.time);
+    if (idx < 0) {
+        tooltip.classList.remove('show');
+        return;
+    }
+
+    const bar = currentData[idx];
+    const prevClose = idx > 0 ? currentData[idx - 1].close : bar.open;
+    const change = bar.close - prevClose;
+    const changePct = ((change / prevClose) * 100).toFixed(2);
+    const sign = change >= 0 ? '+' : '';
+    const changeClass = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
+
+    const getClass = (val) => val > prevClose ? 'up' : val < prevClose ? 'down' : 'neutral';
+
+    // 指標數值
+    const ma5 = currentIndicators.ma5[idx];
+    const ma10 = currentIndicators.ma10[idx];
+    const ma20 = currentIndicators.ma20[idx];
+    const ma50 = currentIndicators.ma50[idx];
+    const bbU = currentIndicators.bb.upper[idx];
+    const bbL = currentIndicators.bb.lower[idx];
+    const rsi6 = currentIndicators.rsi6[idx];
+    const rsi12 = currentIndicators.rsi12[idx];
+    const vol = bar.volume;
+    const volMa5 = currentIndicators.volMa5[idx];
+    const volMa10 = currentIndicators.volMa10[idx];
+    const volMa20 = currentIndicators.volMa20[idx];
+
+    const fmtPrice = (v) => v !== null ? v.toFixed(1) : '-';
+    const fmtVol = (v) => v !== null ? Math.round(v).toLocaleString('en-US') : '-';
+
+    tooltip.innerHTML = `
+        <div class="tooltip-date">${bar.time}</div>
+        <div class="tooltip-row"><span class="tooltip-label">開盤</span><span class="tooltip-value ${getClass(bar.open)}">${bar.open.toFixed(1)}</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">最高</span><span class="tooltip-value ${getClass(bar.high)}">${bar.high.toFixed(1)}</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">最低</span><span class="tooltip-value ${getClass(bar.low)}">${bar.low.toFixed(1)}</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">收盤</span><span class="tooltip-value ${getClass(bar.close)}">${bar.close.toFixed(1)}</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">漲跌</span><span class="tooltip-value ${changeClass}">${sign}${change.toFixed(1)} (${sign}${changePct}%)</span></div>
+        ${ma5 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#FFA500">MA5</span><span class="tooltip-value">${fmtPrice(ma5)}</span></div>` : ''}
+        ${ma10 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#1E90FF">MA10</span><span class="tooltip-value">${fmtPrice(ma10)}</span></div>` : ''}
+        ${ma20 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#0000CD">MA20</span><span class="tooltip-value">${fmtPrice(ma20)}</span></div>` : ''}
+        ${ma50 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#DC143C">MA50</span><span class="tooltip-value">${fmtPrice(ma50)}</span></div>` : ''}
+        ${bbU !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#455A64">BB_U</span><span class="tooltip-value">${fmtPrice(bbU)}</span></div>` : ''}
+        ${bbL !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#455A64">BB_D</span><span class="tooltip-value">${fmtPrice(bbL)}</span></div>` : ''}
+        <div class="tooltip-sep"></div>
+        <div class="tooltip-row"><span class="tooltip-label">成交量</span><span class="tooltip-value">${fmtVol(vol)}張</span></div>
+        ${volMa5 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#FFA500">Vol MA5</span><span class="tooltip-value">${fmtVol(volMa5)}</span></div>` : ''}
+        ${volMa10 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#1E90FF">Vol MA10</span><span class="tooltip-value">${fmtVol(volMa10)}</span></div>` : ''}
+        ${volMa20 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#0000CD">Vol MA20</span><span class="tooltip-value">${fmtVol(volMa20)}</span></div>` : ''}
+        <div class="tooltip-sep"></div>
+        ${rsi6 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#FFA500">RSI6</span><span class="tooltip-value">${rsi6.toFixed(1)}</span></div>` : ''}
+        ${rsi12 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#9370DB">RSI12</span><span class="tooltip-value">${rsi12.toFixed(1)}</span></div>` : ''}
+    `;
+
+    // 位置計算 - 跟隨滑鼠
+    const x = param.point?.x ?? 0;
+    const y = param.point?.y ?? 0;
+    const chartRect = document.getElementById('chart').getBoundingClientRect();
+
+    let left = chartRect.left + x + 20;
+    let top = chartRect.top + y - 20;
+
+    // 避免超出視窗
+    if (left + 220 > window.innerWidth) {
+        left = chartRect.left + x - 230;
+    }
+    if (top + 300 > window.innerHeight) {
+        top = window.innerHeight - 320;
+    }
+    if (top < 10) top = 10;
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+    tooltip.classList.add('show');
+}
+
 function initEventListeners() {
     const input = document.getElementById('stockInput');
     const searchBtn = document.getElementById('searchBtn');
@@ -254,7 +362,6 @@ function handleSearch(query) {
     loadStock(stockId);
 }
 
-// === 載入股票資料 ===
 async function loadStock(stockId) {
     try {
         const resp = await fetch(`./data/${stockId}.json`);
@@ -268,10 +375,11 @@ async function loadStock(stockId) {
             data = convertToWeekly(data);
         }
 
-        const indicators = calculateIndicators(data);
-        updateCharts(data, indicators);
+        currentData = data;
+        currentIndicators = calculateIndicators(data);
+
+        updateCharts(data, currentIndicators);
         updateStockInfo(stockId, stockData.name, data);
-        updateIndicatorLabels(data, indicators);
 
     } catch (e) {
         console.error('❌ 載入失敗:', e);
@@ -279,7 +387,6 @@ async function loadStock(stockId) {
     }
 }
 
-// === 計算技術指標 ===
 function calculateIndicators(data) {
     const closes = data.map(d => d.close);
     const highs = data.map(d => d.high);
@@ -301,7 +408,6 @@ function calculateIndicators(data) {
     };
 }
 
-// === 計算 MA ===
 function calcMA(data, period) {
     const result = [];
     for (let i = 0; i < data.length; i++) {
@@ -315,7 +421,6 @@ function calcMA(data, period) {
     return result;
 }
 
-// === 計算布林通道 ===
 function calcBollingerBands(data, period, mult) {
     const ma = calcMA(data, period);
     const upper = [], lower = [];
@@ -335,7 +440,6 @@ function calcBollingerBands(data, period, mult) {
     return { upper, lower };
 }
 
-// === 計算 RSI (Wilder's RMA) ===
 function calcRSI(closes, period) {
     const rsi = [];
     const alpha = 1 / period;
@@ -367,7 +471,6 @@ function calcRSI(closes, period) {
     return rsi;
 }
 
-// === RSI 背離偵測 ===
 function detectRSIDivergence(lows, highs, rsi, lbL, lbR) {
     const divergences = [];
     const minRange = 5, maxRange = 60;
@@ -393,7 +496,7 @@ function detectRSIDivergence(lows, highs, rsi, lbL, lbR) {
             for (let j = i - minRange; j >= Math.max(0, i - maxRange); j--) {
                 if (rsi[j] !== null && isPivotLow(rsi, lbL, lbR, j)) {
                     if (lows[i] < lows[j] && rsi[i] > rsi[j]) {
-                        divergences.push({ type: 'bull', index: i });
+                        divergences.push({ type: 'bull', index: i, value: rsi[i] });
                     }
                     break;
                 }
@@ -404,7 +507,7 @@ function detectRSIDivergence(lows, highs, rsi, lbL, lbR) {
             for (let j = i - minRange; j >= Math.max(0, i - maxRange); j--) {
                 if (rsi[j] !== null && isPivotHigh(rsi, lbL, lbR, j)) {
                     if (highs[i] > highs[j] && rsi[i] < rsi[j]) {
-                        divergences.push({ type: 'bear', index: i });
+                        divergences.push({ type: 'bear', index: i, value: rsi[i] });
                     }
                     break;
                 }
@@ -414,47 +517,58 @@ function detectRSIDivergence(lows, highs, rsi, lbL, lbR) {
     return divergences;
 }
 
-// === 轉換為週線 ===
+// 用 ISO Week 分組，自動處理假日
 function convertToWeekly(dailyData) {
-    const weeklyData = [];
-    let currentWeek = null;
+    if (!dailyData.length) return [];
 
-    dailyData.forEach(d => {
-        const date = new Date(d.time);
-        const friday = new Date(date);
-        friday.setDate(date.getDate() + (5 - date.getDay() + 7) % 7);
-        const weekKey = friday.toISOString().split('T')[0];
+    // 取得 ISO Week Key (年-週)
+    const getWeekKey = (dateStr) => {
+        const d = new Date(dateStr);
+        d.setHours(0, 0, 0, 0);
+        const dayNum = d.getDay() || 7; // 週日=7
+        d.setDate(d.getDate() + 4 - dayNum); // 調整到該週的週四
+        const yearStart = new Date(d.getFullYear(), 0, 1);
+        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+    };
 
-        if (!currentWeek || currentWeek.time !== weekKey) {
-            if (currentWeek) weeklyData.push(currentWeek);
-            currentWeek = { time: weekKey, open: d.open, high: d.high, low: d.low, close: d.close, volume: d.volume };
+    const weeklyMap = new Map();
+
+    dailyData.forEach(day => {
+        const weekKey = getWeekKey(day.time);
+
+        if (!weeklyMap.has(weekKey)) {
+            weeklyMap.set(weekKey, {
+                time: day.time,  // 用該週第一個交易日的日期
+                open: day.open,
+                high: day.high,
+                low: day.low,
+                close: day.close,
+                volume: day.volume
+            });
         } else {
-            currentWeek.high = Math.max(currentWeek.high, d.high);
-            currentWeek.low = Math.min(currentWeek.low, d.low);
-            currentWeek.close = d.close;
-            currentWeek.volume += d.volume;
+            const w = weeklyMap.get(weekKey);
+            w.high = Math.max(w.high, day.high);
+            w.low = Math.min(w.low, day.low);
+            w.close = day.close;  // 用該週最後一天的收盤
+            w.volume += day.volume;
         }
     });
 
-    if (currentWeek) weeklyData.push(currentWeek);
-    return weeklyData;
+    return Array.from(weeklyMap.values());
 }
 
-// === 更新圖表 ===
 function updateCharts(data, indicators) {
-    // K線
     candleSeries.setData(data.map(d => ({
         time: d.time, open: d.open, high: d.high, low: d.low, close: d.close,
     })));
 
-    // 成交量
     volumeSeries.setData(data.map(d => ({
         time: d.time,
         value: d.volume,
         color: d.close >= d.open ? 'rgba(255, 82, 82, 0.6)' : 'rgba(0, 200, 83, 0.6)',
     })));
 
-    // MA
     const setLineData = (series, values) => {
         series.setData(data.map((d, i) => values[i] !== null ? { time: d.time, value: values[i] } : null).filter(Boolean));
     };
@@ -473,52 +587,39 @@ function updateCharts(data, indicators) {
     setLineData(rsiSeries6, indicators.rsi6);
     setLineData(rsiSeries12, indicators.rsi12);
 
+    // RSI 水平線
+    const rsiHLineData = (value) => data.map(d => ({ time: d.time, value }));
+    window.rsi70.setData(rsiHLineData(70));
+    window.rsi50.setData(rsiHLineData(50));
+    window.rsi30.setData(rsiHLineData(30));
+
     // RSI 背離標記
     if (indicators.divergences.length > 0) {
         rsiSeries6.setMarkers(indicators.divergences.map(d => ({
             time: data[d.index].time,
             position: d.type === 'bull' ? 'belowBar' : 'aboveBar',
             color: d.type === 'bull' ? '#00C853' : '#FF5252',
-            shape: d.type === 'bull' ? 'arrowUp' : 'arrowDown',
-            text: d.type === 'bull' ? 'Bull' : 'Bear',
+            shape: 'circle',
+            size: 1,
         })));
     } else {
         rsiSeries6.setMarkers([]);
     }
 
-    mainChart.timeScale().fitContent();
-    volumeChart.timeScale().fitContent();
-    rsiChart.timeScale().fitContent();
+    // 預設顯示最近 100 筆 - 三個圖表同時設定
+    const totalBars = data.length;
+    const visibleBars = Math.min(100, totalBars);
+    const range = { from: totalBars - visibleBars, to: totalBars };
+    mainChart.timeScale().setVisibleLogicalRange(range);
+    volumeChart.timeScale().setVisibleLogicalRange(range);
+    rsiChart.timeScale().setVisibleLogicalRange(range);
 }
 
-// === 格式化成交量 (加逗點) ===
 function formatVol(vol) {
     if (vol === null || isNaN(vol)) return '-';
     return Math.round(vol).toLocaleString('en-US') + '張';
 }
 
-// === 更新指標標籤 ===
-function updateIndicatorLabels(data, indicators) {
-    const last = data.length - 1;
-
-    // 成交量標籤
-    document.getElementById('volValues').innerHTML = `
-        <span style="color:${COLORS.up}">${formatVol(data[last].volume)}</span>
-        <span style="color:${COLORS.ma5}">MA5:${formatVol(indicators.volMa5[last])}</span>
-        <span style="color:${COLORS.ma10}">MA10:${formatVol(indicators.volMa10[last])}</span>
-        <span style="color:${COLORS.ma20}">MA20:${formatVol(indicators.volMa20[last])}</span>
-    `;
-
-    // RSI 標籤
-    const rsi6 = indicators.rsi6[last];
-    const rsi12 = indicators.rsi12[last];
-    document.getElementById('rsiValues').innerHTML = `
-        <span style="color:${COLORS.rsi6}">RSI6:${rsi6 !== null ? rsi6.toFixed(1) : '-'}</span>
-        <span style="color:${COLORS.rsi12}">RSI12:${rsi12 !== null ? rsi12.toFixed(1) : '-'}</span>
-    `;
-}
-
-// === 更新股票資訊 ===
 function updateStockInfo(stockId, stockName, data) {
     const last = data[data.length - 1];
     const prev = data[data.length - 2] || last;

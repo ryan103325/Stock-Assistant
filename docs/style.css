@@ -167,12 +167,57 @@ body {
     height: 100px;
 }
 
-/* === Controls === */
-.controls {
+/* === Chart === */
+.chart-container {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 4px;
+}
+
+#chart {
+    width: 100%;
+    height: 380px;
+}
+
+.volume-container {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 4px;
+}
+
+#volumeChart {
+    width: 100%;
+    height: 130px;
+}
+
+/* === RSI Chart === */
+.rsi-container {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.indicator-label {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    padding: 0 4px;
+}
+
+.indicator-label span:last-child {
+    font-family: monospace;
+    font-size: 0.75rem;
+}
+
+#rsiChart {
+    width: 100%;
+    height: 130px;
 }
 
 .timeframe-btns {
@@ -267,6 +312,68 @@ body {
 
 .suggestion-item .name {
     color: var(--text-primary);
+}
+
+/* === Chart Tooltip === */
+.chart-tooltip {
+    position: fixed;
+    display: none;
+    background: rgba(22, 27, 34, 0.95);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    pointer-events: none;
+    min-width: 200px;
+    backdrop-filter: blur(8px);
+}
+
+.chart-tooltip.show {
+    display: block;
+}
+
+.chart-tooltip .tooltip-date {
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+}
+
+.chart-tooltip .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.chart-tooltip .tooltip-label {
+    color: var(--text-secondary);
+}
+
+.chart-tooltip .tooltip-value {
+    font-family: monospace;
+    font-weight: 600;
+}
+
+.chart-tooltip .up {
+    color: #FF5252;
+}
+
+.chart-tooltip .down {
+    color: #00C853;
+}
+
+.chart-tooltip .neutral {
+    color: var(--text-primary);
+}
+
+.chart-tooltip .tooltip-sep {
+    border-top: 1px dashed #30363d;
+    margin: 6px 0;
 }
 
 /* === Responsive === */
