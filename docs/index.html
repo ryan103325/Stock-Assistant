@@ -36,7 +36,10 @@
 
         <div class="chart-container">
             <div class="indicator-label"><span>K線</span></div>
-            <div id="chart"></div>
+            <div class="chart-wrapper">
+                <div id="chart"></div>
+                <canvas id="vpCanvas"></canvas>
+            </div>
         </div>
 
         <div class="volume-container">
@@ -56,6 +59,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="volume_profile.js"></script>
 </body>
 
 </html>

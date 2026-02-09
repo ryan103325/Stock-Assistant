@@ -14,7 +14,7 @@ META_DIR = BASE_DIR / "src" / "data_core" / "market_meta"
 OUTPUT_DIR = BASE_DIR / "docs" / "data"
 
 # 設定
-MAX_DAYS = 500  # 最多保留幾天資料
+# MAX_DAYS = 500  # 不限制天數，使用全部資料
 
 
 def load_stock_names():
@@ -53,8 +53,8 @@ def convert_csv_to_json(csv_path: Path, stock_name: str) -> dict | None:
         # 移除停止交易日 (OHLC 全為 0)
         df = df[~((df['Open'] == 0) & (df['High'] == 0) & (df['Low'] == 0) & (df['Close'] == 0))]
         
-        # 取最後 MAX_DAYS 筆
-        df = df.tail(MAX_DAYS).copy()
+        # 使用全部資料（不限制天數）
+        df = df.copy()
         
         if df.empty:
             return None

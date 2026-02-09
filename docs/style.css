@@ -256,18 +256,46 @@ body {
     margin-bottom: 8px;
 }
 
-#chart {
+.chart-wrapper {
+    position: relative;
     width: 100%;
     height: 400px;
+    overflow: hidden;
+}
+
+#chart {
+    width: 100%;
+    height: 100%;
+}
+
+#vpCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
 }
 
 .volume-container {
     background: var(--bg-secondary);
     border-radius: 12px;
     padding: 16px;
+    margin-bottom: 8px;
 }
 
 #volumeChart {
+    width: 100%;
+    height: 120px;
+}
+
+.rsi-container {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+#rsiChart {
     width: 100%;
     height: 120px;
 }

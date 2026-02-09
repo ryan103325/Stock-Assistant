@@ -95,6 +95,10 @@ def fetch_finmind_stock(stock_id: str, start_date: str = "2026-01-01") -> pd.Dat
         
         result['Amount'] = result['Close'] * result['Volume']
         
+        # 過濾週末（週六=5, 週日=6）
+        result['_weekday'] = pd.to_datetime(result['Date']).dt.weekday
+        result = result[result['_weekday'] < 5].drop(columns=['_weekday'])
+        
         return result
         
     except Exception as e:

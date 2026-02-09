@@ -35,6 +35,7 @@ let candleSeries, volumeSeries, rsiSeries6, rsiSeries12;
 let maSeries = {};
 let bbSeries = {};
 let volMaSeries = {};
+let currentRSData = [];  // 儲存 RS 數據供 tooltip 使用
 
 // === 初始化 ===
 document.addEventListener('DOMContentLoaded', async () => {
@@ -164,14 +165,26 @@ function initCharts() {
     window.rsi30 = rsiChart.addLineSeries({ ...hLineOpts, color: COLORS.rsiLine });
 
     // === 時間軸同步 ===
-    const syncTimeScale = (source, targets) => {
-        source.timeScale().subscribeVisibleLogicalRangeChange(range => {
-            if (range) targets.forEach(t => t.timeScale().setVisibleLogicalRange(range));
+    // 全局同步函數，讓所有圖表對齊（包含後續加入的 rsChartV2）
+    window.syncAllChartsTimeScale = (range, source) => {
+        if (!range) return;
+        const charts = [mainChart, volumeChart, rsiChart];
+        if (typeof rsChartV2 !== 'undefined' && rsChartV2) charts.push(rsChartV2);
+        charts.forEach(chart => {
+            if (chart && chart !== source) {
+                chart.timeScale().setVisibleLogicalRange(range);
+            }
         });
     };
-    syncTimeScale(mainChart, [volumeChart, rsiChart]);
-    syncTimeScale(volumeChart, [mainChart, rsiChart]);
-    syncTimeScale(rsiChart, [mainChart, volumeChart]);
+
+    const setupChartSync = (chart) => {
+        chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+            window.syncAllChartsTimeScale(range, chart);
+        });
+    };
+    setupChartSync(mainChart);
+    setupChartSync(volumeChart);
+    setupChartSync(rsiChart);
 
     // === 十字線同步 + 浮動資訊面板 ===
     const syncCrosshair = (sourceChart, sourceSeries, targetCharts) => {
@@ -210,6 +223,31 @@ function initCharts() {
 
 // === 浮動資訊面板 ===
 const tooltip = document.getElementById('tooltip');
+
+// 取得 RS 數據的 tooltip 內容
+function getRSTooltip(idx) {
+    if (!currentRSData || currentRSData.length === 0 || idx < 0 || idx >= currentRSData.length) {
+        return '';
+    }
+    const rs = currentRSData[idx];
+    if (!rs) return '';
+
+    const fmtRS = (v) => v !== null && v !== undefined ? v.toFixed(2) : '-';
+    const getColor = (v) => v > 0 ? '#ef5350' : v < 0 ? '#26a69a' : '#8b949e';
+
+    let html = '<div class="tooltip-sep"></div>';
+    if (rs.mansfield !== null) {
+        const rsColor = rs.color || '#8b949e';  // 使用柱狀圖顏色
+        html += `<div class="tooltip-row"><span class="tooltip-label">RS</span><span class="tooltip-value" style="color:${rsColor}">${fmtRS(rs.mansfield)}%</span></div>`;
+    }
+    if (rs.rs3d !== null) {
+        html += `<div class="tooltip-row"><span class="tooltip-label" style="color:#42a5f5">3d RS</span><span class="tooltip-value" style="color:${getColor(rs.rs3d)}">${fmtRS(rs.rs3d)}%</span></div>`;
+    }
+    if (rs.rs10d !== null) {
+        html += `<div class="tooltip-row"><span class="tooltip-label" style="color:#ff9800">10d RS</span><span class="tooltip-value" style="color:${getColor(rs.rs10d)}">${fmtRS(rs.rs10d)}%</span></div>`;
+    }
+    return html;
+}
 
 function updateTooltip(param) {
     if (!param.time || currentData.length === 0) {
@@ -270,6 +308,7 @@ function updateTooltip(param) {
         <div class="tooltip-sep"></div>
         ${rsi6 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#FFA500">RSI6</span><span class="tooltip-value">${rsi6.toFixed(1)}</span></div>` : ''}
         ${rsi12 !== null ? `<div class="tooltip-row"><span class="tooltip-label" style="color:#9370DB">RSI12</span><span class="tooltip-value">${rsi12.toFixed(1)}</span></div>` : ''}
+        ${getRSTooltip(idx)}
     `;
 
     // 位置計算 - 跟隨滑鼠
@@ -563,11 +602,11 @@ function updateCharts(data, indicators) {
         time: d.time, open: d.open, high: d.high, low: d.low, close: d.close,
     })));
 
-    volumeSeries.setData(data.map(d => ({
-        time: d.time,
-        value: d.volume,
-        color: d.close >= d.open ? 'rgba(255, 82, 82, 0.6)' : 'rgba(0, 200, 83, 0.6)',
-    })));
+    volumeSeries.setData(data.map((d, i) => {
+        const prevClose = i > 0 ? data[i - 1].close : d.close;
+        let color = d.close > prevClose ? '#ef5350' : d.close < prevClose ? '#00C853' : '#757575';
+        return { time: d.time, value: d.volume, color: color };
+    }));
 
     const setLineData = (series, values) => {
         series.setData(data.map((d, i) => values[i] !== null ? { time: d.time, value: values[i] } : null).filter(Boolean));
@@ -613,6 +652,9 @@ function updateCharts(data, indicators) {
     mainChart.timeScale().setVisibleLogicalRange(range);
     volumeChart.timeScale().setVisibleLogicalRange(range);
     rsiChart.timeScale().setVisibleLogicalRange(range);
+    if (typeof rsChartV2 !== 'undefined' && rsChartV2) {
+        rsChartV2.timeScale().setVisibleLogicalRange(range);
+    }
 }
 
 function formatVol(vol) {
@@ -636,4 +678,813 @@ function updateStockInfo(stockId, stockName, data) {
     const sign = change >= 0 ? '+' : '';
     changeEl.textContent = `${sign}${change.toFixed(1)} (${sign}${changePct}%)`;
     changeEl.className = 'stock-change ' + (change > 0 ? 'up' : change < 0 ? 'down' : 'flat');
+}
+// ===================================================================
+// Volume Color & MTF-RS Indicator Integration
+// ===================================================================
+
+// Volume Color Calculation
+function addVolumeColors(candleData, volumeData) {
+    return volumeData.map((v, i) => {
+        const currentClose = candleData[i].close;
+        const prevClose = i > 0 ? candleData[i - 1].close : currentClose;
+
+        let color;
+        if (currentClose > prevClose) {
+            color = '#ef5350';
+        } else if (currentClose < prevClose) {
+            color = '#26a69a';
+        } else {
+            color = '#757575';
+        }
+
+        return { ...v, color: color };
+    });
+}
+
+// SMA Calculation
+function calculateSMA(data, period) {
+    const result = [];
+    for (let i = 0; i < data.length; i++) {
+        if (i < period - 1) {
+            result.push(null);
+        } else {
+            const sum = data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+            result.push(sum / period);
+        }
+    }
+    return result;
+}
+
+// Standard Deviation Calculation
+function calculateStdev(data, period) {
+    const result = [];
+    for (let i = 0; i < data.length; i++) {
+        if (i < period - 1) {
+            result.push(null);
+        } else {
+            const slice = data.slice(i - period + 1, i + 1);
+            const mean = slice.reduce((a, b) => a + b, 0) / period;
+            const variance = slice.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / period;
+            result.push(Math.sqrt(variance));
+        }
+    }
+    return result;
+}
+
+// Mansfield RS Calculation
+function calculateMansfieldRS(stockData, indexData) {
+    // 建立 TAIEX 日期索引
+    const indexMap = new Map(indexData.map(d => [d.time, d]));
+
+    // 用 stockData 的日期為基準，匹配對應的 TAIEX 數據（缺失時用前一天的值）
+    let lastValidIndex = null;
+    const alignedData = stockData.map(s => {
+        const idx = indexMap.get(s.time);
+        if (idx) {
+            lastValidIndex = idx;
+            return { stock: s, index: idx };
+        } else {
+            // 缺失時用前一天的值
+            return { stock: s, index: lastValidIndex };
+        }
+    });
+
+    const rsRatio = alignedData.map(d =>
+        d.index ? (d.stock.close / d.index.close) * 100 : null
+    );
+
+    // 計算 SMA 時忽略 null 值
+    const rsBaseline = [];
+    for (let i = 0; i < rsRatio.length; i++) {
+        if (i < 49) {
+            rsBaseline.push(null);
+        } else {
+            const window = rsRatio.slice(i - 49, i + 1).filter(v => v !== null);
+            rsBaseline.push(window.length > 0 ? window.reduce((a, b) => a + b, 0) / window.length : null);
+        }
+    }
+
+    const mansfield = rsRatio.map((ratio, i) =>
+        ratio !== null && rsBaseline[i] !== null && rsBaseline[i] !== 0
+            ? ((ratio - rsBaseline[i]) / rsBaseline[i]) * 100
+            : null
+    );
+
+    const sigma = calculateStdev(mansfield.map(m => m || 0), 21);
+
+    const strengthLevel = mansfield.map((m, i) => {
+        if (m === null || sigma[i] === null) return null;
+        const neutralThreshold = 0.7 * sigma[i];
+        const extremeThreshold = 1.5 * sigma[i];
+        if (m > extremeThreshold) return 5;
+        if (m > neutralThreshold) return 4;
+        if (m > -neutralThreshold) return 3;
+        if (m > -extremeThreshold) return 2;
+        return 1;
+    });
+
+    const momentum = mansfield.map((m, i) =>
+        i > 0 && m !== null && mansfield[i - 1] !== null ? m - mansfield[i - 1] : null
+    );
+    const isAccelerating = momentum.map(m => m !== null && m > 0);
+
+    // 10種顏色：5個強度等級 × 加速/減速，使用更有區分度的配色
+    const colors = mansfield.map((m, i) => {
+        const level = strengthLevel[i];
+        const accel = isAccelerating[i];
+        if (level === null) return null;
+        // Level 5: 極強 - 深紅/粉紅
+        if (level === 5) return accel ? '#B71C1C' : '#f79696ff';
+        // Level 4: 強 - 橙色/淺橙
+        if (level === 4) return accel ? '#E65100' : '#f3c786ff';
+        // Level 3: 中性 - 灰色/淺灰
+        if (level === 3) return accel ? '#616161' : '#d6d6d6ff';
+        // Level 2: 弱 - 青綠/淺青
+        if (level === 2) return accel ? '#3cff00aa' : '#b9ffa4aa';
+        // Level 1: 極弱 - 深藍/天藍
+        return accel ? '#0077ffff' : '#77d0f9ff';
+    });
+
+    const rs3d = alignedData.map((d, i) => {
+        if (i < 3 || !d.index) return null;
+        const prev = alignedData[i - 3];
+        if (!prev || !prev.index) return null;
+        const stockChange = (d.stock.close / prev.stock.close - 1) * 100;
+        const indexChange = (d.index.close / prev.index.close - 1) * 100;
+        return stockChange - indexChange;
+    });
+
+    const rs10d = alignedData.map((d, i) => {
+        if (i < 10 || !d.index) return null;
+        const prev = alignedData[i - 10];
+        if (!prev || !prev.index) return null;
+        const stockChange = (d.stock.close / prev.stock.close - 1) * 100;
+        const indexChange = (d.index.close / prev.index.close - 1) * 100;
+        return stockChange - indexChange;
+    });
+
+    return stockData.map((s, i) => ({
+        time: s.time,
+        mansfield: mansfield[i],
+        color: colors[i],
+        level: strengthLevel[i],
+        isAccelerating: isAccelerating[i],
+        rs3d: rs3d[i],
+        rs10d: rs10d[i]
+    }));
+}
+
+// Load TAIEX Data
+async function loadTAIEXData() {
+    try {
+        const response = await fetch('data/TAIEX.json');
+        const json = await response.json();
+        return json.data;
+    } catch (error) {
+        console.error('Failed to load TAIEX data:', error);
+        return null;
+    }
+}
+
+let taiexData = null;
+let rsChart = null;
+let mansfieldSeries = null;
+let rs10dSeries = null;
+let rs3dSeries = null;
+
+async function initializeTAIEX() {
+    taiexData = await loadTAIEXData();
+    if (taiexData) {
+        console.log('TAIEX data loaded:', taiexData.length, 'bars');
+    }
+}
+
+function createRSChartContainer() {
+    return; // Disabled - using V2 version only
+    if (document.getElementById('rsChartContainer')) return;
+    const rsiContainer = document.querySelector('.rsi-container') || document.querySelector('[id*="rsi"]')?.parentElement;
+    const rsContainer = document.createElement('div');
+    rsContainer.className = 'rs-container';
+    rsContainer.innerHTML = '<h3 style="margin: 0 0 8px 0; color: #e0e0e0; font-size: 14px;">相對強度</h3><div id="rsChart" style="width: 100%; height: 200px;"></div>';
+    if (rsiContainer && rsiContainer.nextSibling) {
+        rsiContainer.parentNode.insertBefore(rsContainer, rsiContainer.nextSibling);
+    } else {
+        document.body.appendChild(rsContainer);
+    }
+    const style = document.createElement('style');
+    style.textContent = '.rs-container { background: var(--bg-secondary, #1e222d); border-radius: 12px; padding: 16px; margin-top: 8px; } #rsChart { width: 100%; height: 200px; }';
+    document.head.appendChild(style);
+}
+
+function initializeRSChart() {
+    return; // Disabled - using V2 version only
+    createRSChartContainer();
+    const container = document.getElementById('rsChart');
+    if (!container) return;
+    rsChart = LightweightCharts.createChart(container, {
+        layout: { background: { color: '#1e222d' }, textColor: '#d1d4dc' },
+        grid: { vertLines: { color: '#2b2b43' }, horzLines: { color: '#2b2b43' } },
+        width: container.clientWidth,
+        height: 200,
+        timeScale: { borderColor: '#485c7b' },
+        rightPriceScale: { borderColor: '#485c7b' }
+    });
+    mansfieldSeries = rsChart.addHistogramSeries({ priceFormat: { type: 'price', precision: 2 } });
+    rs10dSeries = rsChart.addLineSeries({ color: '#ff9800', lineWidth: 2, title: '10d RS' });
+    rs3dSeries = rsChart.addLineSeries({ color: '#42a5f5', lineWidth: 1, title: '3d RS' });
+    console.log('RS chart initialized');
+}
+
+async function updateRSChart(stockData) {
+    if (!taiexData) return;
+    if (!rsChart) initializeRSChart();
+    const rsData = calculateMansfieldRS(stockData, taiexData);
+    mansfieldSeries.setData(rsData.filter(d => d.mansfield !== null).map(d => ({ time: d.time, value: d.mansfield, color: d.color })));
+    rs10dSeries.setData(rsData.filter(d => d.rs10d !== null).map(d => ({ time: d.time, value: d.rs10d })));
+    rs3dSeries.setData(rsData.filter(d => d.rs3d !== null).map(d => ({ time: d.time, value: d.rs3d })));
+    console.log('RS chart updated:', rsData.length, 'bars');
+}
+
+function wrapLoadStockFunction() {
+    if (typeof window.originalLoadStock === 'undefined' && typeof loadStock === 'function') {
+        window.originalLoadStock = loadStock;
+        window.loadStock = async function (stockId) {
+            const result = await window.originalLoadStock(stockId);
+
+            // 更新成交量顏色
+            if (typeof volumeSeries !== 'undefined' && volumeSeries && currentData) {
+                const volumeData = currentData.map((d, i) => {
+                    const prevClose = i > 0 ? currentData[i - 1].close : d.close;
+                    let color = d.close > prevClose ? '#ef5350' : d.close < prevClose ? '#00C853' : '#757575';
+                    return { time: d.time, value: d.volume, color: color };
+                });
+                volumeSeries.setData(volumeData);
+                console.log('Volume colors updated');
+            }
+
+            // 更新 RS 指標 (使用 V2 版本)
+            if (currentData && currentData.length > 0 && typeof updateRSChartV2 === 'function') {
+                await updateRSChartV2(currentData);
+            }
+
+            // 確保所有圖表顯示最近 100 筆
+            if (currentData && currentData.length > 0) {
+                const totalBars = currentData.length;
+                const visibleBars = Math.min(100, totalBars);
+                const range = { from: totalBars - visibleBars, to: totalBars };
+
+                if (mainChart) mainChart.timeScale().setVisibleLogicalRange(range);
+                if (volumeChart) volumeChart.timeScale().setVisibleLogicalRange(range);
+                if (rsiChart) rsiChart.timeScale().setVisibleLogicalRange(range);
+                if (typeof rsChartV2 !== 'undefined' && rsChartV2) {
+                    rsChartV2.timeScale().setVisibleLogicalRange(range);
+                }
+            }
+
+            return result;
+        };
+        console.log('loadStock function wrapped');
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', async () => {
+        await initializeTAIEX();
+        setTimeout(() => {
+            // initializeRSChart(); // 已棄用，改用 V2 版本
+            wrapLoadStockFunction();
+            console.log('RS indicator system initialized');
+        }, 1000);
+    });
+}
+// ===================================================================
+// RS Chart Auto-Update System - Alternative Approach
+// ===================================================================
+
+// Store last data hash to detect changes
+let lastDataHash = '';
+
+function getDataHash(data) {
+    if (!data || data.length === 0) return '';
+    return data.length + '_' + data[0].time + '_' + data[data.length - 1].time;
+}
+
+// Check for data changes and update RS chart
+function checkAndUpdateRS() {
+    if (typeof currentData === 'undefined' || !currentData || currentData.length === 0) return;
+
+    const newHash = getDataHash(currentData);
+    if (newHash !== lastDataHash) {
+        lastDataHash = newHash;
+
+        // Update volume colors
+        if (typeof volumeSeries !== 'undefined' && volumeSeries) {
+            const volumeData = currentData.map((d, i) => {
+                const prevClose = i > 0 ? currentData[i - 1].close : d.close;
+                let color = d.close > prevClose ? '#ef5350' : d.close < prevClose ? '#00C853' : '#757575';
+                return { time: d.time, value: d.volume, color: color };
+            });
+            volumeSeries.setData(volumeData);
+            console.log('Volume colors updated');
+        }
+
+        // Update RS chart
+        if (taiexData && currentData.length > 0) {
+            updateRSChart(currentData);
+        }
+    }
+}
+
+// Global function for manual refresh
+window.refreshRS = function () {
+    if (typeof currentData !== 'undefined' && currentData && currentData.length > 0) {
+        lastDataHash = ''; // Force update
+        checkAndUpdateRS();
+        console.log('RS chart manually refreshed');
+    } else {
+        console.log('No stock data loaded yet');
+    }
+};
+
+// Start checking for data changes
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', () => {
+        // Check every 500ms for data changes
+        setInterval(checkAndUpdateRS, 500);
+        console.log('RS auto-update system started');
+    });
+}
+// ===================================================================
+// RS Chart Fix - Separate Charts, Single Container, Correct Colors
+// ===================================================================
+
+// K-bar colors (matching the main chart)
+const RS_COLORS = {
+    up: '#ef5350',      // Red for up
+    down: '#00C853',    // Green for down
+    neutral: '#757575'  // Gray for unchanged
+};
+
+// Prevent duplicate containers
+let rsContainerCreated = false;
+
+// Fixed container creation - only one container
+function createRSChartContainerFixed() {
+    return; // Disabled - using V2 version only
+    // Check if already created
+    if (rsContainerCreated) return;
+    if (document.getElementById('rsChartContainer')) {
+        rsContainerCreated = true;
+        return;
+    }
+
+    // Find insertion point
+    const rsiContainer = document.querySelector('.rsi-container');
+
+    // Create container with TWO chart divs
+    const rsContainer = document.createElement('div');
+    rsContainer.id = 'rsChartContainer';
+    rsContainer.className = 'rs-container';
+    rsContainer.innerHTML = `
+        <h3 style="margin: 0 0 8px 0; color: #e0e0e0; font-size: 14px;">相對強度</h3>
+        <div id="mansfieldChart" style="width: 100%; height: 120px;"></div>
+        <div id="rsLineChart" style="width: 100%; height: 100px; margin-top: 4px;"></div>
+    `;
+
+    // Insert after RSI container
+    if (rsiContainer && rsiContainer.nextSibling) {
+        rsiContainer.parentNode.insertBefore(rsContainer, rsiContainer.nextSibling);
+    } else if (rsiContainer) {
+        rsiContainer.parentNode.appendChild(rsContainer);
+    } else {
+        document.body.appendChild(rsContainer);
+    }
+
+    // Add styles
+    const style = document.createElement('style');
+    style.id = 'rs-styles';
+    style.textContent = `
+        .rs-container {
+            background: var(--bg-secondary, #1e222d);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 8px;
+        }
+    `;
+    if (!document.getElementById('rs-styles')) {
+        document.head.appendChild(style);
+    }
+
+    rsContainerCreated = true;
+    console.log('RS container created (fixed version)');
+}
+
+// Separate charts for histogram and lines
+let mansfieldChart = null;
+let rsLineChart = null;
+let mansfieldHistogram = null;
+let rs10dLine = null;
+let rs3dLine = null;
+
+function initializeRSChartsFixed() {
+    return; // Disabled - using V2 version only
+    createRSChartContainerFixed();
+
+    const mansfieldContainer = document.getElementById('mansfieldChart');
+    const lineContainer = document.getElementById('rsLineChart');
+
+    if (!mansfieldContainer || !lineContainer) return;
+
+    // Mansfield Histogram Chart
+    mansfieldChart = LightweightCharts.createChart(mansfieldContainer, {
+        layout: { background: { color: '#1e222d' }, textColor: '#d1d4dc' },
+        grid: { vertLines: { color: '#2b2b43' }, horzLines: { color: '#2b2b43' } },
+        width: mansfieldContainer.clientWidth,
+        height: 120,
+        timeScale: { borderColor: '#485c7b', visible: false },
+        rightPriceScale: { borderColor: '#485c7b' }
+    });
+
+    mansfieldHistogram = mansfieldChart.addHistogramSeries({
+        priceFormat: { type: 'price', precision: 2 }
+    });
+
+    // RS Lines Chart
+    rsLineChart = LightweightCharts.createChart(lineContainer, {
+        layout: { background: { color: '#1e222d' }, textColor: '#d1d4dc' },
+        grid: { vertLines: { color: '#2b2b43' }, horzLines: { color: '#2b2b43' } },
+        width: lineContainer.clientWidth,
+        height: 100,
+        timeScale: { borderColor: '#485c7b' },
+        rightPriceScale: { borderColor: '#485c7b' }
+    });
+
+    rs10dLine = rsLineChart.addLineSeries({ color: '#ff9800', lineWidth: 2, title: '10d RS' });
+    rs3dLine = rsLineChart.addLineSeries({ color: '#42a5f5', lineWidth: 1, title: '3d RS' });
+
+    // Sync time scales
+    mansfieldChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+        if (range) rsLineChart.timeScale().setVisibleLogicalRange(range);
+    });
+    rsLineChart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+        if (range) mansfieldChart.timeScale().setVisibleLogicalRange(range);
+    });
+
+    console.log('RS charts initialized (fixed - separate histogram and lines)');
+}
+
+// Fixed update function
+async function updateRSChartsFixed(stockData) {
+    if (!taiexData) {
+        console.log('Waiting for TAIEX data...');
+        return;
+    }
+
+    if (!mansfieldChart || !rsLineChart) {
+        initializeRSChartsFixed();
+    }
+
+    const rsData = calculateMansfieldRS(stockData, taiexData);
+
+    // Update Mansfield histogram
+    const histogramData = rsData
+        .filter(d => d.mansfield !== null)
+        .map(d => ({ time: d.time, value: d.mansfield, color: d.color }));
+    mansfieldHistogram.setData(histogramData);
+
+    // Update RS lines
+    rs10dLine.setData(rsData.filter(d => d.rs10d !== null).map(d => ({ time: d.time, value: d.rs10d })));
+    rs3dLine.setData(rsData.filter(d => d.rs3d !== null).map(d => ({ time: d.time, value: d.rs3d })));
+
+    console.log('RS charts updated:', rsData.length, 'bars');
+}
+
+// Fixed volume color update with K-bar matching green
+function updateVolumeColorsFixed(candleData) {
+    if (typeof volumeSeries === 'undefined' || !volumeSeries) return;
+
+    const volumeData = candleData.map((d, i) => {
+        const prevClose = i > 0 ? candleData[i - 1].close : d.close;
+        let color;
+        if (d.close > prevClose) {
+            color = RS_COLORS.up;      // #ef5350 (red)
+        } else if (d.close < prevClose) {
+            color = RS_COLORS.down;    // #00C853 (green)
+        } else {
+            color = RS_COLORS.neutral; // #757575 (gray)
+        }
+        return { time: d.time, value: d.volume, color: color };
+    });
+
+    volumeSeries.setData(volumeData);
+    console.log('Volume colors updated (matching K-bar green)');
+}
+
+// Fixed data change detection
+let lastDataHashFixed = '';
+
+function checkAndUpdateRSFixed() {
+    if (typeof currentData === 'undefined' || !currentData || currentData.length === 0) return;
+
+    const newHash = currentData.length + '_' + currentData[0].time + '_' + currentData[currentData.length - 1].time;
+    if (newHash !== lastDataHashFixed) {
+        lastDataHashFixed = newHash;
+
+        // Update volume colors
+        updateVolumeColorsFixed(currentData);
+
+        // Update RS charts
+        if (taiexData) {
+            updateRSChartsFixed(currentData);
+        }
+    }
+}
+
+// Remove old duplicate containers on load
+function cleanupOldContainers() {
+    const oldContainers = document.querySelectorAll('.rs-container');
+    oldContainers.forEach((container, index) => {
+        if (index > 0 || !container.querySelector('#mansfieldChart')) {
+            container.remove();
+            console.log('Removed old RS container');
+        }
+    });
+}
+
+// Override old functions
+window.refreshRS = function () {
+    lastDataHashFixed = '';
+    checkAndUpdateRSFixed();
+    console.log('RS manually refreshed');
+};
+
+// Initialize on load
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', async () => {
+        // Wait for TAIEX
+        let attempts = 0;
+        while (!taiexData && attempts < 20) {
+            await new Promise(r => setTimeout(r, 250));
+            attempts++;
+        }
+
+        // Cleanup old containers
+        cleanupOldContainers();
+
+        // Initialize
+        initializeRSChartsFixed();
+
+        // Start auto-update
+        setInterval(checkAndUpdateRSFixed, 500);
+        console.log('RS system (fixed) initialized');
+    });
+}
+// ===================================================================
+// RS Chart - Single Chart with Dual Y-Axis (Overlay Mode)
+// ===================================================================
+
+const RS_COLORS_V2 = {
+    up: '#ef5350',
+    down: '#00C853',    // Green for down
+    neutral: '#757575'
+};
+
+let rsContainerCreatedV2 = false;
+let rsChartV2 = null;
+let mansfieldSeriesV2 = null;
+let rs10dSeriesV2 = null;
+let rs3dSeriesV2 = null;
+
+function createRSChartContainerV2() {
+    if (rsContainerCreatedV2) return;
+    if (document.getElementById('rsChartContainerV2')) {
+        rsContainerCreatedV2 = true;
+        return;
+    }
+
+    // Remove all old containers
+    document.querySelectorAll('.rs-container').forEach(c => c.remove());
+
+    const rsiContainer = document.querySelector('.rsi-container');
+
+    const rsContainer = document.createElement('div');
+    rsContainer.id = 'rsChartContainerV2';
+    rsContainer.className = 'rs-container';
+    rsContainer.innerHTML = `
+        <div class="indicator-label"><span>相對強度</span></div>
+        <div id="rsChartV2" style="width: 100%; height: 200px;"></div>
+    `;
+
+    if (rsiContainer && rsiContainer.nextSibling) {
+        rsiContainer.parentNode.insertBefore(rsContainer, rsiContainer.nextSibling);
+    } else if (rsiContainer) {
+        rsiContainer.parentNode.appendChild(rsContainer);
+    } else {
+        document.body.appendChild(rsContainer);
+    }
+
+    const style = document.createElement('style');
+    style.id = 'rs-styles-v2';
+    style.textContent = `.rs-container { background: var(--bg-secondary, #161b22); border-radius: 12px; padding: 16px; margin-top: 8px; }`;
+    if (!document.getElementById('rs-styles-v2')) {
+        document.head.appendChild(style);
+    }
+
+    rsContainerCreatedV2 = true;
+}
+
+function initializeRSChartV2() {
+    createRSChartContainerV2();
+
+    const container = document.getElementById('rsChartV2');
+    if (!container) return;
+
+    // Single chart with dual price scales
+    rsChartV2 = LightweightCharts.createChart(container, {
+        layout: { background: { type: 'solid', color: '#161b22' }, textColor: '#8b949e' },
+        grid: { vertLines: { color: '#21262d' }, horzLines: { color: '#21262d' } },
+        width: container.clientWidth,
+        height: 200,
+        timeScale: { borderColor: '#30363d', rightOffset: 5 },
+        rightPriceScale: {
+            borderColor: '#30363d',
+            scaleMargins: { top: 0.1, bottom: 0.1 },
+            minimumWidth: 80
+        },
+        leftPriceScale: {
+            visible: false,  // 隱藏左側價格標籤
+            borderColor: '#30363d',
+            scaleMargins: { top: 0.1, bottom: 0.1 },
+            minimumWidth: 80
+        }
+    });
+
+    // Mansfield histogram on RIGHT price scale (hidden label)
+    mansfieldSeriesV2 = rsChartV2.addHistogramSeries({
+        priceScaleId: 'right',
+        priceFormat: { type: 'price', precision: 2 },
+        lastValueVisible: false,
+        priceLineVisible: false
+    });
+
+    // RS lines on RIGHT price scale (hidden label)
+    rs10dSeriesV2 = rsChartV2.addLineSeries({
+        priceScaleId: 'right',
+        color: '#ff9800',
+        lineWidth: 2,
+        lastValueVisible: false,
+        priceLineVisible: false
+    });
+
+    rs3dSeriesV2 = rsChartV2.addLineSeries({
+        priceScaleId: 'right',
+        color: '#42a5f5',
+        lineWidth: 1,
+        lastValueVisible: false,
+        priceLineVisible: false
+    });
+
+    // 與其他圖表同步時間軸（使用全局同步函數）
+    const syncWithOtherCharts = () => {
+        if (!mainChart || !volumeChart || !rsiChart) return;
+
+        // RS 圖表變化時，使用全局同步函數同步所有圖表
+        rsChartV2.timeScale().subscribeVisibleLogicalRangeChange(range => {
+            if (range && !window.rsSyncLock && window.syncAllChartsTimeScale) {
+                window.rsSyncLock = true;
+                window.syncAllChartsTimeScale(range, rsChartV2);
+                window.rsSyncLock = false;
+            }
+        });
+
+        console.log('RS chart synced with main charts');
+
+        // 加入 crosshair 同步 (RS -> 其他圖表)
+        rsChartV2.subscribeCrosshairMove(param => {
+            if (param.time) {
+                mainChart.setCrosshairPosition(NaN, candleSeries, param.time);
+                volumeChart.setCrosshairPosition(NaN, volumeSeries, param.time);
+                rsiChart.setCrosshairPosition(NaN, rsiSeries6, param.time);
+            } else {
+                mainChart.clearCrosshairPosition();
+                volumeChart.clearCrosshairPosition();
+                rsiChart.clearCrosshairPosition();
+            }
+        });
+
+        // 反向同步 (其他圖表 -> RS)
+        const syncToRS = (sourceChart) => {
+            sourceChart.subscribeCrosshairMove(param => {
+                if (rsChartV2 && mansfieldSeriesV2) {
+                    if (param.time) {
+                        rsChartV2.setCrosshairPosition(NaN, mansfieldSeriesV2, param.time);
+                    } else {
+                        rsChartV2.clearCrosshairPosition();
+                    }
+                }
+            });
+        };
+        syncToRS(mainChart);
+        syncToRS(volumeChart);
+        syncToRS(rsiChart);
+    };
+
+    // 延遲執行確保其他圖表已初始化
+    setTimeout(syncWithOtherCharts, 100);
+
+    console.log('RS chart V2 initialized (dual Y-axis overlay)');
+}
+
+async function updateRSChartV2(stockData) {
+    if (!taiexData) return;
+    if (!rsChartV2) initializeRSChartV2();
+
+    const rsData = calculateMansfieldRS(stockData, taiexData);
+
+    // 儲存 RS 數據供 tooltip 使用（對齊 currentData 的索引）
+    currentRSData = rsData;
+
+    // 啟用同步鎖，防止 setData 觸發連鎖反應
+    window.rsSyncLock = true;
+
+    // Mansfield histogram - 保留所有日期以對齊其他圖表
+    mansfieldSeriesV2.setData(
+        rsData.map(d => ({
+            time: d.time,
+            value: d.mansfield !== null ? d.mansfield : 0,
+            color: d.color || '#9E9E9E'
+        }))
+    );
+
+    // RS lines - 保留所有日期
+    rs10dSeriesV2.setData(rsData.map(d => ({
+        time: d.time,
+        value: d.rs10d !== null ? d.rs10d : 0
+    })));
+    rs3dSeriesV2.setData(rsData.map(d => ({
+        time: d.time,
+        value: d.rs3d !== null ? d.rs3d : 0
+    })));
+
+    // 同步主圖表的可見範圍到 RS 圖表
+    if (mainChart) {
+        const range = mainChart.timeScale().getVisibleLogicalRange();
+        if (range) {
+            rsChartV2.timeScale().setVisibleLogicalRange(range);
+        }
+    }
+
+    // 解除同步鎖
+    window.rsSyncLock = false;
+
+    console.log('RS chart V2 updated:', rsData.length, 'bars');
+}
+
+function updateVolumeColorsV2(candleData) {
+    if (typeof volumeSeries === 'undefined' || !volumeSeries) return;
+
+    const volumeData = candleData.map((d, i) => {
+        const prevClose = i > 0 ? candleData[i - 1].close : d.close;
+        let color = d.close > prevClose ? RS_COLORS_V2.up : d.close < prevClose ? RS_COLORS_V2.down : RS_COLORS_V2.neutral;
+        return { time: d.time, value: d.volume, color: color };
+    });
+
+    volumeSeries.setData(volumeData);
+}
+
+let lastDataHashV2 = '';
+
+function checkAndUpdateRSV2() {
+    if (typeof currentData === 'undefined' || !currentData || currentData.length === 0) return;
+
+    const newHash = currentData.length + '_' + currentData[0].time + '_' + currentData[currentData.length - 1].time;
+    if (newHash !== lastDataHashV2) {
+        lastDataHashV2 = newHash;
+        updateVolumeColorsV2(currentData);
+        if (taiexData) updateRSChartV2(currentData);
+    }
+}
+
+window.refreshRS = function () {
+    lastDataHashV2 = '';
+    checkAndUpdateRSV2();
+};
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', async () => {
+        let attempts = 0;
+        while (!taiexData && attempts < 20) {
+            await new Promise(r => setTimeout(r, 250));
+            attempts++;
+        }
+
+        // Remove ALL old containers
+        document.querySelectorAll('.rs-container').forEach(c => c.remove());
+        rsContainerCreatedV2 = false;
+
+        initializeRSChartV2();
+        setInterval(checkAndUpdateRSV2, 500);
+        console.log('RS V2 (dual Y-axis) initialized');
+    });
 }
