@@ -20,7 +20,7 @@ def update_taiex():
     params = {
         "dataset": "TaiwanStockPrice",
         "data_id": "TAIEX",
-        "start_date": "2020-06-01",
+        "start_date": "2020-07-01",
         "token": token
     }
 
