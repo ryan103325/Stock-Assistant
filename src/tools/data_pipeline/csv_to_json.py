@@ -130,6 +130,34 @@ def main():
     print(f"✅ 轉換完成: {success_count}/{len(csv_files)} 檔")
     print(f"📄 股票清單: {list_path}")
     print(f"📂 輸出目錄: {OUTPUT_DIR}")
+    
+    # === 同步 TAIEX JSON ===
+    taiex_csv_path = BASE_DIR / "src" / "data_core" / "TAIEX.csv"
+    if taiex_csv_path.exists():
+        try:
+            taiex_df = pd.read_csv(taiex_csv_path)
+            taiex_data = []
+            for _, row in taiex_df.iterrows():
+                vol = row['Volume']
+                if pd.isna(vol) or vol < 0:
+                    vol = 0
+                taiex_data.append({
+                    "time": str(row['Date']),
+                    "open": float(row['Open']),
+                    "high": float(row['High']),
+                    "low": float(row['Low']),
+                    "close": float(row['Close']),
+                    "volume": int(vol)
+                })
+            taiex_json = {"name": "TAIEX", "data": taiex_data}
+            taiex_json_path = OUTPUT_DIR / "TAIEX.json"
+            with open(taiex_json_path, 'w', encoding='utf-8') as f:
+                json.dump(taiex_json, f, ensure_ascii=False)
+            print(f"✅ TAIEX.json 更新: {taiex_data[-1]['time']} ({len(taiex_data)} 筆)")
+        except Exception as e:
+            print(f"⚠️ TAIEX 轉換失敗: {e}")
+    else:
+        print("⚠️ TAIEX.csv 不存在，跳過")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ name: Deploy Chart Site to GitHub Pages
 on:
   workflow_dispatch:  # 手動觸發
   workflow_run:
-    workflows: ["Daily Data Sync"]  # 資料同步後自動觸發
+    workflows: ["[Step] Data Sync"]  # 資料同步後自動觸發
     types: [completed]
 
 permissions:
