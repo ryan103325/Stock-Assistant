@@ -1,6 +1,9 @@
 name: "[Step] Data Sync"
 
 on:
+  schedule:
+    # 每個交易日下午 15:00 (UTC+8 = 07:00 UTC)
+    - cron: '0 7 * * 1-5'
   workflow_dispatch:
     inputs:
       force_mode:
@@ -29,17 +32,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Update TAIEX data
-        env:
-          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
-        run: |
-          python src/tools/data_pipeline/update_taiex.py
-
       - name: Sync stock data
         env:
           FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
         run: |
           python src/tools/data_pipeline/sync_stock_data.py
+
+      - name: Remove success marker (force Pipeline re-run)
+        run: |
+          rm -f src/data_core/history/.update_success
 
       - name: Update stock prices (Pipeline)
         env:
