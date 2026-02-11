@@ -185,7 +185,7 @@ body {
 .chart-wrapper {
     position: relative;
     width: 100%;
-    height: 400px;
+    height: clamp(250px, 45dvh, 500px);
     overflow: hidden;
 }
 
@@ -212,7 +212,7 @@ body {
 
 #volumeChart {
     width: 100%;
-    height: 120px;
+    height: clamp(80px, 14dvh, 150px);
 }
 
 /* === Indicator Labels === */
@@ -242,7 +242,7 @@ body {
 
 #rsiChart {
     width: 100%;
-    height: 120px;
+    height: clamp(80px, 14dvh, 150px);
 }
 
 /* === RS Chart === */
@@ -255,7 +255,7 @@ body {
 
 #rsChart {
     width: 100%;
-    height: 120px;
+    height: clamp(80px, 14dvh, 150px);
 }
 
 /* === Suggestions === */
@@ -378,7 +378,8 @@ body {
 
     .search-box input {
         max-width: 100%;
-        font-size: 16px; /* 防止 iOS 自動放大 */
+        font-size: 16px;
+        /* 防止 iOS 自動放大 */
     }
 
     .stock-info {
@@ -396,7 +397,7 @@ body {
         align-self: flex-start;
     }
 
-    /* 圖表間距與高度 */
+    /* 圖表間距 */
     .chart-container,
     .volume-container,
     .rsi-container,
@@ -404,22 +405,7 @@ body {
         padding: 10px;
         border-radius: 8px;
         margin-bottom: 6px;
-    }
-
-    .chart-wrapper {
-        height: 300px;
-    }
-
-    #volumeChart {
-        height: 80px;
-    }
-
-    #rsiChart {
-        height: 80px;
-    }
-
-    #rsChart {
-        height: 80px;
+        overflow: hidden;
     }
 
     /* Tooltip 手機版 */
@@ -427,14 +413,6 @@ body {
         font-size: 0.75rem;
         padding: 8px 12px;
         min-width: 160px;
-    }
-
-    /* 防止圖表溢出 */
-    .chart-container,
-    .volume-container,
-    .rsi-container,
-    .rs-container {
-        overflow: hidden;
     }
 }
 
@@ -445,10 +423,6 @@ body {
 
     .header h1 {
         font-size: 1rem;
-    }
-
-    .chart-wrapper {
-        height: 250px;
     }
 
     .tf-btn {

@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pages: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -69,3 +71,12 @@ jobs:
           git add src/data_core/ docs/data/
           git diff --staged --quiet || git commit -m "📊 [Step] Data sync $(date +'%Y-%m-%d %H:%M')"
           git push
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "Deploy chart site [skip ci]"

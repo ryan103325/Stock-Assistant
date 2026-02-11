@@ -88,9 +88,10 @@ function initCharts() {
     };
 
     // === 主圖表 ===
-    mainChart = LightweightCharts.createChart(document.getElementById('chart'), {
+    const chartEl = document.getElementById('chart');
+    mainChart = LightweightCharts.createChart(chartEl, {
         ...chartOptions,
-        height: 380,
+        height: chartEl.clientHeight || 380,
     });
 
     candleSeries = mainChart.addCandlestickSeries({
@@ -115,9 +116,10 @@ function initCharts() {
     bbSeries.lower = mainChart.addLineSeries({ color: COLORS.bb, lineWidth: 1, lineStyle: 2, ...hidePriceLine });
 
     // === 成交量圖表 ===
-    volumeChart = LightweightCharts.createChart(document.getElementById('volumeChart'), {
+    const volumeEl = document.getElementById('volumeChart');
+    volumeChart = LightweightCharts.createChart(volumeEl, {
         ...chartOptions,
-        height: 130,
+        height: volumeEl.clientHeight || 130,
     });
 
     volumeSeries = volumeChart.addHistogramSeries({
@@ -135,9 +137,10 @@ function initCharts() {
     volMaSeries.ma20 = volumeChart.addLineSeries({ color: COLORS.ma20, lineWidth: 1, priceScaleId: 'right', ...hidePriceLine });
 
     // === RSI 圖表 ===
-    rsiChart = LightweightCharts.createChart(document.getElementById('rsiChart'), {
+    const rsiEl = document.getElementById('rsiChart');
+    rsiChart = LightweightCharts.createChart(rsiEl, {
         ...chartOptions,
-        height: 130,
+        height: rsiEl.clientHeight || 130,
     });
 
     rsiChart.priceScale('right').applyOptions({
@@ -214,11 +217,29 @@ function initCharts() {
         { chart: volumeChart, series: volumeSeries },
     ]);
 
-    window.addEventListener('resize', () => {
-        mainChart.applyOptions({ width: document.getElementById('chart').clientWidth });
-        volumeChart.applyOptions({ width: document.getElementById('volumeChart').clientWidth });
-        rsiChart.applyOptions({ width: document.getElementById('rsiChart').clientWidth });
+    // === ResizeObserver：寬度 + 高度同時自適應 ===
+    const chartEntries = [
+        { el: chartEl, chart: () => mainChart },
+        { el: volumeEl, chart: () => volumeChart },
+        { el: rsiEl, chart: () => rsiChart },
+    ];
+    const ro = new ResizeObserver(entries => {
+        for (const entry of entries) {
+            const match = chartEntries.find(c => c.el === entry.target);
+            if (match) {
+                const { width, height } = entry.contentRect;
+                if (width > 0 && height > 0) {
+                    match.chart().applyOptions({ width, height });
+                }
+            }
+        }
+        // 同時處理 RS 圖表（如果存在）
+        if (typeof rsChartV2 !== 'undefined' && rsChartV2) {
+            const rsEl = document.getElementById('rsChart');
+            if (rsEl) rsChartV2.applyOptions({ width: rsEl.clientWidth, height: rsEl.clientHeight });
+        }
     });
+    chartEntries.forEach(c => ro.observe(c.el));
 }
 
 // === 浮動資訊面板 ===
