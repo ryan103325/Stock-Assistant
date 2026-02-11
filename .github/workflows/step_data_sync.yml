@@ -58,6 +58,10 @@ jobs:
         run: |
           python src/tools/data_pipeline/csv_to_json.py
 
+      - name: Compute indicators (optimize_matrix)
+        run: |
+          python src/tools/data_pipeline/optimize_matrix.py
+
       - name: Commit and push updated data
         run: |
           git config --global user.name 'GitHub Actions Bot'

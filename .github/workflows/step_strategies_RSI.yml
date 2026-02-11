@@ -35,4 +35,4 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GITHUB_ACTIONS: true
         run: |
-          python src/strategies/rsi_screener/RSI_screener.py --force
+          python src/strategies/RSI/RSI_screener.py --force

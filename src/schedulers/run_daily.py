@@ -28,13 +28,14 @@ SEQUENTIAL_TASKS = [
 
 # 步驟 3-5: 並行執行 (訊息順序: 3, 4, 5)
 PARALLEL_TASKS = [
-    (3, "RSI 底背離篩選", os.path.join(SRC_DIR, "strategies", "rsi_screener", "RSI_screener.py")),
-    (4, "統一動能策略", os.path.join(SRC_DIR, "strategies", "unified_momentum", "run_unified_momentum.py")),
-    (5, "籌碼策略報告 (00981a)", os.path.join(SRC_DIR, "strategies", "00981a_fund", "00981a.py")),
+    (3, "RSI 底背離篩選", os.path.join(SRC_DIR, "strategies", "RSI", "RSI_screener.py")),
+    (4, "族群資金動能", os.path.join(SRC_DIR, "strategies", "Local_Hot", "run_unified_momentum.py")),
+    (5, "籌碼策略報告 (00981A)", os.path.join(SRC_DIR, "strategies", "00981A", "00981a.py")),
 ]
 
 # 步驟 7: 情緒分析反思 (靜默執行,不包含在訊息中)
-REFLECTION_TASK = (0, "情緒分析反思", os.path.join(SRC_DIR, "alpha_core", "main.py"), ["reflect"])
+# 使用 module_mode=True 以支援 relative import
+REFLECTION_TASK = (0, "情緒分析反思", "src.alpha_core.main", ["reflect"], True)
 
 # 步驟 8: Bot (僅本地執行)
 BOT_TASK = ("啟動 Telegram Bot", os.path.join(SRC_DIR, "charts", "technical_analysis_chart.py"))
@@ -88,17 +89,20 @@ def check_is_trading_day(force=False):
 
 def run_script_sync(task_info, force=False):
     """同步執行單一腳本並返回結果"""
-    if len(task_info) == 3:
-        order, name, path = task_info
-        args = None
+    module_mode = False
+    if len(task_info) == 5:
+        order, name, path, args, module_mode = task_info
     elif len(task_info) == 4:
         order, name, path, args = task_info
+    elif len(task_info) == 3:
+        order, name, path = task_info
+        args = None
     else:
         name, path = task_info
         order = 0
         args = None
     
-    print(f"\n🚀 正在執行: {name} ({os.path.basename(path)})...")
+    print(f"\n🚀 正在執行: {name}...")
     
     result = {
         "order": order,
@@ -109,18 +113,20 @@ def run_script_sync(task_info, force=False):
     }
     
     try:
-        if not os.path.exists(path):
-            result["message"] = f"找不到檔案: {path}"
-            print(f"❌ {result['message']}")
-            return result
-            
-        cmd = [sys.executable, path]
+        if module_mode:
+            cmd = [sys.executable, "-m", path]
+        else:
+            if not os.path.exists(path):
+                result["message"] = f"找不到檔案: {path}"
+                print(f"❌ {result['message']}")
+                return result
+            cmd = [sys.executable, path]
         if args:
             cmd.extend(args)
         if force:
             cmd.append("--force")
             
-        process = subprocess.run(cmd, check=False, capture_output=True, text=True, encoding='utf-8')
+        process = subprocess.run(cmd, check=False, capture_output=True, text=True, encoding='utf-8', cwd=PROJECT_ROOT)
         
         result["output"] = process.stdout
         
@@ -213,17 +219,22 @@ def main(force=False):
     
     all_results = []
     
-    # 3. 執行順序任務 (步驟 1-2)
-    print("\n" + "="*50)
-    print("階段 1: 順序執行 (資料更新 → 指標計算)")
-    print("="*50)
-    
-    for task in SEQUENTIAL_TASKS:
-        result = run_script_sync(task, force=force)
-        if not result['success']:
-            print(f"\n❌ 關鍵任務失敗: {result['name']}")
-            print("⏸️ 中止後續流程")
-            return
+    # 3. 執行順序任務 (步驟 1-2) — GitHub 上由 data_sync 處理，跳過
+    if is_github_actions:
+        print("\n" + "="*50)
+        print("☁️ GitHub Actions: 跳過資料更新/指標計算 (data_sync 已執行)")
+        print("="*50)
+    else:
+        print("\n" + "="*50)
+        print("階段 1: 順序執行 (資料更新 → 指標計算)")
+        print("="*50)
+        
+        for task in SEQUENTIAL_TASKS:
+            result = run_script_sync(task, force=force)
+            if not result['success']:
+                print(f"\n❌ 關鍵任務失敗: {result['name']}")
+                print("⏸️ 中止後續流程")
+                return
     
     # 4. 並行執行任務 (步驟 3-6)
     print("\n" + "="*50)
@@ -236,7 +247,7 @@ def main(force=False):
     tasks_to_run = PARALLEL_TASKS.copy()
     if is_friday:
         print("📅 今天是週五,追加週策略報告...")
-        weekly_task = (5.5, "週策略報告 (00981aW)", os.path.join(SRC_DIR, "strategies", "00981a_fund", "00981aW.py"))
+        weekly_task = (5.5, "週策略報告 (00981aW)", os.path.join(SRC_DIR, "strategies", "00981A", "00981aW.py"))
         tasks_to_run.append(weekly_task)
     
     # 使用 ThreadPoolExecutor 並行執行
@@ -261,16 +272,8 @@ def main(force=False):
     #     message = format_results_message(all_results)
     #     send_telegram_message(message)
     
-    # 6. 執行情緒分析反思 (靜默執行,不發送訊息)
-    print("\n" + "="*50)
-    print("階段 4: 情緒分析反思 (背景執行)")
-    print("="*50)
-    
-    reflection_result = run_script_sync(REFLECTION_TASK, force=force)
-    if reflection_result['success']:
-        print("✅ 情緒分析反思完成")
-    else:
-        print(f"⚠️ 情緒分析反思失敗: {reflection_result['message']}")
+    # 6. 情緒分析反思 — 已移至獨立 workflow (step_news_reflect.yml, 16:00)
+    # 本地端仍可手動執行: python -m src.alpha_core.main reflect
     
     # 7. 啟動 Bot (僅本地環境)
     if not is_github_actions:

@@ -1,26 +1,28 @@
-name: Daily Stock Analysis
+name: "[Step] Run Strategies"
 
 on:
   schedule:
-    # 每天早上 08:00 (UTC+8 = 00:00 UTC)
-    - cron: '0 0 * * *'
-  workflow_dispatch:  # 允許手動觸發
+    # 每天早上 08:00 (UTC+8 = 00:00 UTC) 執行前一天的策略
+    - cron: '0 0 * * 1-5'
+  workflow_dispatch:
     inputs:
       force_mode:
-        description: '跳過爬蟲，使用既有資料'
+        description: '強制執行（跳過交易日檢查）'
         required: false
         type: boolean
-        default: false
+        default: true
 
 jobs:
-  daily-analysis:
+  strategies:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 允許推送到 repo
+      contents: write
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: main
       
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -36,33 +38,22 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
-      - name: Sync stock data (delete delisted, create new)
-        env:
-          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
-        run: |
-          python src/tools/data_pipeline/sync_stock_data.py
 
-      - name: Run daily scheduler
+      - name: Run strategies (using previous day data)
         env:
           FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GITHUB_ACTIONS: true
         run: |
-          if [ "${{ inputs.force_mode }}" == "true" ]; then
-            python src/schedulers/run_daily.py --force
-          else
-            python src/schedulers/run_daily.py
-          fi
+          python src/schedulers/run_daily.py --force
 
       - name: Commit and push updated data
         run: |
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'actions@github.com'
-          git add src/data_core/
-          git diff --staged --quiet || git commit -m "📊 Auto-update data $(date +'%Y-%m-%d')"
+          git add src/data_core/ src/strategies/ logs/
+          git diff --staged --quiet || git commit -m "📊 [Step] Strategies $(date +'%Y-%m-%d %H:%M')"
           git push

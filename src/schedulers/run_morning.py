@@ -11,23 +11,26 @@ SRC_DIR = os.path.join(PROJECT_ROOT, "src")
 
 # 🌅 早場任務 (早上 8:00 執行)
 # 目的: 抓取 RSS 新聞並進行情緒分析
+# 使用 -m 模式執行以支援 relative import
 TASKS = [
-    ("抓取 RSS 新聞", os.path.join(SRC_DIR, "alpha_core", "main.py"), ["fetch"]),
-    ("分析新聞情緒", os.path.join(SRC_DIR, "alpha_core", "main.py"), ["analyze"]),
+    ("抓取 RSS 新聞", "src.alpha_core.main", ["fetch"], True),
+    ("分析新聞情緒", "src.alpha_core.main", ["analyze"], True),
 ]
 
-def run_script(name, path, args=None):
-    print(f"\n🚀 正在執行: {name} ({os.path.basename(path)})...")
+def run_script(name, path, args=None, module_mode=False):
+    print(f"\n🚀 正在執行: {name}...")
     try:
-        if not os.path.exists(path):
-            print(f"❌ 找不到檔案: {path}")
-            return
-            
-        cmd = [sys.executable, path]
+        if module_mode:
+            cmd = [sys.executable, "-m", path]
+        else:
+            if not os.path.exists(path):
+                print(f"❌ 找不到檔案: {path}")
+                return
+            cmd = [sys.executable, path]
         if args:
             cmd.extend(args)
             
-        result = subprocess.run(cmd, check=False)
+        result = subprocess.run(cmd, check=False, cwd=PROJECT_ROOT)
         if result.returncode == 0:
             print(f"✅ {name} 完成。")
         else:
@@ -46,15 +49,19 @@ def main():
     
     # 執行任務
     for task_info in TASKS:
-        if len(task_info) == 3:
+        if len(task_info) == 4:
+            name, path, args, module_mode = task_info
+        elif len(task_info) == 3:
             name, path, args = task_info
+            module_mode = False
         else:
             name, path = task_info
             args = None
+            module_mode = False
             
-        run_script(name, path, args=args)
+        run_script(name, path, args=args, module_mode=module_mode)
             
-    print("\n🎉 早場工作執行完畢！")
+    print("\n🎉 早場工作執行完畢!")
     time.sleep(5)
 
 if __name__ == "__main__":

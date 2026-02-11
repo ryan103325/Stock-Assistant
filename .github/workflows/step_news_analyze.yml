@@ -36,7 +36,7 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python src/alpha_core/main.py fetch
+          python -m src.alpha_core.main fetch
 
       - name: Analyze News Sentiment
         env:
@@ -44,4 +44,4 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python src/alpha_core/main.py analyze
+          python -m src.alpha_core.main analyze

@@ -1,0 +1,52 @@
+name: "[Step] Weekly Maintenance"
+
+on:
+  schedule:
+    # 每週六 10:00 (UTC+8 = 02:00 UTC)
+    - cron: '0 2 * * 6'
+  workflow_dispatch:
+    inputs:
+      force_mode:
+        description: '強制執行'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run weekly maintenance (tag crawlers + master tags)
+        env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        run: |
+          python src/schedulers/run_weekly.py --force
+
+      - name: Commit and push updated tags
+        run: |
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'actions@github.com'
+          git add src/data_core/market_meta/
+          git diff --staged --quiet || git commit -m "🏷️ [Step] Weekly tags $(date +'%Y-%m-%d')"
+          git push
