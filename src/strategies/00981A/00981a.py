@@ -233,7 +233,7 @@ def get_comprehensive_alert(fund_data):
 # ==========================================
 # 🧠 存檔函式
 # ==========================================
-def save_data_with_overwrite(file_path, new_df, date_col='日期'):
+def save_data_with_overwrite(file_path, new_df, date_col='日期', max_rows=50):
     target_date = str(new_df.iloc[0][date_col])
     final_df = new_df 
 
@@ -254,6 +254,12 @@ def save_data_with_overwrite(file_path, new_df, date_col='日期'):
             mode_msg = "重建檔案"
     else:
         mode_msg = "建立新檔"
+
+    # 裁切至最近 max_rows 筆
+    if max_rows and len(final_df) > max_rows:
+        before_count = len(final_df)
+        final_df = final_df.tail(max_rows).reset_index(drop=True)
+        print(f"   ✂️ 資料裁切: {before_count} → {len(final_df)} 筆 (保留最近 {max_rows} 筆)")
 
     try:
         final_df.to_csv(file_path, index=False, encoding='utf-8-sig')
@@ -289,47 +295,62 @@ def send_telegram_photo(photo_path, caption=""):
         print(f"❌ TG 圖片錯誤: {e}")
 
 def check_trading_day():
+    """檢查今日是否為交易日 (FinMind TaiwanStockTradingDate)"""
     print("📅 [FinMind] 確認交易日中...")
     today_str = datetime.now().strftime('%Y-%m-%d')
+    token = os.getenv("FINMIND_TOKEN", "")
+    
+    if not token:
+        print("⚠️ 未設定 FINMIND_TOKEN，改用平日判斷")
+        if datetime.now().weekday() >= 5:
+            print(f"🛑 週末停止執行。")
+            return False
+        return True
+    
     try:
         url = "https://api.finmindtrade.com/api/v4/data"
-        token = "" 
-        headers = {"Authorization": f"Bearer {token}"}
-        parameter = {"dataset": "TaiwanStockTradingDate", "start_date": today_str, "end_date": today_str}
-        resp = requests.get(url, headers=headers, params=parameter)
+        params = {
+            "dataset": "TaiwanStockTradingDate",
+            "start_date": today_str,
+            "end_date": today_str,
+            "token": token
+        }
+        resp = requests.get(url, params=params, timeout=20)
         data = resp.json()
-        df = pd.DataFrame(data["data"])
-        if not df.empty:
+        dates = [d['date'] for d in data.get('data', [])]
+        if today_str in dates:
             print(f"✅ 是交易日: {today_str}")
             return True
         else:
-            if datetime.now().weekday() >= 5: 
-                print(f"🛑 週末停止執行。")
-                return False
-            print("⚠️ 查無資料但為平日，強制執行。")
-            return True
-    except: return True
+            print(f"💤 非交易日: {today_str}")
+            return False
+    except Exception as e:
+        print(f"⚠️ API 查詢失敗: {e}")
+        if datetime.now().weekday() >= 5:
+            print(f"🛑 週末停止執行。")
+            return False
+        print("⚠️ 查無資料但為平日，強制執行。")
+        return True
 
 def get_taiex_change():
+    """讀取大盤漲跌幅 (TAIEX.csv)"""
     print("📈 [Local] 讀取大盤變化 (TAIEX.csv)...")
     try:
-        # 使用全域 DATA_FOLDER
         taiex_path = os.path.join(SRC_ROOT, "data_core", "TAIEX.csv")
-        
         if os.path.exists(taiex_path):
-             df = pd.read_csv(taiex_path)
-             if len(df) >= 2:
-                 last = df.iloc[-1]
-                 prev = df.iloc[-2]
-                 pct_change = ((last['Close'] - prev['Close']) / prev['Close']) * 100
-                 print(f"✅ 大盤漲跌: {pct_change:.2f}% (Date: {last['Date']})")
-                 return pct_change
-             else:
-                 print("⚠️ TAIEX.csv 資料不足兩筆")
+            df = pd.read_csv(taiex_path)
+            if len(df) >= 2:
+                last = df.iloc[-1]
+                prev = df.iloc[-2]
+                pct_change = ((last['Close'] - prev['Close']) / prev['Close']) * 100
+                print(f"✅ 大盤漲跌: {pct_change:.2f}% (Date: {last['Date']})")
+                return pct_change
+            else:
+                print("⚠️ TAIEX.csv 資料不足兩筆")
         else:
             print("⚠️ 找不到 TAIEX.csv")
         return 0.0
-    except Exception as e: 
+    except Exception as e:
         print(f"⚠️ 大盤讀取錯誤: {e}")
         return 0.0
 
@@ -337,35 +358,16 @@ def get_taiex_change():
 # 🚀 主程式
 # ==========================================
 
-# 策略 1: 檢查 TAIEX.csv 是否有今天的資料 (最準確)
+# 策略 1: 使用 FinMind 檢查交易日
 today = datetime.now().strftime("%Y-%m-%d")
-# 策略 1: 檢查 TAIEX.csv 是否有今天的資料 (最準確)
-today = datetime.now().strftime("%Y-%m-%d")
-taiex_path = os.path.join(SRC_ROOT, "data_core", "TAIEX.csv")
-is_trading_day = False
+force_mode = "--force" in sys.argv
 
-if os.path.exists(taiex_path):
-    try:
-        with open(taiex_path, "r") as f:
-            last_line = f.readlines()[-1]
-            last_date = last_line.split(",")[0].strip()
-            last_date = last_date.replace("/", "-")
-            
-            if last_date == today:
-                is_trading_day = True
-                print(f"✅ TAIEX 資料日期 ({last_date}) 與今日相符，確認為交易日。")
-            else:
-                print(f"📅 TAIEX 最新日期 ({last_date}) 與今日 ({today}) 不符。")
-    except Exception as e:
-        print(f"⚠️ 無法讀取 TAIEX 驗證日期: {e}")
-        
-    force_mode = "--force" in sys.argv
-    if not is_trading_day:
-        if force_mode:
-            print(f"⚠️ [Force Mode] TAIEX 日期不符，但強制繼續執行。")
-        else:
-            print("😴 非交易日或資料尚未更新 (TAIEX Check Failed)，跳過執行。")
-            sys.exit(0)
+if not force_mode:
+    if not check_trading_day():
+        print("😴 非交易日，跳過執行。")
+        sys.exit(0)
+else:
+    print("⚠️ [Force Mode] 強制執行，跳過交易日檢查。")
 
 taiex_roi = get_taiex_change()
 
@@ -633,8 +635,8 @@ try:
                                 'amount': amount
                             })
                     
-                    # 按金額排序（絕對值）
-                    changes.sort(key=lambda x: abs(x['amount']), reverse=True)
+                    # 按權重變化排序（絕對值）
+                    changes.sort(key=lambda x: abs(x['weight_change']), reverse=True)
                     
                     # 分離增持和減持
                     increases = [c for c in changes if c['diff'] > 0]
@@ -924,6 +926,24 @@ try:
     try:
         print("🖼️ 正在生成圖片報告...")
         
+        # 生成 AI 總結
+        ai_summary = ""
+        if 'increases' in dir() and increases:
+            buy_names = [x['name'] for x in increases[:2]]
+            ai_summary = f"經理人今日重點加碼{'、'.join(buy_names)}"
+            if 'total_exp' in dir():
+                if total_exp > 95:
+                    ai_summary += "，總曝險維持高檔，態度積極。"
+                elif total_exp < 85:
+                    ai_summary += "，總曝險偏低，操作偏保守。"
+                else:
+                    ai_summary += "。"
+        elif 'decreases' in dir() and decreases:
+            sell_names = [x['name'] for x in decreases[:2]]
+            ai_summary = f"經理人今日主要減碼{'、'.join(sell_names)}，操作偏向調節。"
+        else:
+            ai_summary = "經理人今日操作變動不大，多空互見。"
+        
         # 收集報告資料
         report_data = {
             'date': target_date,
@@ -945,9 +965,10 @@ try:
             'streak_alerts': [],
             'concept': {
                 'increases': [],
-                'decreases': []
+                'decreases': [],
+                'group_stock_changes': {}
             },
-            'anomalies': []
+            'ai_summary': ai_summary
         }
         
         # 填入新進榜 (如果有)
@@ -957,7 +978,7 @@ try:
                 for n in new_in
             ]
         
-        # 填入變動資料 (如果有) - 直接使用新的 dict 格式
+        # 填入變動資料 (如果有) - 以權重變化排序
         if 'increases' in dir() and increases:
             report_data['changes']['increases'] = increases[:5]
         if 'decreases' in dir() and decreases:
@@ -972,10 +993,8 @@ try:
             report_data['concept']['increases'] = top_increases
         if 'top_decreases' in dir() and top_decreases:
             report_data['concept']['decreases'] = top_decreases
-        
-        # 填入異常警示 (如果有)
-        if 'alerts' in dir() and alerts:
-            report_data['anomalies'] = alerts
+        if 'group_stock_changes' in dir() and group_stock_changes:
+            report_data['concept']['group_stock_changes'] = group_stock_changes
         
         # 生成圖片
         image_path = generate_fund_report_image(report_data)

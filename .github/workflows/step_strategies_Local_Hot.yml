@@ -1,4 +1,4 @@
-name: "[Step]strategies_Unified_Momentum"
+name: "[Step]strategies_Local_Hot"
 
 on:
   workflow_dispatch:

@@ -5,7 +5,7 @@ import time
 import requests
 import asyncio
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 load_dotenv()
@@ -40,52 +40,100 @@ REFLECTION_TASK = (0, "情緒分析反思", "src.alpha_core.main", ["reflect"], 
 # 步驟 8: Bot (僅本地執行)
 BOT_TASK = ("啟動 Telegram Bot", os.path.join(SRC_DIR, "charts", "technical_analysis_chart.py"))
 
+def _query_trading_dates(start_date, end_date):
+    """查詢 FinMind 交易日清單 (共用函式)"""
+    token = os.getenv("FINMIND_TOKEN", "")
+    if not token:
+        print("⚠️ 未設定 FINMIND_TOKEN 環境變數")
+        return None
+    
+    url = "https://api.finmindtrade.com/api/v4/data"
+    params = {
+        "dataset": "TaiwanStockTradingDate",
+        "start_date": start_date,
+        "end_date": end_date,
+        "token": token
+    }
+    
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            res = requests.get(url, params=params, timeout=20)
+            if res.status_code == 200:
+                data = res.json().get('data', [])
+                return [d['date'] for d in data]
+            else:
+                print(f"⚠️ API 回傳錯誤碼: {res.status_code}")
+        except Exception as e:
+            print(f"⚠️ API 連線失敗 ({attempt+1}/{max_retries}): {e}")
+            time.sleep(2)
+    return None
+
 def check_is_trading_day(force=False):
-    """ 檢查今日是否為交易日 (FinMind API + Retry + Fallback) """
+    """檢查今日是否為交易日 (FinMind TaiwanStockTradingDate + Fallback)"""
     if force:
         print("⚠️ [Force Mode] 強制忽略交易日檢查,執行任務。")
         return True
 
     print("📅 確認今日是否為交易日...")
     
-    # 1. Check Weekend first (Fast fail)
+    # 1. 週末快速排除
     today_str = datetime.now().strftime('%Y-%m-%d')
     weekday = datetime.now().weekday()
-    if weekday >= 5:  # 5=Sat, 6=Sun
+    if weekday >= 5:
         print(f"💤 今日 ({today_str}) 是週末 (週{'六日'[weekday-5]}),非交易日。")
         return False
 
-    # 2. API Check with Retry
-    img_url = "https://api.finmindtrade.com/api/v4/data"
-    token = os.getenv("FINMIND_TOKEN") or "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRlIjoiMjAyNS0xMi0xNiAxMzo0MTo1NSIsInVzZXJfaWQiOiJyeWFuOTAxMjIzIiwiaXAiOiIzOS4xNS40MC4xODcifQ.LS0WippJM4l5AOG6k8nIltzwcfXTSrGola56jMSMggU"
-    params = {
-        "dataset": "TaiwanStockPrice",
-        "data_id": "TAIEX",
-        "start_date": today_str,
-        "token": token
-    }
-
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            res = requests.get(img_url, params=params, timeout=20)
-            if res.status_code == 200:
-                data = res.json().get('data', [])
-                if data and data[-1]['date'] == today_str:
-                    print(f"✅ 今日 ({today_str}) 確認為交易日 (API)。")
-                    return True
-                else:
-                    print(f"💤 今日 ({today_str}) 無 TAIEX 資料 (可能是國定假日)。")
-                    return False
-            else:
-                print(f"⚠️ API 回傳錯誤碼: {res.status_code}")
-        except Exception as e:
-            print(f"⚠️ API 連線失敗 ({attempt+1}/{max_retries}): {e}")
-            time.sleep(2)
+    # 2. FinMind API 查詢
+    dates = _query_trading_dates(today_str, today_str)
+    if dates is not None:
+        if today_str in dates:
+            print(f"✅ 今日 ({today_str}) 確認為交易日 (API)。")
+            return True
+        else:
+            print(f"💤 今日 ({today_str}) 非交易日 (可能是國定假日)。")
+            return False
             
-    # 3. Fallback (If API is dead, but it's a weekday, force RUN)
+    # 3. Fallback: API 失敗但為平日,強制執行
     print("⚠️ 無法連線至 FinMind API,啟用備援判斷: 今日為平日,強制執行。")
     return True
+
+def check_yesterday_is_trading_day():
+    """檢查昨天是否為交易日"""
+    yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    dates = _query_trading_dates(yesterday, yesterday)
+    if dates is not None:
+        return yesterday in dates
+    # Fallback: 昨天非週末就當交易日
+    return (datetime.now() - timedelta(days=1)).weekday() < 5
+
+def is_last_trading_day_of_week(target_date=None):
+    """
+    檢查 target_date (預設昨天) 是否為該週最後一個交易日
+    用途: 決定是否執行週報
+    """
+    if target_date is None:
+        target_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    # 取得該週的日期範圍 (週一到週日)
+    target_dt = datetime.strptime(target_date, '%Y-%m-%d')
+    monday = target_dt - timedelta(days=target_dt.weekday())
+    sunday = monday + timedelta(days=6)
+    
+    dates = _query_trading_dates(monday.strftime('%Y-%m-%d'), sunday.strftime('%Y-%m-%d'))
+    if dates is None:
+        # Fallback: 若 API 掛,用週五判斷
+        print("⚠️ 無法查詢交易日清單,改用週五判斷")
+        return target_dt.weekday() == 4
+    
+    if not dates:
+        return False
+    
+    last_trading_day = max(dates)
+    is_last = target_date == last_trading_day
+    if is_last:
+        print(f"📅 {target_date} 是本週最後交易日,將執行週報")
+    return is_last
 
 def run_script_sync(task_info, force=False):
     """同步執行單一腳本並返回結果"""
@@ -215,7 +263,7 @@ def main(force=False):
 
     # 2. 偵測是否為 GitHub Actions 環境
     is_github_actions = os.getenv("GITHUB_ACTIONS") == "true"
-    is_friday = datetime.now().weekday() == 4
+    # is_friday 已被 is_last_trading_day_of_week() 取代
     
     all_results = []
     
@@ -243,12 +291,7 @@ def main(force=False):
     
     parallel_results = []
     
-    # 週五額外任務
     tasks_to_run = PARALLEL_TASKS.copy()
-    if is_friday:
-        print("📅 今天是週五,追加週策略報告...")
-        weekly_task = (5.5, "週策略報告 (00981aW)", os.path.join(SRC_DIR, "strategies", "00981A", "00981aW.py"))
-        tasks_to_run.append(weekly_task)
     
     # 使用 ThreadPoolExecutor 並行執行
     with ThreadPoolExecutor(max_workers=5) as executor:
@@ -259,9 +302,20 @@ def main(force=False):
             parallel_results.append(result)
             save_result_to_cache(result)
     
-    # 按照指定順序排序結果 (3, 4, 6, 5)
+    # 按照指定順序排序結果 (3, 4, 5)
     parallel_results.sort(key=lambda x: x['order'])
     all_results.extend(parallel_results)
+    
+    # 檢查是否為本週最後交易日 → 順序執行週報
+    # (必須在 00981a.py 完成之後,因為週報依賴其產出的 CSV)
+    if is_last_trading_day_of_week():
+        print("\n" + "="*50)
+        print("階段 2.5: 順序執行週策略報告 (00981aW)")
+        print("="*50)
+        weekly_task = (5.5, "週策略報告 (00981aW)", os.path.join(SRC_DIR, "strategies", "00981A", "00981aW.py"))
+        weekly_result = run_script_sync(weekly_task, force=force)
+        save_result_to_cache(weekly_result)
+        all_results.append(weekly_result)
     
     # 5. [已停用] 發送整合訊息 (各策略已各自發送圖片報告)
     # print("\n" + "="*50)

@@ -58,6 +58,7 @@ class HTMLRenderer:
             'enable-local-file-access': None,
             'quiet': '',
             # 針對大尺寸報表優化
+            'width': '950',         # 固定寬度防止卡片垂直堆疊
             'zoom': 2.0,            # 提高解析度
             'disable-smart-width': '',
         }
@@ -98,7 +99,7 @@ COMMON_STYLE = """
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Roboto:wght@400;700&display=swap');
     
     body {
-        font-family: 'Roboto', 'Noto Sans TC', sans-serif;
+        font-family: 'Roboto', 'Noto Sans TC', 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif;
         background-color: #1a1a2e;
         color: #eaeaea;
         margin: 0;

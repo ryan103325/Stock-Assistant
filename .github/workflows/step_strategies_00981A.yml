@@ -1,4 +1,4 @@
-name: "[Step]strategies_00981a_Fund"
+name: "[Step]strategies_00981A"
 
 on:
   workflow_dispatch:
