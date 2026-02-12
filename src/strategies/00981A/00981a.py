@@ -926,6 +926,17 @@ try:
     try:
         print("🖼️ 正在生成圖片報告...")
         
+        # 預設變數初始化（防止前面區塊因異常跳過導致變數未定義）
+        if 'increases' not in dir(): increases = []
+        if 'decreases' not in dir(): decreases = []
+        if 'streak_list' not in dir(): streak_list = []
+        if 'new_in' not in dir(): new_in = set()
+        if 'd_new' not in dir(): d_new = {}
+        if 'id_map' not in dir(): id_map = {}
+        if 'top_increases' not in dir(): top_increases = []
+        if 'top_decreases' not in dir(): top_decreases = []
+        if 'group_stock_changes' not in dir(): group_stock_changes = {}
+        
         # 生成 AI 總結
         ai_summary = ""
         if 'increases' in dir() and increases:

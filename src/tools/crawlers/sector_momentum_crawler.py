@@ -391,6 +391,18 @@ def main():
         short_df = parse_short_data(short_raw)
         ratio_df = parse_short_margin_ratio_data(ratio_raw)
         
+        # 📊 診斷摘要 — 確認各維度資料完整性
+        print("\n📊 各維度資料量摘要:")
+        for name, df in [
+            ("三大法人", inst_total_df), ("外資", foreign_df),
+            ("投信", trust_df), ("自營商", dealer_df),
+            ("資金流向", fund_flow_df), ("融資增減", margin_df),
+            ("融券增減", short_df), ("券資比", ratio_df)
+        ]:
+            count = len(df) if df is not None and not df.empty else 0
+            status = "✅" if count > 0 else "❌"
+            print(f"   {status} {name}: {count} 筆")
+        
         # 合併資料
         final_df = merge_all_data(
             fund_flow_df, margin_df, short_df, ratio_df,
