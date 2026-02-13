@@ -273,8 +273,8 @@ def main():
 
     # 1. 定義時間錨點
     dates_trend = sorted(df_trend['日期'].unique())
-    if len(dates_trend) < 5:
-        print("⚠️ 資料不足 5 天，無法製作週報。")
+    if len(dates_trend) < 10:
+        print(f"⚠️ 趨勢資料不足 2 週（目前 {len(dates_trend)} 天），無法製作週報。")
         return
 
     t_curr = dates_trend[-1]
@@ -286,6 +286,15 @@ def main():
         t_prev = dates_trend[0]
         
     print(f"📅 統計區間: {t_prev} ~ {t_curr}")
+    
+    # 持股資料量保護：t_curr 和 t_prev 都需要有 holdings 資料
+    dates_holdings = sorted(df_holdings['日期'].unique())
+    if t_curr not in dates_holdings or t_prev not in dates_holdings:
+        missing = []
+        if t_curr not in dates_holdings: missing.append(f"t_curr={t_curr}")
+        if t_prev not in dates_holdings: missing.append(f"t_prev={t_prev}")
+        print(f"⚠️ 持股資料不完整（缺少 {', '.join(missing)}），無法製作週報。")
+        return
 
     # 2. 執行分析
     try:

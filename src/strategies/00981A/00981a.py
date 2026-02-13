@@ -233,7 +233,7 @@ def get_comprehensive_alert(fund_data):
 # ==========================================
 # 🧠 存檔函式
 # ==========================================
-def save_data_with_overwrite(file_path, new_df, date_col='日期', max_rows=50):
+def save_data_with_overwrite(file_path, new_df, date_col='日期', max_days=50):
     target_date = str(new_df.iloc[0][date_col])
     final_df = new_df 
 
@@ -255,11 +255,14 @@ def save_data_with_overwrite(file_path, new_df, date_col='日期', max_rows=50):
     else:
         mode_msg = "建立新檔"
 
-    # 裁切至最近 max_rows 筆
-    if max_rows and len(final_df) > max_rows:
-        before_count = len(final_df)
-        final_df = final_df.tail(max_rows).reset_index(drop=True)
-        print(f"   ✂️ 資料裁切: {before_count} → {len(final_df)} 筆 (保留最近 {max_rows} 筆)")
+    # 裁切至最近 max_days 天的資料
+    if max_days:
+        unique_dates = sorted(final_df[date_col].unique())
+        if len(unique_dates) > max_days:
+            keep_dates = unique_dates[-max_days:]
+            before_count = len(final_df)
+            final_df = final_df[final_df[date_col].isin(keep_dates)].reset_index(drop=True)
+            print(f"   ✂️ 資料裁切: {len(unique_dates)} 天 → {max_days} 天 ({before_count} → {len(final_df)} 筆)")
 
     try:
         final_df.to_csv(file_path, index=False, encoding='utf-8-sig')
@@ -924,6 +927,10 @@ try:
     # 🖼️ 任務 E: 生成圖片報告並發送
     # ==========================================
     try:
+        # 資料量不足保護：至少需要 2 天的 holdings 資料才能做比較
+        if 'all_dates' not in dir() or len(all_dates) < 2:
+            raise Exception("持股歷史資料不足 2 天，跳過日報圖片生成（等待更多資料累積）")
+        
         print("🖼️ 正在生成圖片報告...")
         
         # 預設變數初始化（防止前面區塊因異常跳過導致變數未定義）

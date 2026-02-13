@@ -306,16 +306,7 @@ def main(force=False):
     parallel_results.sort(key=lambda x: x['order'])
     all_results.extend(parallel_results)
     
-    # 檢查是否為本週最後交易日 → 順序執行週報
-    # (必須在 00981a.py 完成之後,因為週報依賴其產出的 CSV)
-    if is_last_trading_day_of_week():
-        print("\n" + "="*50)
-        print("階段 2.5: 順序執行週策略報告 (00981aW)")
-        print("="*50)
-        weekly_task = (5.5, "週策略報告 (00981aW)", os.path.join(SRC_DIR, "strategies", "00981A", "00981aW.py"))
-        weekly_result = run_script_sync(weekly_task, force=force)
-        save_result_to_cache(weekly_result)
-        all_results.append(weekly_result)
+    # 週報已移至 step_strategies_00981A.yml 中執行（跟隨日報之後）
     
     # 5. [已停用] 發送整合訊息 (各策略已各自發送圖片報告)
     # print("\n" + "="*50)
