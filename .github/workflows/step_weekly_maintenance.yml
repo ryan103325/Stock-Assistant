@@ -49,4 +49,5 @@ jobs:
           git config --global user.email 'actions@github.com'
           git add src/data_core/market_meta/
           git diff --staged --quiet || git commit -m "🏷️ [Step] Weekly tags $(date +'%Y-%m-%d')"
+          git pull --rebase origin main || true
           git push

@@ -9,6 +9,7 @@ CMoney 雙圖報表策略
 
 import os
 import sys
+import pandas as pd
 from datetime import datetime
 
 # 載入環境變數
@@ -126,7 +127,23 @@ def run_cmoney_strategy(date_str: str = None, send_telegram: bool = True) -> dic
     print("=" * 50)
     
     if date_str is None:
-        date_str = datetime.now().strftime('%Y-%m-%d')
+        # 自動偵測最新有效交易日（避免 Pipeline 寫入的非交易日假資料）
+        try:
+            ref_csv = os.path.join(SRC_DIR, "data_core", "history", "2330.csv")
+            ref_df = pd.read_csv(ref_csv)
+            ref_df['Date'] = pd.to_datetime(ref_df['Date'])
+            ref_df = ref_df.sort_values('Date')
+            # 找最後一個「收盤價與前日不同」的日期 = 真正的交易日
+            ref_df['prev_close'] = ref_df['Close'].shift(1)
+            valid = ref_df[ref_df['Close'] != ref_df['prev_close']]
+            if not valid.empty:
+                date_str = valid.iloc[-1]['Date'].strftime('%Y-%m-%d')
+                print(f"📅 自動偵測最新有效交易日: {date_str}")
+            else:
+                date_str = ref_df.iloc[-1]['Date'].strftime('%Y-%m-%d')
+        except Exception as e:
+            date_str = datetime.now().strftime('%Y-%m-%d')
+            print(f"⚠️ 無法自動偵測交易日 ({e})，使用今天: {date_str}")
     
     print(f"\n📅 分析日期: {date_str}")
     

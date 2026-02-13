@@ -529,16 +529,25 @@ def save_to_csv(code, date_str, op, hi, lo, cl, vol, amount=None):
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write("Date,Open,High,Low,Close,Volume,Amount\n")
 
-    # 讀取最後一行檢查日期 (避免重複)
+    # 讀取最後一行檢查日期和資料重複
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
             if len(lines) > 1:
                 last_line = lines[-1].strip()
-                last_date = last_line.split(',')[0]
+                parts = last_line.split(',')
+                last_date = parts[0]
                 if last_date == date_str:
-                    # print(f"{code} 無最新資料(最後一筆資料為：{last_date})") # Silence verbosity
-                    return "SKIPPED" # Return special status for already exists
+                    return "SKIPPED"  # 日期完全相同，跳過
+                # 防止假資料：如果 OHLCV 與最後一行完全一致（非交易日重複），也跳過
+                if len(parts) >= 6:
+                    try:
+                        last_ohlcv = (float(parts[1]), float(parts[2]), float(parts[3]), float(parts[4]), float(parts[5]))
+                        new_ohlcv = (float(op), float(hi), float(lo), float(cl), float(vol))
+                        if last_ohlcv == new_ohlcv:
+                            return "SKIPPED"  # OHLCV 完全一致 = 非交易日假資料
+                    except:
+                        pass
     except:
         pass
 
