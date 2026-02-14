@@ -13,7 +13,19 @@ on:
         default: true
 
 jobs:
+  # 交易日檢查 (輕量，不需 Python) — 檢查昨天是否為交易日
+  check-trading-day:
+    uses: ./.github/workflows/check_trading_day.yml
+    with:
+      check_mode: yesterday
+      force: ${{ github.event.inputs.force_mode == 'true' }}
+    secrets:
+      FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+
+  # 主要工作 (僅前一天為交易日才執行)
   strategies:
+    needs: check-trading-day
+    if: needs.check-trading-day.outputs.is_trading_day == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write

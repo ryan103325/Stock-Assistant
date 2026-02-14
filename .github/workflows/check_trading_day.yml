@@ -1,0 +1,65 @@
+name: "Check Trading Day"
+
+on:
+  workflow_call:
+    inputs:
+      check_mode:
+        description: '檢查模式: today=今天是否交易日, yesterday=昨天是否交易日'
+        type: string
+        default: 'today'
+      force:
+        description: '強制跳過檢查'
+        type: boolean
+        default: false
+    secrets:
+      FINMIND_TOKEN:
+        required: true
+    outputs:
+      is_trading_day:
+        description: '是否為交易日 (true/false)'
+        value: ${{ jobs.check.outputs.is_trading_day }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      is_trading_day: ${{ steps.check.outputs.is_trading_day }}
+    steps:
+      - name: Check trading day (FinMind API)
+        id: check
+        run: |
+          # Force mode
+          if [ "${{ inputs.force }}" = "true" ]; then
+            echo "⚠️ [Force Mode] 跳過交易日檢查"
+            echo "is_trading_day=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 決定檢查日期
+          if [ "${{ inputs.check_mode }}" = "yesterday" ]; then
+            CHECK_DATE=$(date -u -d "yesterday" +%Y-%m-%d)
+            echo "📅 檢查昨天 ($CHECK_DATE) 是否為交易日..."
+          else
+            CHECK_DATE=$(date -u +%Y-%m-%d)
+            echo "📅 檢查今天 ($CHECK_DATE) 是否為交易日..."
+          fi
+
+          # 週末快速排除 (1=Mon..7=Sun)
+          DAY_OF_WEEK=$(date -u -d "$CHECK_DATE" +%u)
+          if [ "$DAY_OF_WEEK" -ge 6 ]; then
+            echo "💤 $CHECK_DATE 是週末，非交易日。"
+            echo "is_trading_day=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # FinMind API 查詢
+          RESP=$(curl -s --retry 3 --retry-delay 2 \
+            "https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockTradingDate&start_date=$CHECK_DATE&end_date=$CHECK_DATE&token=${{ secrets.FINMIND_TOKEN }}")
+
+          if echo "$RESP" | jq -e ".data[] | select(.date == \"$CHECK_DATE\")" > /dev/null 2>&1; then
+            echo "✅ $CHECK_DATE 確認為交易日。"
+            echo "is_trading_day=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "💤 $CHECK_DATE 非交易日（國定假日或無資料）。"
+            echo "is_trading_day=false" >> "$GITHUB_OUTPUT"
+          fi

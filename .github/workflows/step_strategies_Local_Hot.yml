@@ -10,7 +10,19 @@ on:
         default: true
 
 jobs:
+  # 交易日檢查 (輕量，不需 Python)
+  check-trading-day:
+    uses: ./.github/workflows/check_trading_day.yml
+    with:
+      check_mode: today
+      force: ${{ github.event.inputs.force_mode == 'true' }}
+    secrets:
+      FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+
+  # 族群動能策略 (僅交易日執行)
   unified-momentum:
+    needs: check-trading-day
+    if: needs.check-trading-day.outputs.is_trading_day == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write

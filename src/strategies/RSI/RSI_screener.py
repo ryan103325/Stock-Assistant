@@ -648,13 +648,12 @@ def run_screener():
     # ========================================
     # 輸出報告
     # ========================================
-    all_candidates = daily_candidates + weekly_candidates
+    all_candidates = [x for x in daily_candidates + weekly_candidates
+                       if x['signal']['type'] in ('bull', 'hidden_bull')]
     
     TYPE_LABELS = {
         'bull': ('💎', 'Regular Bullish', '底背離'),
         'hidden_bull': ('🔹', 'Hidden Bullish', '隱藏底背離'),
-        'bear': ('🔴', 'Regular Bearish', '頂背離'),
-        'hidden_bear': ('🔸', 'Hidden Bearish', '隱藏頂背離'),
     }
     
     if all_candidates:
@@ -671,7 +670,7 @@ def run_screener():
                 t = x['signal']['type']
                 by_type.setdefault(t, []).append(x)
             
-            for div_type in ['bull', 'hidden_bull', 'bear', 'hidden_bear']:
+            for div_type in ['bull', 'hidden_bull']:
                 items = by_type.get(div_type, [])
                 if not items:
                     continue
