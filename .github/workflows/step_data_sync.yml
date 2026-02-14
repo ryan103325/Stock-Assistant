@@ -34,37 +34,72 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Check if today is a trading day
+        id: trading_day_check
+        env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
+        run: |
+          FORCE="${{ github.event.inputs.force_mode }}"
+          if [ "$FORCE" = "true" ]; then
+            echo "⚠️ [Force Mode] 跳過交易日檢查"
+            echo "is_trading_day=true" >> "$GITHUB_OUTPUT"
+          else
+            python -c "
+          import os, sys
+          sys.path.insert(0, 'src')
+          from utils.trading_day_utils import is_trading_day
+          result = is_trading_day()
+          output_file = os.environ.get('GITHUB_OUTPUT', '')
+          if output_file:
+              with open(output_file, 'a') as f:
+                  f.write(f'is_trading_day={str(result).lower()}\n')
+          print(f'is_trading_day={str(result).lower()}')
+          "
+          fi
+
+      - name: Skip if not trading day
+        if: steps.trading_day_check.outputs.is_trading_day != 'true'
+        run: |
+          echo "💤 非交易日，跳過資料同步。"
+
       - name: Sync stock data
+        if: steps.trading_day_check.outputs.is_trading_day == 'true'
         env:
           FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
         run: |
           python src/tools/data_pipeline/sync_stock_data.py
 
       - name: Remove success marker (force Pipeline re-run)
+        if: steps.trading_day_check.outputs.is_trading_day == 'true'
         run: |
           rm -f src/data_core/history/.update_success
 
       - name: Update stock prices (Pipeline)
+        if: steps.trading_day_check.outputs.is_trading_day == 'true'
         env:
           FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
         run: |
           python src/tools/data_pipeline/Pipeline_data.py
 
       - name: Update TAIEX data
+        if: steps.trading_day_check.outputs.is_trading_day == 'true'
         env:
           FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
         run: |
           python src/tools/data_pipeline/update_taiex.py
 
       - name: Convert CSV to JSON for chart site
+        if: steps.trading_day_check.outputs.is_trading_day == 'true'
         run: |
           python src/tools/data_pipeline/csv_to_json.py
 
       - name: Compute indicators (optimize_matrix)
+        if: steps.trading_day_check.outputs.is_trading_day == 'true'
         run: |
           python src/tools/data_pipeline/optimize_matrix.py
 
       - name: Commit and push updated data
+        if: steps.trading_day_check.outputs.is_trading_day == 'true'
         run: |
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'actions@github.com'
@@ -74,6 +109,7 @@ jobs:
           git push
 
       - name: Deploy to GitHub Pages
+        if: steps.trading_day_check.outputs.is_trading_day == 'true'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

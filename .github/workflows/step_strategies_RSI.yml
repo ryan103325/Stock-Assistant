@@ -28,8 +28,13 @@ jobs:
           pip install -r requirements.txt
 
 
+      - name: Build cache (optimize_matrix)
+        run: |
+          python src/tools/data_pipeline/optimize_matrix.py
+
       - name: Run RSI Screener
         env:
+          FINMIND_TOKEN: ${{ secrets.FINMIND_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
