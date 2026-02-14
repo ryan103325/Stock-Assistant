@@ -7,6 +7,10 @@ import time
 import sys
 from datetime import datetime, timedelta
 
+# 加入 src 路徑以便 import 共用模組
+SRC_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, SRC_ROOT)
+
 # ==========================================
 # ⚙️ 設定區
 # ==========================================
@@ -62,35 +66,8 @@ def clean_float(val):
     except:
         return 0.0
 
-def check_trading_day():
-    """檢查今日是否為交易日 (FinMind TaiwanStockTradingDate)"""
-    today_str = datetime.now().strftime('%Y-%m-%d')
-    token = os.getenv("FINMIND_TOKEN", "")
-    
-    if not token:
-        print("⚠️ 未設定 FINMIND_TOKEN，改用平日判斷")
-        return datetime.now().weekday() < 5
-    
-    try:
-        url = "https://api.finmindtrade.com/api/v4/data"
-        params = {
-            "dataset": "TaiwanStockTradingDate",
-            "start_date": today_str,
-            "end_date": today_str,
-            "token": token
-        }
-        resp = requests.get(url, params=params, timeout=20)
-        data = resp.json()
-        dates = [d['date'] for d in data.get('data', [])]
-        if today_str in dates:
-            print(f"✅ 是交易日: {today_str}")
-            return True
-        else:
-            print(f"💤 非交易日: {today_str}")
-            return False
-    except Exception as e:
-        print(f"⚠️ API 查詢失敗: {e}")
-        return datetime.now().weekday() < 5
+# check_trading_day 已移至 utils.trading_day_utils
+from utils.trading_day_utils import is_trading_day as check_trading_day
 
 # ==========================================
 # 🧠 模組一：持股結構變動分析

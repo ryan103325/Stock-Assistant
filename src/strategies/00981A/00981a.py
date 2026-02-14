@@ -18,7 +18,9 @@ load_dotenv()
 
 # 族群整合模組 (位於 src/tools/tag_generator)
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "tools", "tag_generator"))
+SRC_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(SRC_DIR), "src"))
+sys.path.insert(0, os.path.join(SRC_DIR, "tools", "tag_generator"))
 from group_mapping import (
     get_stock_groups, 
     calculate_group_weights, 
@@ -297,43 +299,8 @@ def send_telegram_photo(photo_path, caption=""):
     except Exception as e: 
         print(f"❌ TG 圖片錯誤: {e}")
 
-def check_trading_day():
-    """檢查今日是否為交易日 (FinMind TaiwanStockTradingDate)"""
-    print("📅 [FinMind] 確認交易日中...")
-    today_str = datetime.now().strftime('%Y-%m-%d')
-    token = os.getenv("FINMIND_TOKEN", "")
-    
-    if not token:
-        print("⚠️ 未設定 FINMIND_TOKEN，改用平日判斷")
-        if datetime.now().weekday() >= 5:
-            print(f"🛑 週末停止執行。")
-            return False
-        return True
-    
-    try:
-        url = "https://api.finmindtrade.com/api/v4/data"
-        params = {
-            "dataset": "TaiwanStockTradingDate",
-            "start_date": today_str,
-            "end_date": today_str,
-            "token": token
-        }
-        resp = requests.get(url, params=params, timeout=20)
-        data = resp.json()
-        dates = [d['date'] for d in data.get('data', [])]
-        if today_str in dates:
-            print(f"✅ 是交易日: {today_str}")
-            return True
-        else:
-            print(f"💤 非交易日: {today_str}")
-            return False
-    except Exception as e:
-        print(f"⚠️ API 查詢失敗: {e}")
-        if datetime.now().weekday() >= 5:
-            print(f"🛑 週末停止執行。")
-            return False
-        print("⚠️ 查無資料但為平日，強制執行。")
-        return True
+# check_trading_day 已移至 utils.trading_day_utils
+from utils.trading_day_utils import is_trading_day as check_trading_day
 
 def get_taiex_change():
     """讀取大盤漲跌幅 (TAIEX.csv)"""

@@ -16,6 +16,14 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
 SRC_DIR = os.path.join(PROJECT_ROOT, "src")
 CACHE_DIR = os.path.join(PROJECT_ROOT, "logs")
 
+# 加入 src 路徑以便 import 共用模組
+sys.path.insert(0, SRC_DIR)
+from utils.trading_day_utils import (
+    is_trading_day as check_is_trading_day,
+    is_yesterday_trading_day as check_yesterday_is_trading_day,
+    is_last_trading_day_of_week,
+)
+
 # 確保 cache 目錄存在
 os.makedirs(CACHE_DIR, exist_ok=True)
 
@@ -40,100 +48,7 @@ REFLECTION_TASK = (0, "情緒分析反思", "src.alpha_core.main", ["reflect"], 
 # 步驟 8: Bot (僅本地執行)
 BOT_TASK = ("啟動 Telegram Bot", os.path.join(SRC_DIR, "charts", "technical_analysis_chart.py"))
 
-def _query_trading_dates(start_date, end_date):
-    """查詢 FinMind 交易日清單 (共用函式)"""
-    token = os.getenv("FINMIND_TOKEN", "")
-    if not token:
-        print("⚠️ 未設定 FINMIND_TOKEN 環境變數")
-        return None
-    
-    url = "https://api.finmindtrade.com/api/v4/data"
-    params = {
-        "dataset": "TaiwanStockTradingDate",
-        "start_date": start_date,
-        "end_date": end_date,
-        "token": token
-    }
-    
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            res = requests.get(url, params=params, timeout=20)
-            if res.status_code == 200:
-                data = res.json().get('data', [])
-                return [d['date'] for d in data]
-            else:
-                print(f"⚠️ API 回傳錯誤碼: {res.status_code}")
-        except Exception as e:
-            print(f"⚠️ API 連線失敗 ({attempt+1}/{max_retries}): {e}")
-            time.sleep(2)
-    return None
-
-def check_is_trading_day(force=False):
-    """檢查今日是否為交易日 (FinMind TaiwanStockTradingDate + Fallback)"""
-    if force:
-        print("⚠️ [Force Mode] 強制忽略交易日檢查,執行任務。")
-        return True
-
-    print("📅 確認今日是否為交易日...")
-    
-    # 1. 週末快速排除
-    today_str = datetime.now().strftime('%Y-%m-%d')
-    weekday = datetime.now().weekday()
-    if weekday >= 5:
-        print(f"💤 今日 ({today_str}) 是週末 (週{'六日'[weekday-5]}),非交易日。")
-        return False
-
-    # 2. FinMind API 查詢
-    dates = _query_trading_dates(today_str, today_str)
-    if dates is not None:
-        if today_str in dates:
-            print(f"✅ 今日 ({today_str}) 確認為交易日 (API)。")
-            return True
-        else:
-            print(f"💤 今日 ({today_str}) 非交易日 (可能是國定假日)。")
-            return False
-            
-    # 3. Fallback: API 失敗但為平日,強制執行
-    print("⚠️ 無法連線至 FinMind API,啟用備援判斷: 今日為平日,強制執行。")
-    return True
-
-def check_yesterday_is_trading_day():
-    """檢查昨天是否為交易日"""
-    yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-    dates = _query_trading_dates(yesterday, yesterday)
-    if dates is not None:
-        return yesterday in dates
-    # Fallback: 昨天非週末就當交易日
-    return (datetime.now() - timedelta(days=1)).weekday() < 5
-
-def is_last_trading_day_of_week(target_date=None):
-    """
-    檢查 target_date (預設昨天) 是否為該週最後一個交易日
-    用途: 決定是否執行週報
-    """
-    if target_date is None:
-        target_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-    
-    # 取得該週的日期範圍 (週一到週日)
-    target_dt = datetime.strptime(target_date, '%Y-%m-%d')
-    monday = target_dt - timedelta(days=target_dt.weekday())
-    sunday = monday + timedelta(days=6)
-    
-    dates = _query_trading_dates(monday.strftime('%Y-%m-%d'), sunday.strftime('%Y-%m-%d'))
-    if dates is None:
-        # Fallback: 若 API 掛,用週五判斷
-        print("⚠️ 無法查詢交易日清單,改用週五判斷")
-        return target_dt.weekday() == 4
-    
-    if not dates:
-        return False
-    
-    last_trading_day = max(dates)
-    is_last = target_date == last_trading_day
-    if is_last:
-        print(f"📅 {target_date} 是本週最後交易日,將執行週報")
-    return is_last
+# 交易日判斷已移至 utils.trading_day_utils
 
 def run_script_sync(task_info, force=False):
     """同步執行單一腳本並返回結果"""
@@ -256,7 +171,7 @@ def main(force=False):
     print("==========================================")
     
     # 1. 全域交易日檢查
-    if not check_is_trading_day(force):
+    if not check_is_trading_day(force=force):
         print("⏸️ 非交易日,略過每日流程。")
         time.sleep(5)
         return

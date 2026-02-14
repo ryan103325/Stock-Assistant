@@ -17,9 +17,12 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
 env_path = os.path.join(project_root, ".env")
 load_dotenv(env_path)
 
+# 加入 src 路徑以便 import 共用模組
+sys.path.insert(0, os.path.join(project_root, "src"))
+from utils.trading_day_utils import is_trading_day
+
 # --- Configuration ---
 CACHE_FILE = os.path.join(project_root, "src", "cache", "market_matrix.pkl")
-TAIEX_FILE = os.path.join(project_root, "src", "data_core", "TAIEX.csv")
 NAME_MAP_FILE = os.path.join(project_root, "src", "data_core", "market_meta", "moneydj_industries.csv")
 
 # --- Parameters ---
@@ -65,27 +68,7 @@ def load_name_map():
     return name_map
 
 
-def is_trading_day():
-    """檢查今日是否為交易日"""
-    today_str = datetime.now().strftime('%Y-%m-%d')
-    force_mode = "--force" in sys.argv
-    
-    if os.path.exists(TAIEX_FILE):
-        try:
-            with open(TAIEX_FILE, "r") as f:
-                last_line = f.readlines()[-1]
-                last_date = last_line.split(",")[0].strip().replace("/", "-")
-                if last_date == today_str:
-                    return True
-        except Exception:
-            pass
-    
-    if force_mode:
-        print(f"⚠️ [Force Mode] TAIEX 日期不符，但強制繼續執行。")
-        return True
-    
-    print(f"😴 今日 ({today_str}) 非交易日或資料未更新，跳過執行。")
-    return False
+# is_trading_day 已移至 utils.trading_day_utils（透過 FinMind API 判斷）
 
 
 # ============================================================
