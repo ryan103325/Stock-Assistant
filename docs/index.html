@@ -31,6 +31,7 @@
             <div class="tab-btns">
                 <button class="tab-btn active" data-tab="technical">技術分析</button>
                 <button class="tab-btn" data-tab="fundamental">基本面分析</button>
+                <button class="tab-btn" data-tab="chip">籌碼面分析</button>
             </div>
             <div class="timeframe-btns" id="timeframeBtns">
                 <button class="tf-btn active" data-tf="D">日線</button>
@@ -125,6 +126,86 @@
             </div>
         </div>
 
+        <!-- 籌碼面分析頁籤 -->
+        <div id="chip-tab" class="tab-content">
+            <div class="fundamental-panel">
+                <!-- 分析控制 -->
+                <div class="fund-control">
+                    <button id="startChipAnalysis" class="analysis-btn">
+                        <span class="btn-icon">📊</span>
+                        <span class="btn-text">開始籌碼面分析</span>
+                    </button>
+                    <button id="configChipToken" class="config-btn" title="設定 GitHub Token">⚙️</button>
+                    <div id="chipAnalysisStatus" class="analysis-status"></div>
+                </div>
+
+                <!-- 分析結果 -->
+                <div id="chipResult" class="fund-result" style="display: none;">
+
+                    <!-- 總分儀表 -->
+                    <div class="chip-score-panel">
+                        <div class="chip-score-left">
+                            <div class="chip-score-number" id="chipTotalScore">--</div>
+                            <div class="chip-score-label">/ 100 分</div>
+                        </div>
+                        <div class="chip-score-right">
+                            <div class="chip-rating-badge" id="chipRatingBadge">
+                                <span id="chipRating">--</span>
+                                <span class="chip-rating-en" id="chipRatingEn"></span>
+                            </div>
+                            <div class="chip-score-bar-bg">
+                                <div class="chip-score-bar-fill" id="chipScoreBar" style="width:0%"></div>
+                            </div>
+                            <div class="chip-analysis-date" id="chipAnalysisDate"></div>
+                        </div>
+                    </div>
+
+                    <!-- 低成交量警示 -->
+                    <div id="chipLowVolWarning" class="chip-warning-banner" style="display:none;">
+                        ⚠️ 成交量過低，分點評分已減半，整體評級已降一級
+                    </div>
+
+                    <!-- 四維度卡片 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">📐 四維度評分</h3>
+                        <div class="chip-dim-grid">
+                            <div class="chip-dim-card" id="dimInstitutional"></div>
+                            <div class="chip-dim-card" id="dimOwnership"></div>
+                            <div class="chip-dim-card" id="dimBroker"></div>
+                            <div class="chip-dim-card" id="dimSentiment"></div>
+                        </div>
+                    </div>
+
+                    <!-- 關鍵亮點 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">✅ 關鍵亮點</h3>
+                        <div id="chipHighlights" class="chip-highlights"></div>
+                    </div>
+
+                    <!-- 風險警示 -->
+                    <div class="fund-section" id="chipRisksSection" style="display:none;">
+                        <h3 class="section-title">⚠️ 風險警示</h3>
+                        <div id="chipRisks" class="chip-risks"></div>
+                    </div>
+
+                    <!-- 策略建議 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">💡 策略建議</h3>
+                        <div class="ai-summary">
+                            <p id="chipStrategy">--</p>
+                        </div>
+                    </div>
+
+                    <!-- 原始資料 -->
+                    <div class="fund-section">
+                        <h3 class="section-title" style="cursor:pointer;" onclick="toggleRawData()">📋 原始資料 <span
+                                id="rawToggleIcon">▼</span></h3>
+                        <div id="chipRawData" class="ratio-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="suggestions" id="suggestions"></div>
 
         <!-- 浮動資訊面板 -->
@@ -134,6 +215,21 @@
     <script src="app.js"></script>
     <script src="fundamental.js"></script>
     <script src="volume_profile.js"></script>
+    <script src="chip.js"></script>
+    <script>
+        function toggleRawData() {
+            const el = document.getElementById('chipRawData');
+            const icon = document.getElementById('rawToggleIcon');
+            const hidden = el.style.display === 'none';
+            el.style.display = hidden ? 'grid' : 'none';
+            icon.textContent = hidden ? '▲' : '▼';
+        }
+        // 初始隱藏原始資料
+        document.addEventListener('DOMContentLoaded', () => {
+            const raw = document.getElementById('chipRawData');
+            if (raw) raw.style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>

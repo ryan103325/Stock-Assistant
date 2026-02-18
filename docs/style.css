@@ -807,3 +807,322 @@ body {
         justify-content: center;
     }
 }
+
+/* ===================================================
+   籌碼面分析專用樣式
+   =================================================== */
+
+/* 總分儀表板 */
+.chip-score-panel {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+}
+
+.chip-score-left {
+    text-align: center;
+    min-width: 100px;
+}
+
+.chip-score-number {
+    font-size: 3.5rem;
+    font-weight: 900;
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    background: linear-gradient(135deg, #58a6ff, #3fb950);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+}
+
+.chip-score-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.chip-score-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 評級標籤 */
+.chip-rating-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    width: fit-content;
+}
+
+.chip-rating-badge.strong-buy {
+    background: rgba(63, 185, 80, 0.15);
+    color: #3fb950;
+    border: 1px solid rgba(63, 185, 80, 0.3);
+}
+
+.chip-rating-badge.bullish {
+    background: rgba(88, 166, 255, 0.15);
+    color: #58a6ff;
+    border: 1px solid rgba(88, 166, 255, 0.3);
+}
+
+.chip-rating-badge.neutral {
+    background: rgba(210, 153, 34, 0.15);
+    color: #d29922;
+    border: 1px solid rgba(210, 153, 34, 0.3);
+}
+
+.chip-rating-en {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+/* 總分進度條 */
+.chip-score-bar-bg {
+    width: 100%;
+    height: 10px;
+    background: var(--bg-tertiary);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.chip-score-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.8s ease;
+}
+
+.chip-score-bar-fill.bar-strong {
+    background: linear-gradient(90deg, #3fb950, #2ea043);
+    box-shadow: 0 0 8px rgba(63, 185, 80, 0.4);
+}
+
+.chip-score-bar-fill.bar-bullish {
+    background: linear-gradient(90deg, #58a6ff, #388bfd);
+    box-shadow: 0 0 8px rgba(88, 166, 255, 0.4);
+}
+
+.chip-score-bar-fill.bar-neutral {
+    background: linear-gradient(90deg, #d29922, #b08800);
+    box-shadow: 0 0 8px rgba(210, 153, 34, 0.4);
+}
+
+.chip-analysis-date {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* 低成交量警示橫幅 */
+.chip-warning-banner {
+    background: rgba(210, 153, 34, 0.1);
+    border: 1px solid rgba(210, 153, 34, 0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    color: #d29922;
+    margin-bottom: 12px;
+}
+
+/* 四維度卡片格 */
+.chip-dim-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.chip-dim-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: border-color 0.2s;
+}
+
+.chip-dim-card:hover {
+    border-color: var(--accent);
+}
+
+.dim-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.dim-score {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    font-family: monospace;
+    line-height: 1.2;
+}
+
+.dim-max {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.dim-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.dim-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+}
+
+.dim-bar-fill.dim-good {
+    background: linear-gradient(90deg, #3fb950, #2ea043);
+}
+
+.dim-bar-fill.dim-mid {
+    background: linear-gradient(90deg, #58a6ff, #388bfd);
+}
+
+.dim-bar-fill.dim-low {
+    background: linear-gradient(90deg, #d29922, #b08800);
+}
+
+.dim-notes {
+    margin-top: 8px;
+}
+
+.dim-note {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    padding: 2px 0;
+}
+
+.dim-note strong {
+    color: var(--text-primary);
+}
+
+/* 分點週期切換 */
+.broker-period-switcher {
+    display: flex;
+    gap: 4px;
+    margin: 8px 0 4px;
+}
+
+.broker-period-btn {
+    padding: 4px 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.broker-period-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--accent);
+}
+
+.broker-period-btn.active {
+    background: var(--accent);
+    color: var(--bg-primary);
+    border-color: var(--accent);
+}
+
+/* 亮點 */
+.chip-highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chip-highlight-item {
+    padding: 10px 14px;
+    background: rgba(63, 185, 80, 0.07);
+    border-left: 3px solid var(--green);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+/* 風險警示 */
+.chip-risks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chip-risk-item {
+    padding: 10px 14px;
+    background: rgba(248, 81, 73, 0.07);
+    border-left: 3px solid var(--red);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+/* 原始資料格 */
+.raw-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.raw-label {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.raw-value {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: monospace;
+}
+
+/* 響應式 */
+@media (max-width: 768px) {
+    .chip-score-panel {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .chip-score-number {
+        font-size: 2.8rem;
+    }
+
+    .chip-dim-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .chip-dim-grid {
+        grid-template-columns: 1fr;
+    }
+}

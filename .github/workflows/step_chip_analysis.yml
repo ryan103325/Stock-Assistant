@@ -1,0 +1,63 @@
+name: "[Step] Chip Analysis"
+
+on:
+  workflow_dispatch:
+    inputs:
+      stock_id:
+        description: '股票代號 (例如: 2330)'
+        required: true
+        type: string
+      force_mode:
+        description: '強制執行（跳過交易日檢查）'
+        required: false
+        type: boolean
+        default: true
+      no_telegram:
+        description: '不發送 Telegram（僅本地生成）'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  chip-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r src/chip_analysis/requirements.txt
+
+      - name: Run Chip Analysis
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          ARGS="${{ github.event.inputs.stock_id }}"
+          if [ "${{ github.event.inputs.no_telegram }}" = "true" ]; then
+            ARGS="$ARGS --no-telegram"
+          fi
+          python -m src.chip_analysis.main $ARGS
+
+      - name: Commit outputs
+        run: |
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'actions@github.com'
+          git add docs/data/chip/ || true
+          git diff --staged --quiet || git commit -m "📊 [Chip] ${{ github.event.inputs.stock_id }} $(date +'%Y-%m-%d %H:%M')"
+          git pull --rebase origin main || true
+          git push
