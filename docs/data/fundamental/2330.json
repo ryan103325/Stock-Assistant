@@ -2,7 +2,7 @@
   "success": true,
   "stock_id": "2330",
   "stock_name": "台積電",
-  "timestamp": "2026-02-18T02:34:22.072307",
+  "timestamp": "2026-02-18T02:53:38.999815",
   "scores": {
     "z_score": {
       "value": 15.40893692537709,
@@ -49,7 +49,7 @@
   },
   "ai_analysis": {
     "summary": "",
-    "overall_score": 8.0,
+    "overall_score": 8.5,
     "recommendation": ""
   }
 }
