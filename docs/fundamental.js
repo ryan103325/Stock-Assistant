@@ -80,20 +80,7 @@ async function startFundamentalAnalysis() {
         return;
     }
 
-    // 先檢查快取
-    updateStatusUI('🔍 檢查已存在的分析結果...', 'loading', null);
-    const cached = await fetchResult(stockId, token);
-    if (cached) {
-        renderFundamentalResult(cached);
-        const cacheTime = new Date(cached.timestamp);
-        updateStatusUI(
-            `📋 顯示快取結果 (${formatTimeAgo(cacheTime)})`,
-            'success',
-            { stockId, token }
-        );
-        return;
-    }
-
+    // 直接觸發新分析（不查快取）
     await triggerAndTrack(stockId, token);
 }
 
@@ -137,10 +124,14 @@ async function triggerAndTrack(stockId, token) {
                 const success = await trackRunProgress(runId, token);
 
                 if (success) {
-                    // 5. 讀取結果
+                    // 5. 讀取結果 (retry loop, 等 commit 傳播)
                     updateProgressUI(95, '📥 讀取分析結果...', '下載結果 JSON');
-                    await sleep(5000); // 等 GitHub commit 傳播
-                    const result = await fetchResult(stockId, token);
+                    let result = null;
+                    for (let i = 0; i < 5; i++) {
+                        await sleep(1500);
+                        result = await fetchResult(stockId, token);
+                        if (result) break;
+                    }
                     if (result) {
                         updateProgressUI(100, '✅ 分析完成！', '完成');
                         renderFundamentalResult(result);
@@ -409,6 +400,7 @@ function renderFundamentalResult(data) {
         eyData != null ? `${eyData.toFixed(1)}%` : 'N/A';
     const eyBadge = document.getElementById('eyBadge');
     if (eyData != null) {
+        const eyClass = eyData > 5 ? 'ey-cheap' : eyData > 3.75 ? 'ey-fair-low' : eyData > 3 ? 'ey-fair-high' : 'ey-expensive';
         eyBadge.textContent = eyData > 5 ? '便宜' : eyData > 3.75 ? '合理偏低' : eyData > 3 ? '合理偏高' : '昂貴';
         eyBadge.className = `score-badge ${eyClass}`;
     }
