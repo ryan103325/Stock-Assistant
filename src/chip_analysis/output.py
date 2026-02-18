@@ -63,14 +63,21 @@ def build_output(stock_id: str, stock_name: str, raw_data: dict, score: ChipScor
             'broker_buy_10d': raw_data.get('broker_buy_10d'),
             'broker_name_20d': raw_data.get('broker_name_20d'),
             'broker_buy_20d': raw_data.get('broker_buy_20d'),
+            'top_buy_broker': raw_data.get('top_buy_broker'),
+            'top_buy_net': raw_data.get('top_buy_net'),
+            'top_sell_broker': raw_data.get('top_sell_broker'),
+            'top_sell_net': raw_data.get('top_sell_net'),
+            'main_force_net_5d': raw_data.get('main_force_net_5d'),
+            'main_force_consecutive': raw_data.get('main_force_consecutive'),
             'total_volume_1d': raw_data.get('total_volume_1d'),
-            'is_geo_broker': raw_data.get('is_geo_broker', False),
             'margin_change': raw_data.get('margin_change'),
             'short_ratio': raw_data.get('short_ratio'),
-            'price_above_ma': raw_data.get('price_above_ma'),
             'current_price': raw_data.get('current_price'),
             'data_date': raw_data.get('data_date'),
         },
+        'buy_brokers': raw_data.get('buy_brokers', [])[:15],
+        'sell_brokers': raw_data.get('sell_brokers', [])[:15],
+        'main_force_trend': raw_data.get('main_force_trend', [])[-20:],
     }
 
 

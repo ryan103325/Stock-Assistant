@@ -1,142 +1,358 @@
 """
-籌碼面資料抓取模組 — Goodinfo 爬蟲
-抓取：法人買賣超、股權分散表、融資融券、分點主力
+籌碼面資料抓取模組 — Selenium + requests 版
+
+資料來源（已 debug 確認）:
+- 法人買賣超: Goodinfo ShowBuySaleChart.asp?CHT_CAT2=DATE  -> id=tblDetail
+- 融資融券:   Goodinfo ShowBuySaleChart.asp?CHT_CAT2=MARGIN -> selKCSheet AJAX -> tblDetail
+- 股權分散:   Goodinfo EquityDistributionClassHis.asp        -> id=tblDetail
+- 主力走勢:   永豐金 API CZCO.DJBCD?A={id}                    -> requests GET
+- 券商分點:   永豐金 sinotrade 頁面                            -> Selenium #oMainTable
 """
 
 import time
+import random
 import re
 import requests
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 
-HEADERS = {
-    'User-Agent': (
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-        'AppleWebKit/537.36 (KHTML, like Gecko) '
-        'Chrome/120.0.0.0 Safari/537.36'
-    ),
-    'Accept-Language': 'zh-TW,zh;q=0.9',
-    'Referer': 'https://goodinfo.tw/',
-}
+GOODINFO_BASE = 'https://goodinfo.tw/tw'
+USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+]
+MAX_RETRIES = 3
+RETRY_DELAY = 3
 
-SESSION = requests.Session()
-SESSION.headers.update(HEADERS)
+_driver = None
 
 
-def _get(url: str, params: dict = None, retries: int = 3) -> BeautifulSoup | None:
-    """帶重試的 GET，回傳 BeautifulSoup 或 None"""
-    for i in range(retries):
+# ================================================================
+# WebDriver 管理
+# ================================================================
+
+def _get_driver():
+    global _driver
+    if _driver is not None:
+        return _driver
+
+    options = Options()
+    options.add_argument('--headless=new')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--window-size=1920,1080')
+    options.add_argument(f'--user-agent={random.choice(USER_AGENTS)}')
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_experimental_option('excludeSwitches', ['enable-automation'])
+    options.add_experimental_option('useAutomationExtension', False)
+
+    _driver = webdriver.Chrome(options=options)
+    _driver.execute_cdp_cmd(
+        'Page.addScriptToEvaluateOnNewDocument',
+        {'source': 'Object.defineProperty(navigator, "webdriver", {get: () => undefined})'}
+    )
+    print("[fetcher] Chrome WebDriver init OK")
+    _warmup_cookies()
+    return _driver
+
+
+def _warmup_cookies():
+    global _driver
+    print("[fetcher] Warming up cookies...")
+    try:
+        _driver.get(GOODINFO_BASE)
+        time.sleep(2)
+        for _ in range(5):
+            if len(_driver.page_source) > 1000:
+                break
+            time.sleep(1.5)
+        print("[fetcher] Cookie warmup done")
+    except Exception as e:
+        print(f"[fetcher] Cookie warmup failed (non-fatal): {e}")
+
+
+def _fetch_page(url: str, timeout: int = 25) -> BeautifulSoup | None:
+    """載入頁面，等待頁面大小穩定，回傳 BeautifulSoup"""
+    driver = _get_driver()
+
+    for attempt in range(MAX_RETRIES):
         try:
-            resp = SESSION.get(url, params=params, timeout=20)
-            resp.encoding = 'utf-8'
-            if resp.status_code == 200:
-                return BeautifulSoup(resp.text, 'lxml')
+            driver.get(url)
+            # 等待頁面大小 > 5000 bytes（排除 redirect 小頁面）
+            start = time.time()
+            while time.time() - start < timeout:
+                if len(driver.page_source) > 5000:
+                    break
+                time.sleep(2)
+
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.TAG_NAME, 'table'))
+                )
+            except TimeoutException:
+                pass
+
+            time.sleep(random.uniform(1.0, 2.0))
+            page = driver.page_source
+            if len(page) < 1000:
+                print(f"[fetcher] Page too small ({len(page)} bytes), likely blocked: {url}")
+                return None
+            return BeautifulSoup(page, 'lxml')
+
         except Exception as e:
-            print(f"[fetcher] 第 {i+1} 次請求失敗: {e}")
-        time.sleep(3)
+            print(f"[fetcher] Page error (attempt {attempt+1}/{MAX_RETRIES}): {e}")
+            time.sleep(RETRY_DELAY)
+
     return None
 
 
+def cleanup():
+    global _driver
+    if _driver:
+        try:
+            _driver.quit()
+            print("[fetcher] WebDriver closed")
+        except Exception:
+            pass
+        _driver = None
+
+
+# ================================================================
+# 工具函式
+# ================================================================
+
 def _parse_int(s: str) -> int | None:
-    """解析帶逗號的整數字串，支援負數"""
     if not s:
         return None
-    s = s.strip().replace(',', '').replace(' ', '')
+    s = s.strip().replace(',', '').replace(' ', '').replace('\xa0', '')
+    neg = s.startswith('(') and s.endswith(')')
+    if neg:
+        s = s[1:-1]
+    s = re.sub(r'[^\d\-]', '', s)
     try:
-        return int(s)
+        v = int(s)
+        return -v if neg else v
     except ValueError:
         return None
 
 
 def _parse_float(s: str) -> float | None:
-    """解析浮點數字串"""
-    if not s:
+    if not s or s.strip() in ('-', 'N/A', '', '--', '-'):
         return None
-    s = s.strip().replace(',', '').replace('%', '').replace(' ', '')
+    s = s.strip().replace(',', '').replace('%', '').replace('\xa0', '').replace('億', '')
     try:
         return float(s)
     except ValueError:
         return None
 
 
+def _find_table_by_id(soup: BeautifulSoup, table_id: str):
+    return soup.find('table', id=table_id)
+
+
+# ================================================================
+# 法人買賣超
+# ================================================================
+
 def fetch_institutional(stock_id: str) -> dict:
     """
-    抓取法人買賣超（投信、外資）近 5 日資料
-    來源：Goodinfo 法人買賣超彙總
-    回傳：
-        trust_buy_5d: 投信近5日買賣超張數
-        trust_consecutive_days: 投信連續買超天數
-        foreign_buy_5d: 外資近5日買賣超張數
-        capital_million: 股本（百萬元，用於計算佔比）
+    抓取法人買賣超
+    URL: ShowBuySaleChart.asp?CHT_CAT2=DATE
+    資料表: id=tblDetail
+    欄位（已 debug 確認）:
+      col[0]=期別, col[4]=成交量, col[7]=外資買賣超, col[12]=投信買賣超
     """
-    url = f'https://goodinfo.tw/tw/ShowBrokerInfoSummary.asp'
-    params = {'STOCK_ID': stock_id, 'CHT_CAT': 'DATE'}
-    soup = _get(url, params)
-
     result = {
         'trust_buy_5d': None,
         'trust_consecutive_days': 0,
         'foreign_buy_5d': None,
-        'capital_million': None,
+        'total_volume_1d': None,
     }
 
+    url = f'{GOODINFO_BASE}/ShowBuySaleChart.asp?STOCK_ID={stock_id}&CHT_CAT2=DATE'
+    soup = _fetch_page(url)
     if not soup:
         return result
 
-    # 找法人買賣超表格
-    tables = soup.find_all('table')
-    for table in tables:
-        rows = table.find_all('tr')
-        # 找含「投信」的行
-        trust_vals = []
-        foreign_vals = []
-        for row in rows:
-            cells = row.find_all(['td', 'th'])
-            texts = [c.get_text(strip=True) for c in cells]
-            if len(texts) < 3:
-                continue
-            # 尋找投信欄位（通常第一欄是日期）
-            # Goodinfo 表格結構：日期 | 外資 | 投信 | 自營商 | 合計
-            if texts[0] and re.match(r'\d{4}/\d{2}/\d{2}', texts[0]):
-                if len(texts) >= 4:
-                    foreign_vals.append(_parse_int(texts[1]))
-                    trust_vals.append(_parse_int(texts[2]))
+    table = _find_table_by_id(soup, 'tblDetail')
+    if not table:
+        print(f"[fetcher] WARNING: institutional tblDetail not found")
+        return result
 
-        if trust_vals:
-            # 取最近 5 筆
-            trust_5 = [v for v in trust_vals[:5] if v is not None]
-            foreign_5 = [v for v in foreign_vals[:5] if v is not None]
-            result['trust_buy_5d'] = sum(trust_5) if trust_5 else 0
-            result['foreign_buy_5d'] = sum(foreign_5) if foreign_5 else 0
+    rows = table.find_all('tr')
+    # row[0] = header1: 期別 | 成交 | 漲跌 | 漲跌(%) | 成交量(張) | 外資(買進/賣出/買賣超/持有/持股比) | 投信(買進/賣出/買賣超) | ...
+    # row[1] = header2: 買進(張) | 賣出(張) | 買賣超(張) | ...
+    # row[2+] = 資料: '26/02/11 | 1915 | +35 | +1.86 | 44,684 | 24,488 | 29,430 | -4,941 | 18,699,093 | 72.1 | 1,362 | 221 | +1,141 | ...
 
-            # 計算連續買超天數
-            consecutive = 0
-            for v in trust_vals:
-                if v is not None and v > 0:
-                    consecutive += 1
-                else:
-                    break
-            result['trust_consecutive_days'] = consecutive
-            break
+    VOLUME_COL = 4
+    FOREIGN_NET_COL = 7
+    TRUST_NET_COL = 12
 
-    time.sleep(2)
+    foreign_vals = []
+    trust_vals = []
+    volume_1d = None
+
+    for row in rows[2:]:
+        cells = row.find_all(['td', 'th'])
+        if len(cells) < 13:
+            continue
+        texts = [c.get_text(strip=True) for c in cells]
+        # 確認是日期行
+        if not re.match(r"'?\d{2}/\d{2}/\d{2}", texts[0]):
+            continue
+
+        vol = _parse_int(texts[VOLUME_COL]) if len(texts) > VOLUME_COL else None
+        foreign_net = _parse_int(texts[FOREIGN_NET_COL]) if len(texts) > FOREIGN_NET_COL else None
+        trust_net = _parse_int(texts[TRUST_NET_COL]) if len(texts) > TRUST_NET_COL else None
+
+        if vol is not None and volume_1d is None:
+            volume_1d = vol
+        if foreign_net is not None:
+            foreign_vals.append(foreign_net)
+        if trust_net is not None:
+            trust_vals.append(trust_net)
+
+    result['total_volume_1d'] = volume_1d
+
+    if foreign_vals:
+        result['foreign_buy_5d'] = sum(foreign_vals[:5])
+
+    if trust_vals:
+        result['trust_buy_5d'] = sum(trust_vals[:5])
+        consecutive = 0
+        for v in trust_vals:
+            if v > 0:
+                consecutive += 1
+            else:
+                break
+        result['trust_consecutive_days'] = consecutive
+
+    print(f"[fetcher] Institutional: trust_5d={result['trust_buy_5d']}, "
+          f"foreign_5d={result['foreign_buy_5d']}, "
+          f"consecutive={result['trust_consecutive_days']}, "
+          f"volume={result['total_volume_1d']}")
     return result
 
 
+# ================================================================
+# 融資融券
+# ================================================================
+
+def fetch_margin(stock_id: str) -> dict:
+    """
+    抓取融資融券
+    URL: ShowBuySaleChart.asp?CHT_CAT2=MARGIN
+    操作：用 Selenium 點選 selKCSheet 下拉選單切換到「融資融券餘額」
+    AJAX 更新後 tblDetail 欄位（已 debug 確認）:
+      row[0]: 期別 | 收盤 | 漲跌 | 漲跌(%) | 成交(張) | 融資(張) | 融券(張) | ... | 券資比(%)
+      row[1]: 買進 | 賣出 | 現償 | 增減 | 餘額 | 使用率 | 買進 | 賣出 | 現償 | 增減 | 餘額 | 使用率
+      row[2]: '26/02/11 | 1915 | +35 | +1.86 | 44,684 | 1,535 | 1,353 | 151 | +31 | 21,275 | 0.33 | 18
+    融資增減 = col[8]
+    券資比 = col[9]
+    """
+    result = {
+        'margin_change': None,
+        'short_ratio': None,
+    }
+
+    driver = _get_driver()
+    url = f'{GOODINFO_BASE}/ShowBuySaleChart.asp?STOCK_ID={stock_id}&CHT_CAT2=MARGIN'
+    driver.get(url)
+
+    # 等待頁面載入
+    start = time.time()
+    while time.time() - start < 20:
+        if len(driver.page_source) > 5000:
+            break
+        time.sleep(2)
+    time.sleep(2)
+
+    try:
+        from selenium.webdriver.support.ui import Select
+        # 找到 selKCSheet 下拉選單
+        sel_el = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'selKCSheet'))
+        )
+        sel = Select(sel_el)
+        # 找到「融資融券餘額」選項
+        for opt in sel.options:
+            if '融資融券餘額' in opt.text:
+                sel.select_by_value(opt.get_attribute('value'))
+                print(f"[fetcher] 選擇融資融券餘額選項")
+                break
+        time.sleep(4)  # 等待 AJAX 更新
+    except Exception as e:
+        print(f"[fetcher] WARNING: 無法點選融資融券選項: {e}")
+        return result
+
+    soup = BeautifulSoup(driver.page_source, 'lxml')
+    table = soup.find('table', id='tblDetail')
+    if not table:
+        print(f"[fetcher] WARNING: margin tblDetail not found after select")
+        return result
+
+    rows = table.find_all('tr')
+
+    # 實際資料行欄位（header 有 colspan）:
+    # col[0]=期別, col[1]=收盤, col[2]=漲跌, col[3]=漲跌%, col[4]=成交量
+    # col[5~10]=融資(買進/賣出/現償/增減/餘額/使用率)
+    # col[11~16]=融券(買進/賣出/現償/增減/餘額/使用率)
+    # col[17]=資券互抵, col[18]=資券當沖%, col[19]=券資比%, col[20]=現股當沖%
+    MARGIN_CHANGE_COL = 8   # 融資增減
+    SHORT_RATIO_COL = 19    # 券資比(%)
+
+    margin_changes = []
+
+    for row in rows[2:]:
+        cells = row.find_all(['td', 'th'])
+        if len(cells) < 20:
+            continue
+        texts = [c.get_text(strip=True) for c in cells]
+        if not re.match(r"'?\d{2}/\d{2}/\d{2}", texts[0]):
+            continue
+
+        mc = _parse_int(texts[MARGIN_CHANGE_COL])
+        if mc is not None:
+            margin_changes.append(mc)
+
+        if result['short_ratio'] is None:
+            sr = _parse_float(texts[SHORT_RATIO_COL])
+            if sr is not None and 0 < sr < 100:
+                result['short_ratio'] = sr
+
+    if margin_changes:
+        result['margin_change'] = sum(margin_changes[:5])
+
+    print(f"[fetcher] Margin: change_5d={result['margin_change']}, short_ratio={result['short_ratio']}")
+    return result
+
+# ================================================================
+# 股權分散（內部人結構）
+# ================================================================
+
 def fetch_ownership(stock_id: str) -> dict:
     """
-    抓取股權分散表（千張大戶、散戶持股比例）
-    來源：Goodinfo 股權分散表
-    回傳：
-        whale_pct_this: 本週千張大戶持股比例
-        whale_pct_last: 上週千張大戶持股比例
-        retail_pct_this: 本週100張以下散戶持股比例
-        retail_pct_last: 上週100張以下散戶持股比例
-        data_date: 資料日期
+    抓取股權分散表（內部人結構）
+    URL: EquityDistributionClassHis.asp
+    資料表: id=tblDetail
+    欄位（已 debug 確認）:
+      row[0]: 週別 | 統計日期 | 當週股價 | 集保庫存 | 各持股等級股東之持有比例(%)
+      row[1]: 收盤 | 漲跌(元) | 漲跌(%) | <=10張 | >10<=50張 | >50<=100張 | >100<=200張 | >200<=400張 | >400<=800張 | >800<=1千張 | >1千張
+      row[2]: 26W07 | - | 1915 | ... (未結算，統計日期為 '-')
+      row[3]: 26W06 | 02/06 | 1780 | 2593 | 4.81 | 2.67 | 1.04 | 1.04 | 1.41 | 1.93
+    散戶 = col[3] (⩽10張)
+    大戶 = col[-1] (>1千張)
     """
-    url = 'https://goodinfo.tw/tw/StockShareholdingSchedule.asp'
-    params = {'STOCK_ID': stock_id}
-    soup = _get(url, params)
-
     result = {
         'whale_pct_this': None,
         'whale_pct_last': None,
@@ -145,248 +361,294 @@ def fetch_ownership(stock_id: str) -> dict:
         'data_date': None,
     }
 
+    url = f'{GOODINFO_BASE}/EquityDistributionClassHis.asp?STOCK_ID={stock_id}'
+    soup = _fetch_page(url)
     if not soup:
         return result
 
-    # Goodinfo 股權分散表：找「1000張以上」和「1-100張」的持股比例
-    # 表格通常有兩期資料（本週、上週）
-    tables = soup.find_all('table')
-    for table in tables:
-        rows = table.find_all('tr')
-        dates = []
-        whale_rows = []
-        retail_rows = []
+    table = _find_table_by_id(soup, 'tblDetail')
+    if not table:
+        print(f"[fetcher] WARNING: ownership tblDetail not found")
+        return result
 
-        for row in rows:
-            cells = row.find_all(['td', 'th'])
-            texts = [c.get_text(strip=True) for c in cells]
-            if not texts:
-                continue
+    rows = table.find_all('tr')
+    data_rows = []
 
-            # 找日期行
-            if texts[0] and re.match(r'\d{4}/\d{2}/\d{2}', texts[0]):
-                dates.append(texts[0])
-
-            # 找千張大戶行（1000張以上）
-            if texts and ('1,000' in texts[0] or '1000' in texts[0] or '千張' in texts[0]):
-                whale_rows.append(texts)
-
-            # 找散戶行（100張以下，通常標示為 1-100 或 100以下）
-            if texts and re.search(r'^1-100|^100以下|^1張.*100張', texts[0]):
-                retail_rows.append(texts)
-
-        if whale_rows and len(whale_rows[0]) >= 3:
-            result['whale_pct_this'] = _parse_float(whale_rows[0][1])
-            result['whale_pct_last'] = _parse_float(whale_rows[0][2]) if len(whale_rows[0]) > 2 else None
-
-        if retail_rows and len(retail_rows[0]) >= 3:
-            result['retail_pct_this'] = _parse_float(retail_rows[0][1])
-            result['retail_pct_last'] = _parse_float(retail_rows[0][2]) if len(retail_rows[0]) > 2 else None
-
-        if dates:
-            result['data_date'] = dates[0]
-
-        if result['whale_pct_this'] is not None:
+    for row in rows[2:]:  # 跳過兩行 header
+        cells = row.find_all(['td', 'th'])
+        texts = [c.get_text(strip=True) for c in cells]
+        if len(texts) < 8:
+            continue
+        # 第二欄是統計日期（MM/DD 或 '-'）
+        # 跳過未結算的週（統計日期為 '-'）
+        if texts[1] == '-' or not texts[1]:
+            continue
+        data_rows.append(texts)
+        if len(data_rows) >= 2:
             break
 
-    time.sleep(2)
+    if data_rows:
+        result['data_date'] = data_rows[0][1]  # MM/DD 格式
+        for row_idx, row_texts in enumerate(data_rows[:2]):
+            # 散戶 = col[3] (⩽10張持股比例)
+            # 大戶 = col[-1] (>1千張持股比例)
+            retail = _parse_float(row_texts[3]) if len(row_texts) > 3 else None
+            whale = _parse_float(row_texts[-1]) if row_texts else None
+            if row_idx == 0:
+                result['retail_pct_this'] = retail
+                result['whale_pct_this'] = whale
+            else:
+                result['retail_pct_last'] = retail
+                result['whale_pct_last'] = whale
+
+    print(f"[fetcher] Ownership: whale={result['whale_pct_this']}, "
+          f"retail={result['retail_pct_this']}, date={result['data_date']}")
     return result
 
 
-def fetch_margin(stock_id: str) -> dict:
-    """
-    抓取融資融券資料
-    來源：Goodinfo 信用交易
-    回傳：
-        margin_change: 融資增減張數（近5日）
-        short_ratio: 券資比（%）
-        total_volume: 當日總成交量（張）
-    """
-    url = 'https://goodinfo.tw/tw/StockMarginTrading.asp'
-    params = {'STOCK_ID': stock_id}
-    soup = _get(url, params)
-
-    result = {
-        'margin_change': None,
-        'short_ratio': None,
-        'total_volume': None,
-    }
-
-    if not soup:
-        return result
-
-    tables = soup.find_all('table')
-    margin_vals = []
-    short_ratios = []
-
-    for table in tables:
-        rows = table.find_all('tr')
-        for row in rows:
-            cells = row.find_all(['td', 'th'])
-            texts = [c.get_text(strip=True) for c in cells]
-            if not texts or not re.match(r'\d{4}/\d{2}/\d{2}', texts[0]):
-                continue
-            # Goodinfo 融資融券表格：日期|融資餘額|融資增減|融券餘額|融券增減|券資比
-            if len(texts) >= 6:
-                margin_vals.append(_parse_int(texts[2]))   # 融資增減
-                short_ratios.append(_parse_float(texts[5]))  # 券資比
-
-    if margin_vals:
-        # 近5日融資增減合計
-        vals_5 = [v for v in margin_vals[:5] if v is not None]
-        result['margin_change'] = sum(vals_5) if vals_5 else 0
-
-    if short_ratios:
-        result['short_ratio'] = short_ratios[0]  # 最新一日
-
-    time.sleep(2)
-    return result
-
-
-def fetch_broker(stock_id: str) -> dict:
-    """
-    抓取分點主力資料（近1日、近5日、近20日買超第一名券商）
-    來源：Goodinfo 分點進出（公開資料）
-    回傳：
-        broker_name_1d: 近1日買超第一名券商
-        broker_buy_1d: 近1日買超張數
-        broker_name_5d: 近5日買超第一名券商
-        broker_buy_5d: 近5日買超張數
-        broker_name_20d: 近20日買超第一名券商
-        broker_buy_20d: 近20日買超張數
-        total_volume_1d: 近1日總成交量
-        is_geo_broker: 地緣券商（預設 False，需人工確認）
-    """
-    result = {
-        'broker_name_1d': None,
-        'broker_buy_1d': None,
-        'broker_name_5d': None,
-        'broker_buy_5d': None,
-        'broker_name_10d': None,
-        'broker_buy_10d': None,
-        'broker_name_20d': None,
-        'broker_buy_20d': None,
-        'total_volume_1d': None,
-        'is_geo_broker': False,  # 需人工確認
-    }
-
-    for period, key_name, key_buy in [
-        ('1', 'broker_name_1d', 'broker_buy_1d'),
-        ('5', 'broker_name_5d', 'broker_buy_5d'),
-        ('10', 'broker_name_10d', 'broker_buy_10d'),
-        ('20', 'broker_name_20d', 'broker_buy_20d'),
-    ]:
-        url = 'https://goodinfo.tw/tw/ShowBrokerInfoSummary.asp'
-        params = {
-            'STOCK_ID': stock_id,
-            'CHT_CAT': 'BROKER',
-            'PERIOD': period,
-        }
-        soup = _get(url, params)
-        if not soup:
-            continue
-
-        tables = soup.find_all('table')
-        for table in tables:
-            rows = table.find_all('tr')
-            for row in rows:
-                cells = row.find_all(['td', 'th'])
-                texts = [c.get_text(strip=True) for c in cells]
-                # 找買超第一名（跳過標題行）
-                if len(texts) >= 3 and texts[0] and not re.match(r'券商|名稱|買超', texts[0]):
-                    buy_val = _parse_int(texts[1]) if len(texts) > 1 else None
-                    if buy_val and buy_val > 0:
-                        result[key_name] = texts[0]
-                        result[key_buy] = buy_val
-                        break
-            if result[key_name]:
-                break
-
-        time.sleep(2)
-
-    # 抓近1日總成交量（從法人頁面）
-    url = f'https://goodinfo.tw/tw/ShowBrokerInfoSummary.asp'
-    params = {'STOCK_ID': stock_id, 'CHT_CAT': 'DATE'}
-    soup = _get(url, params)
-    if soup:
-        tables = soup.find_all('table')
-        for table in tables:
-            rows = table.find_all('tr')
-            for row in rows:
-                cells = row.find_all(['td', 'th'])
-                texts = [c.get_text(strip=True) for c in cells]
-                if texts and re.match(r'\d{4}/\d{2}/\d{2}', texts[0]):
-                    # 找總成交量欄位（通常在最後幾欄）
-                    for t in texts:
-                        vol = _parse_int(t)
-                        if vol and vol > 100:
-                            result['total_volume_1d'] = vol
-                            break
-                    break
-
-    return result
-
+# ================================================================
+# 股票基本資訊
+# ================================================================
 
 def fetch_stock_info(stock_id: str) -> dict:
-    """抓取股票基本資訊（名稱、股價、股本）"""
-    url = 'https://goodinfo.tw/tw/StockDetail.asp'
-    params = {'STOCK_ID': stock_id}
-    soup = _get(url, params)
-
+    """抓取股票名稱、股價"""
     result = {
         'stock_name': stock_id,
         'current_price': None,
-        'capital_million': None,
     }
 
+    url = f'{GOODINFO_BASE}/StockDetail.asp?STOCK_ID={stock_id}'
+    soup = _fetch_page(url)
     if not soup:
         return result
 
-    # 股票名稱
     title = soup.find('title')
     if title:
-        m = re.search(r'(\d+)\s+(.+?)\s*[-|]', title.get_text())
+        m = re.search(r'\d+\s+(\S+)', title.get_text())
         if m:
-            result['stock_name'] = m.group(2).strip()
+            result['stock_name'] = m.group(1)
 
-    # 股價（找含「元」的數字）
-    for tag in soup.find_all(['td', 'span', 'div']):
-        text = tag.get_text(strip=True)
-        if re.match(r'^\d+(\.\d+)?$', text):
-            val = _parse_float(text)
-            if val and 10 < val < 10000:
-                result['current_price'] = val
-                break
+    for tr in soup.find_all('tr'):
+        cells = tr.find_all(['td', 'th'])
+        texts = [c.get_text(strip=True) for c in cells]
+        if texts and texts[0] == '成交價' and len(texts) >= 2:
+            next_tr = tr.find_next_sibling('tr')
+            if next_tr:
+                val_cells = next_tr.find_all(['td', 'th'])
+                if val_cells:
+                    val = _parse_float(val_cells[0].get_text(strip=True))
+                    if val and 1 < val < 100000:
+                        result['current_price'] = val
+                        break
+
+    print(f"[fetcher] Stock info: {result['stock_name']}, price={result['current_price']}")
+    return result
+
+
+# ================================================================
+# 分點主力（永豐金證券）
+# ================================================================
+
+SINOTRADE_TREND_API = 'https://stockchannelnew.sinotrade.com.tw/Z/ZC/ZCO/CZCO.DJBCD'
+SINOTRADE_BROKER_URL = 'https://www.sinotrade.com.tw/Stock/Stock_3_1/Stock_3_1_6_7'
+
+
+def fetch_broker_trend(stock_id: str) -> dict:
+    """
+    主力走勢 API（不需登入，直接 GET）
+    回傳三行純文字：日期/收盤價/主力淨買張數
+    """
+    result = {
+        'main_force_net_5d': None,
+        'main_force_consecutive': 0,
+        'main_force_trend': [],
+    }
+
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://www.sinotrade.com.tw/Stock/Stock_3_1?ch=Stock_3_1_6_7',
+        }
+        resp = requests.get(
+            f'{SINOTRADE_TREND_API}?A={stock_id}',
+            headers=headers,
+            timeout=10,
+            verify=False,
+        )
+        resp.raise_for_status()
+
+        # API 回傳格式：三段用空格分隔，每段用逗號分隔
+        # dates prices nets
+        parts = resp.text.strip().split(' ')
+        if len(parts) < 3:
+            print(f"[fetcher] WARNING: broker trend API returned {len(parts)} parts")
+            return result
+
+        dates = parts[0].split(',')
+        prices = parts[1].split(',')
+        nets = parts[2].split(',')
+
+        trend = []
+        for d, p, n in zip(dates, prices, nets):
+            try:
+                trend.append({'date': d, 'price': int(p), 'net_buy': int(n)})
+            except (ValueError, TypeError):
+                continue
+
+        result['main_force_trend'] = trend
+
+        # 最近 5 天淨買超合計
+        if trend:
+            recent = trend[-5:] if len(trend) >= 5 else trend
+            result['main_force_net_5d'] = sum(r['net_buy'] for r in recent)
+
+            # 連續買超天數（從最新往回算）
+            consecutive = 0
+            for r in reversed(trend):
+                if r['net_buy'] > 0:
+                    consecutive += 1
+                else:
+                    break
+            result['main_force_consecutive'] = consecutive
+
+        print(f"[fetcher] BrokerTrend: net_5d={result['main_force_net_5d']}, "
+              f"consecutive={result['main_force_consecutive']}, "
+              f"total_days={len(trend)}")
+
+    except Exception as e:
+        print(f"[fetcher] WARNING: broker trend fetch failed: {e}")
+
+    return result
+
+def fetch_broker_detail(stock_id: str, period: str = '1') -> dict:
+    """
+    券商分點明細（需 Selenium 渲染頁面）
+    資料在 SysJustIFRAME iframe 內的 #oMainTable
+    period: '1'=1日, '2'=5日, '3'=10日, '4'=20日
+    row[7]=header, row[8~22]=10-cell 買賣超明細, row[23]=合計
+    """
+    result = {
+        'buy_brokers': [],
+        'sell_brokers': [],
+        'top_buy_broker': None,
+        'top_buy_net': None,
+        'top_sell_broker': None,
+        'top_sell_net': None,
+    }
+
+    driver = _get_driver()
+    url = f'{SINOTRADE_BROKER_URL}?ticker={stock_id}'
+
+    try:
+        driver.get(url)
+        time.sleep(8)
+
+        # 切換到 SysJustIFRAME iframe
+        driver.switch_to.frame('SysJustIFRAME')
+        time.sleep(3)
+
+        # 選擇期間
+        if period != '1':
+            try:
+                from selenium.webdriver.support.ui import Select
+                sel_el = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, 'select[name="D"]'))
+                )
+                Select(sel_el).select_by_value(period)
+                time.sleep(3)
+            except Exception as e:
+                print(f"[fetcher] WARNING: period select failed: {e}")
+
+        # 擷取主表格
+        soup = BeautifulSoup(driver.page_source, 'lxml')
+        table = soup.find(id='oMainTable')
+        if not table:
+            print(f"[fetcher] WARNING: #oMainTable not found in iframe")
+            driver.switch_to.default_content()
+            return result
+
+        rows = table.find_all('tr')
+
+        # 解析買超/賣超（只取 10-cell 的資料行，跳過 header 和合計）
+        buy_list, sell_list = [], []
+        for row in rows:
+            cells = row.find_all('td')
+            if len(cells) != 10:
+                continue
+            texts = [c.get_text(strip=True) for c in cells]
+            # 跳過 header row（第一欄是「買超券商」）
+            if texts[0] == '買超券商':
+                continue
+            buy_list.append({
+                'broker': texts[0], 'buy': texts[1],
+                'sell': texts[2], 'net': texts[3], 'ratio': texts[4],
+            })
+            sell_list.append({
+                'broker': texts[5], 'buy': texts[6],
+                'sell': texts[7], 'net': texts[8], 'ratio': texts[9],
+            })
+
+        result['buy_brokers'] = buy_list
+        result['sell_brokers'] = sell_list
+
+        if buy_list:
+            result['top_buy_broker'] = buy_list[0]['broker']
+            try:
+                result['top_buy_net'] = int(buy_list[0]['net'].replace(',', ''))
+            except (ValueError, AttributeError):
+                pass
+
+        if sell_list:
+            result['top_sell_broker'] = sell_list[0]['broker']
+            try:
+                result['top_sell_net'] = int(sell_list[0]['net'].replace(',', ''))
+            except (ValueError, AttributeError):
+                pass
+
+        print(f"[fetcher] BrokerDetail(period={period}): "
+              f"buy_top={result['top_buy_broker']}({result['top_buy_net']}), "
+              f"sell_top={result['top_sell_broker']}({result['top_sell_net']}), "
+              f"total_buy={len(buy_list)}, total_sell={len(sell_list)}")
+
+        driver.switch_to.default_content()
+
+    except TimeoutException:
+        print(f"[fetcher] WARNING: broker detail page timeout")
+        try:
+            driver.switch_to.default_content()
+        except Exception:
+            pass
+    except Exception as e:
+        print(f"[fetcher] WARNING: broker detail fetch failed: {e}")
+        try:
+            driver.switch_to.default_content()
+        except Exception:
+            pass
 
     return result
 
 
+# ================================================================
+# 整合
+# ================================================================
+
 def fetch_all(stock_id: str) -> dict:
-    """
-    抓取所有籌碼面資料，回傳整合後的 dict
-    """
-    print(f"[fetcher] 開始抓取 {stock_id} 籌碼面資料...")
+    """抓取所有籌碼面資料（法人、融資券、股權分散、分點主力）"""
+    print(f"[fetcher] ===== Start fetching {stock_id} =====")
 
     info = fetch_stock_info(stock_id)
-    print(f"[fetcher] 基本資訊: {info}")
-
     institutional = fetch_institutional(stock_id)
-    print(f"[fetcher] 法人資料: {institutional}")
-
     ownership = fetch_ownership(stock_id)
-    print(f"[fetcher] 股權分散: {ownership}")
-
     margin = fetch_margin(stock_id)
-    print(f"[fetcher] 融資融券: {margin}")
-
-    broker = fetch_broker(stock_id)
-    print(f"[fetcher] 分點主力: {broker}")
+    broker_trend = fetch_broker_trend(stock_id)
+    broker_detail = fetch_broker_detail(stock_id, period='2')  # 近5日
 
     return {
         **info,
         **institutional,
         **ownership,
         **margin,
-        **broker,
+        **broker_trend,
+        **broker_detail,
         'stock_id': stock_id,
     }

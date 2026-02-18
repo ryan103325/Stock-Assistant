@@ -1,57 +1,61 @@
 {
   "stock_id": "2330",
-  "stock_name": "2330",
+  "stock_name": "台積電",
   "analysis_date": "2026-02-18",
-  "analysis_time": "2026-02-18 08:22:27",
-  "total_score": 0,
+  "analysis_time": "2026-02-18 20:54:47",
+  "total_score": 43.5,
   "rating": "觀望/中性",
   "rating_en": "Neutral",
   "low_volume_penalty": false,
   "dimensions": {
     "institutional": {
-      "score": 0.0,
-      "max": 35.0,
-      "trust": 0.0,
-      "trust_note": "投信無買超",
-      "foreign_align": 0.0,
-      "align_note": "外資與投信均賣超"
+      "score": 23.5,
+      "max": 30.0,
+      "trust": 17,
+      "trust_note": "投信近5日買超 3,847 張（連續 11 天）",
+      "foreign_align": 6.5,
+      "align_note": "土洋對作：投信買超但外資賣超"
     },
     "ownership": {
       "score": 0.0,
-      "max": 35.0,
+      "max": 30.0,
       "whale": 0.0,
-      "whale_note": "大戶持股資料不足",
+      "whale_note": "千張大戶持股減少 0.10%（86.4% -> 86.3%）",
       "retail": 0.0,
-      "retail_note": "散戶持股資料不足"
+      "retail_note": "散戶持股增加 0.00%（5.0% -> 5.0%）"
     },
     "broker": {
-      "score": 0.0,
+      "score": 10.0,
       "max": 20.0,
-      "abnormal": 0.0,
-      "abnormal_note": "無明顯分點集中買盤",
-      "geo": 0.0,
-      "geo_note": "非地緣券商（預設，需人工確認）"
+      "consecutive": 0.0,
+      "consec_note": "主力無明顯買超",
+      "top_broker": 10.0,
+      "top_note": "最大買超券商：富邦證券（淨買 5,645 張）"
     },
     "sentiment": {
-      "score": 0.0,
-      "max": 10.0,
-      "margin": 0.0,
-      "margin_note": "融資近5日增加 0 張（散戶追價）",
+      "score": 10.0,
+      "max": 20.0,
+      "margin": 10,
+      "margin_note": "融資近5日減少 999 張（籌碼健康）",
       "squeeze": 0.0,
-      "squeeze_note": "券資比 0.0%（軋空壓力不足）"
+      "squeeze_note": "券資比 1.2%（軋空壓力不足）"
     }
   },
-  "highlights": [],
+  "highlights": [
+    "投信近5日買超 3,847 張（連續 11 天）",
+    "融資近5日減少 999 張（籌碼健康）",
+    "最大買超券商：富邦證券（淨買 5,645 張）"
+  ],
   "risks": [],
   "strategy": "建議等待籌碼面更明確的多方訊號後再行動",
   "raw_data": {
-    "trust_buy_5d": null,
-    "trust_consecutive_days": 0,
-    "foreign_buy_5d": null,
-    "whale_pct_this": null,
-    "whale_pct_last": null,
-    "retail_pct_this": null,
-    "retail_pct_last": null,
+    "trust_buy_5d": 3847,
+    "trust_consecutive_days": 11,
+    "foreign_buy_5d": -5630,
+    "whale_pct_this": 86.3,
+    "whale_pct_last": 86.4,
+    "retail_pct_this": 5.0,
+    "retail_pct_last": 5.0,
     "broker_name_1d": null,
     "broker_buy_1d": null,
     "broker_name_5d": null,
@@ -60,12 +64,332 @@
     "broker_buy_10d": null,
     "broker_name_20d": null,
     "broker_buy_20d": null,
-    "total_volume_1d": null,
-    "is_geo_broker": false,
-    "margin_change": null,
-    "short_ratio": null,
-    "price_above_ma": null,
-    "current_price": null,
-    "data_date": null
-  }
+    "top_buy_broker": "富邦證券",
+    "top_buy_net": 5645,
+    "top_sell_broker": "美林",
+    "top_sell_net": 10621,
+    "main_force_net_5d": 3881,
+    "main_force_consecutive": 0,
+    "total_volume_1d": 44684,
+    "margin_change": -999,
+    "short_ratio": 1.25,
+    "current_price": 1915.0,
+    "data_date": "02/06"
+  },
+  "buy_brokers": [
+    {
+      "broker": "富邦證券",
+      "buy": "12,378",
+      "sell": "6,733",
+      "net": "5,645",
+      "ratio": "2.96%"
+    },
+    {
+      "broker": "新加坡商瑞銀",
+      "buy": "11,741",
+      "sell": "6,831",
+      "net": "4,910",
+      "ratio": "2.58%"
+    },
+    {
+      "broker": "美商高盛",
+      "buy": "16,821",
+      "sell": "11,920",
+      "net": "4,901",
+      "ratio": "2.57%"
+    },
+    {
+      "broker": "台灣摩根士丹利",
+      "buy": "11,939",
+      "sell": "7,595",
+      "net": "4,344",
+      "ratio": "2.28%"
+    },
+    {
+      "broker": "摩根大通",
+      "buy": "16,585",
+      "sell": "12,475",
+      "net": "4,110",
+      "ratio": "2.16%"
+    },
+    {
+      "broker": "凱基-台北",
+      "buy": "7,608",
+      "sell": "5,626",
+      "net": "1,982",
+      "ratio": "1.04%"
+    },
+    {
+      "broker": "國泰證券",
+      "buy": "2,505",
+      "sell": "580",
+      "net": "1,925",
+      "ratio": "1.01%"
+    },
+    {
+      "broker": "永豐金證券",
+      "buy": "3,775",
+      "sell": "2,078",
+      "net": "1,697",
+      "ratio": "0.89%"
+    },
+    {
+      "broker": "元大證券",
+      "buy": "9,579",
+      "sell": "7,905",
+      "net": "1,674",
+      "ratio": "0.88%"
+    },
+    {
+      "broker": "香港上海匯豐",
+      "buy": "2,425",
+      "sell": "1,160",
+      "net": "1,265",
+      "ratio": "0.66%"
+    },
+    {
+      "broker": "統一",
+      "buy": "2,319",
+      "sell": "1,580",
+      "net": "739",
+      "ratio": "0.39%"
+    },
+    {
+      "broker": "凱基",
+      "buy": "3,317",
+      "sell": "2,779",
+      "net": "538",
+      "ratio": "0.28%"
+    },
+    {
+      "broker": "國票-敦北法人",
+      "buy": "724",
+      "sell": "188",
+      "net": "536",
+      "ratio": "0.28%"
+    },
+    {
+      "broker": "群益金鼎",
+      "buy": "1,547",
+      "sell": "1,049",
+      "net": "498",
+      "ratio": "0.26%"
+    },
+    {
+      "broker": "兆豐證券",
+      "buy": "662",
+      "sell": "165",
+      "net": "497",
+      "ratio": "0.26%"
+    }
+  ],
+  "sell_brokers": [
+    {
+      "broker": "美林",
+      "buy": "13,225",
+      "sell": "23,846",
+      "net": "10,621",
+      "ratio": "5.58%"
+    },
+    {
+      "broker": "永豐金-匯立",
+      "buy": "2,264",
+      "sell": "12,305",
+      "net": "10,041",
+      "ratio": "5.27%"
+    },
+    {
+      "broker": "港商麥格理",
+      "buy": "1,973",
+      "sell": "5,586",
+      "net": "3,613",
+      "ratio": "1.9%"
+    },
+    {
+      "broker": "臺銀",
+      "buy": "379",
+      "sell": "3,216",
+      "net": "2,837",
+      "ratio": "1.49%"
+    },
+    {
+      "broker": "花旗環球",
+      "buy": "7,421",
+      "sell": "9,863",
+      "net": "2,442",
+      "ratio": "1.28%"
+    },
+    {
+      "broker": "國泰-館前",
+      "buy": "276",
+      "sell": "569",
+      "net": "293",
+      "ratio": "0.15%"
+    },
+    {
+      "broker": "凱基-城中",
+      "buy": "174",
+      "sell": "411",
+      "net": "237",
+      "ratio": "0.12%"
+    },
+    {
+      "broker": "國泰-板橋",
+      "buy": "325",
+      "sell": "530",
+      "net": "205",
+      "ratio": "0.11%"
+    },
+    {
+      "broker": "國泰-台中",
+      "buy": "354",
+      "sell": "536",
+      "net": "182",
+      "ratio": "0.1%"
+    },
+    {
+      "broker": "永豐金-中正",
+      "buy": "562",
+      "sell": "736",
+      "net": "174",
+      "ratio": "0.09%"
+    },
+    {
+      "broker": "元大-羅東",
+      "buy": "132",
+      "sell": "297",
+      "net": "165",
+      "ratio": "0.09%"
+    },
+    {
+      "broker": "台中銀",
+      "buy": "115",
+      "sell": "271",
+      "net": "156",
+      "ratio": "0.08%"
+    },
+    {
+      "broker": "元富-板橋",
+      "buy": "121",
+      "sell": "268",
+      "net": "147",
+      "ratio": "0.08%"
+    },
+    {
+      "broker": "元大-向上",
+      "buy": "30",
+      "sell": "173",
+      "net": "143",
+      "ratio": "0.08%"
+    },
+    {
+      "broker": "彰銀",
+      "buy": "94",
+      "sell": "236",
+      "net": "142",
+      "ratio": "0.07%"
+    }
+  ],
+  "main_force_trend": [
+    {
+      "date": "0115",
+      "price": 1690,
+      "net_buy": -6510
+    },
+    {
+      "date": "0116",
+      "price": 1740,
+      "net_buy": 5413
+    },
+    {
+      "date": "0119",
+      "price": 1760,
+      "net_buy": -4073
+    },
+    {
+      "date": "0120",
+      "price": 1775,
+      "net_buy": -3156
+    },
+    {
+      "date": "0121",
+      "price": 1740,
+      "net_buy": -14340
+    },
+    {
+      "date": "0122",
+      "price": 1760,
+      "net_buy": -2335
+    },
+    {
+      "date": "0123",
+      "price": 1770,
+      "net_buy": 1225
+    },
+    {
+      "date": "0126",
+      "price": 1755,
+      "net_buy": -5917
+    },
+    {
+      "date": "0127",
+      "price": 1780,
+      "net_buy": 3568
+    },
+    {
+      "date": "0128",
+      "price": 1820,
+      "net_buy": 4966
+    },
+    {
+      "date": "0129",
+      "price": 1805,
+      "net_buy": -6836
+    },
+    {
+      "date": "0130",
+      "price": 1775,
+      "net_buy": -9668
+    },
+    {
+      "date": "0202",
+      "price": 1765,
+      "net_buy": -7253
+    },
+    {
+      "date": "0203",
+      "price": 1800,
+      "net_buy": -1896
+    },
+    {
+      "date": "0204",
+      "price": 1785,
+      "net_buy": -4771
+    },
+    {
+      "date": "0205",
+      "price": 1765,
+      "net_buy": -5083
+    },
+    {
+      "date": "0206",
+      "price": 1780,
+      "net_buy": -2020
+    },
+    {
+      "date": "0209",
+      "price": 1815,
+      "net_buy": 4057
+    },
+    {
+      "date": "0210",
+      "price": 1880,
+      "net_buy": 8723
+    },
+    {
+      "date": "0211",
+      "price": 1915,
+      "net_buy": -1796
+    }
+  ]
 }
