@@ -261,8 +261,13 @@ async function fetchResult(stockId, token) {
         );
         if (res.ok) {
             const fileData = await res.json();
-            // content 是 base64 encoded
-            const content = atob(fileData.content.replace(/\n/g, ''));
+            // content 是 base64 encoded — 需要正確處理 UTF-8
+            const binaryString = atob(fileData.content.replace(/\n/g, ''));
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const content = new TextDecoder('utf-8').decode(bytes);
             return JSON.parse(content);
         }
     } catch (e) {
@@ -369,9 +374,14 @@ function renderFundamentalResult(data) {
         document.getElementById('mScoreValue').textContent =
             mScore.value != null ? mScore.value.toFixed(2) : 'N/A';
         const badge = document.getElementById('mScoreBadge');
-        const isPASS = mScore.probability?.includes('PASS') || mScore.probability?.includes('✅');
-        badge.textContent = isPASS ? 'PASS' : 'FAIL';
-        badge.className = `score-badge ${isPASS ? 'good' : 'bad'}`;
+        if (mScore.value == null) {
+            badge.textContent = '資料不足';
+            badge.className = 'score-badge neutral';
+        } else {
+            const isPASS = mScore.probability?.includes('PASS') || mScore.probability?.includes('✅');
+            badge.textContent = isPASS ? 'PASS' : 'FAIL';
+            badge.className = `score-badge ${isPASS ? 'good' : 'bad'}`;
+        }
     }
 
     // ROIC
@@ -415,9 +425,14 @@ function renderFundamentalResult(data) {
             html += `<div class="ai-score">綜合評分: <strong>${aiData.overall_score}/10</strong></div>`;
         }
         if (aiData.recommendation) {
-            html += `<div class="ai-recommendation">${aiData.recommendation}</div>`;
+            html += `<div class="ai-recommendation">🎯 建議: ${aiData.recommendation}</div>`;
+        }
+        if (aiData.key_monitoring) {
+            html += `<div class="ai-recommendation">👁️ 關注: ${aiData.key_monitoring}</div>`;
         }
         aiEl.innerHTML = html;
+    } else {
+        aiEl.innerHTML = '<p>AI 分析尚無結果</p>';
     }
 
     if (lynchDetail?.strategy) {

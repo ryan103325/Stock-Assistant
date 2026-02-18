@@ -323,10 +323,27 @@ def _save_web_result(result: dict, stock_id: str):
 
     # AI 分析
     ai = result.get('ai_analysis', {})
+
+    # 組合 summary: 從各模型分析 + strengths + risks 組成摘要
+    summary_parts = []
+    for key in ['m_score_analysis', 'z_score_analysis', 'f_score_analysis',
+                'magic_formula_analysis', 'lynch_analysis']:
+        val = ai.get(key)
+        if val:
+            summary_parts.append(val)
+
+    strengths = ai.get('strengths', [])
+    risks = ai.get('risks', [])
+    if strengths:
+        summary_parts.append('【優勢】' + '；'.join(strengths))
+    if risks:
+        summary_parts.append('【風險】' + '；'.join(risks))
+
     web_data['ai_analysis'] = {
-        'summary': ai.get('summary', ''),
+        'summary': '\n\n'.join(summary_parts) if summary_parts else ai.get('investment_suggestion', '尚未分析'),
         'overall_score': ai.get('overall_score'),
-        'recommendation': ai.get('recommendation', ''),
+        'recommendation': ai.get('target_action', ai.get('investment_suggestion', '')),
+        'key_monitoring': ai.get('key_monitoring', ''),
     }
 
     with open(filepath, 'w', encoding='utf-8') as f:
