@@ -201,39 +201,45 @@ class GoodinfoScraper:
 
         logger.warning("  ⚠️ redirect 處理逾時, 繼續嘗試解析")
 
-    def _expand_quarters(self, min_quarters: int = 8):
+    def _fetch_earlier_quarters(self):
         """
-        在 FinDetail 頁面上切換 QRY_TIME 下拉選單,
-        選擇更早的起始季度, 讓頁面顯示足夠多的季度數據
-        (M-Score/營收成長率需要至少 8 季)
+        在 FinDetail 頁面上切換 QRY_TIME 到更早的季度,
+        抓取第二批 6 季數據的 page source.
+        (Goodinfo 固定只顯示 6 季, 無法擴展, 只能移動時間窗口)
+
+        Returns:
+            str or None: 更早期間的頁面 HTML, 或 None
         """
         try:
-            from selenium.webdriver.support.ui import Select
-            select_el = self.driver.find_element('css selector', 'select#QRY_TIME')
-            sel = Select(select_el)
-            options = sel.options
+            # 選到 index=7 (第 8~13 早的季度) 然後呼叫 ChgFinSheet()
+            result = self.driver.execute_script("""
+                var sel = document.getElementById('QRY_TIME');
+                if (!sel || sel.options.length < 8) return null;
+                sel.selectedIndex = 7;
+                if (typeof ChgFinSheet === 'function') {
+                    ChgFinSheet();
+                    return sel.options[7].text;
+                }
+                return null;
+            """)
 
-            if len(options) < min_quarters:
-                logger.info(f"  📅 QRY_TIME 只有 {len(options)} 個選項, 無法擴展")
-                return
+            if not result:
+                logger.info("  📅 無法切換 QRY_TIME (選項不足或無 ChgFinSheet)")
+                return None
 
-            # 選擇足夠早的季度 (index = min_quarters - 1, 從 0 起算)
-            target_idx = min(min_quarters - 1, len(options) - 1)
-            target_text = options[target_idx].text
-            logger.info(f"  📅 切換 QRY_TIME 到 {target_text} (取 {target_idx + 1} 季)")
+            logger.info(f"  📅 切換 QRY_TIME 到 {result}, 等待頁面重載...")
+            time.sleep(2)
 
-            sel.select_by_index(target_idx)
-            # Goodinfo 用 onchange 自動 submit, 等待頁面重新載入
-            time.sleep(1)
-
-            from selenium.webdriver.support import expected_conditions as EC
             WebDriverWait(self.driver, 15).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, 'table#tblFinDetail'))
             )
             time.sleep(random.uniform(Config.REQUEST_DELAY_MIN, Config.REQUEST_DELAY_MAX))
 
+            return self.driver.page_source
+
         except Exception as e:
-            logger.warning(f"  ⚠️ 擴展季度失敗 (非致命): {e}")
+            logger.warning(f"  ⚠️ 抓取更早季度失敗 (非致命): {e}")
+            return None
 
     def _parse_number(self, text: str) -> Optional[float]:
         """
@@ -571,6 +577,35 @@ class GoodinfoScraper:
 
         return result
 
+    def _merge_findetail_results(self, current: dict, earlier: dict) -> dict:
+        """合併兩次 FinDetail 抓取結果 (當前 6 季 + 更早 6 季)"""
+        if not earlier or not earlier.get('quarters'):
+            return current
+
+        merged = {
+            'quarters': list(current.get('quarters', [])),
+            'data': {}
+        }
+
+        # 找出更早結果中不重複的季度
+        existing = set(merged['quarters'])
+        extra_indices = []
+        for i, q in enumerate(earlier.get('quarters', [])):
+            if q not in existing:
+                extra_indices.append(i)
+                merged['quarters'].append(q)
+
+        # 合併 data
+        all_keys = set(list(current.get('data', {}).keys()) + list(earlier.get('data', {}).keys()))
+        for key in all_keys:
+            cur_vals = current.get('data', {}).get(key, [])
+            ear_vals = earlier.get('data', {}).get(key, [])
+            extra_vals = [ear_vals[i] if i < len(ear_vals) else None for i in extra_indices]
+            merged['data'][key] = list(cur_vals) + extra_vals
+
+        logger.info(f"  📊 合併後共 {len(merged['quarters'])} 季: {merged['quarters']}")
+        return merged
+
     # ==================== 資產負債表 ====================
 
     def fetch_balance_sheet(self, stock_id: str) -> dict:
@@ -588,7 +623,6 @@ class GoodinfoScraper:
 
         self._wait_and_get_page(url, wait_selector='table')
         time.sleep(2)  # 等待表格完全載入
-        self._expand_quarters()  # 擴展到 8+ 季以確保前期 TTM
 
         soup = BeautifulSoup(self.driver.page_source, 'lxml')
 
@@ -613,6 +647,13 @@ class GoodinfoScraper:
 
         result = self._parse_findetail_table(soup, field_map)
 
+        # 抓取更早的季度並合併 (M-Score/營收成長率需要至少 8 季)
+        earlier_html = self._fetch_earlier_quarters()
+        if earlier_html:
+            earlier_soup = BeautifulSoup(earlier_html, 'lxml')
+            earlier_result = self._parse_findetail_table(earlier_soup, field_map)
+            result = self._merge_findetail_results(result, earlier_result)
+
         logger.info(f"✅ 資產負債表抓取完成: {stock_id} ({len(result.get('quarters', []))} 個季度)")
         return result
 
@@ -634,7 +675,6 @@ class GoodinfoScraper:
 
         self._wait_and_get_page(url, wait_selector='table')
         time.sleep(2)
-        self._expand_quarters()  # 擴展到 8+ 季以確保前期 TTM
 
         soup = BeautifulSoup(self.driver.page_source, 'lxml')
 
@@ -651,6 +691,13 @@ class GoodinfoScraper:
         }
 
         result = self._parse_findetail_table(soup, field_map)
+
+        # 抓取更早的季度並合併
+        earlier_html = self._fetch_earlier_quarters()
+        if earlier_html:
+            earlier_soup = BeautifulSoup(earlier_html, 'lxml')
+            earlier_result = self._parse_findetail_table(earlier_soup, field_map)
+            result = self._merge_findetail_results(result, earlier_result)
 
         logger.info(f"✅ 損益表抓取完成: {stock_id} ({len(result.get('quarters', []))} 個季度)")
         return result
@@ -677,10 +724,16 @@ class GoodinfoScraper:
 
         self._wait_and_get_page(url, wait_selector='table')
         time.sleep(2)
-        self._expand_quarters()  # 擴展到 8+ 季以確保前期 TTM
 
         soup = BeautifulSoup(self.driver.page_source, 'lxml')
         result = self._parse_cashflow_findetail(soup)
+
+        # 現金流量表也需要更早季度
+        earlier_html = self._fetch_earlier_quarters()
+        if earlier_html:
+            earlier_soup = BeautifulSoup(earlier_html, 'lxml')
+            earlier_result = self._parse_cashflow_findetail(earlier_soup)
+            result = self._merge_findetail_results(result, earlier_result)
 
         logger.info(f"✅ 現金流量表抓取完成: {stock_id} ({len(result.get('quarters', []))} 個季度)")
         return result

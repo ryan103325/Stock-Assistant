@@ -1,0 +1,29 @@
+﻿python : Traceback (most recent call last):
+位於 線路:1 字元:1
++ python test_expand.py 2>&1 | Out-File -Encoding utf8 test_expand_outp ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo              : NotSpecified: (Trace    back (most recent call     last)::String) [], Re
+mo    teException
+    + FullyQualifiedErrorId     : NativeCommandError
+ 
+  File "C:\Users\kyc20\Desktop\AI\TG助手\fundamental_master\utils\config.py", line 131, in <module>
+    print("\u2705 配置驗證通過")
+    ~~~~~^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'cp950' codec can't encode character '\u2705' in position 0: illegal multibyte sequenc
+e
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\kyc20\Desktop\AI\TG助手\test_expand.py", line 2, in <module>
+    from fundamental_master.data_collection.goodinfo_scraper import GoodinfoScraper
+  File "C:\Users\kyc20\Desktop\AI\TG助手\fundamental_master\data_collection\goodinfo_scraper.py", line 26, i
+n <module>
+    from fundamental_master.utils.config import Config
+  File "C:\Users\kyc20\Desktop\AI\TG助手\fundamental_master\utils\__init__.py", line 2, in <module>
+    from .config import Config
+  File "C:\Users\kyc20\Desktop\AI\TG助手\fundamental_master\utils\config.py", line 133, in <module>
+    print(f"\u26a0\ufe0f 配置驗證失敗: {e}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'cp950' codec can't encode character '\u26a0' in position 0: illegal multibyte sequenc
+e
