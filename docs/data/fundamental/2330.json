@@ -1,0 +1,55 @@
+{
+  "success": true,
+  "stock_id": "2330",
+  "stock_name": "台積電",
+  "timestamp": "2026-02-18T02:34:22.072307",
+  "scores": {
+    "z_score": {
+      "value": 15.40893692537709,
+      "rating": "🟢 Safe Zone",
+      "description": "財務體質健康,破產風險極低"
+    },
+    "f_score": {
+      "value": 6,
+      "max": 9,
+      "judgment": "🟡 基本面中性",
+      "description": "得分 6/9,經營體質變化不大"
+    },
+    "m_score": {
+      "value": null,
+      "probability": "N/A",
+      "description": "數據不足,無法計算"
+    },
+    "roic": 31.750715623564336,
+    "earnings_yield": 3.629536415547481,
+    "lynch": "快速成長股",
+    "lynch_detail": {
+      "eps_cagr": 22.690272110103727,
+      "fair_pe_range": [
+        22.690272110103727,
+        45.380544220207454
+      ],
+      "valuation": "合理",
+      "description": "EPS 年複合成長率 22.7%,成長動能強勁",
+      "strategy": "短中期持有,密切關注成長率是否放緩,設定嚴格停利"
+    }
+  },
+  "ratios": {
+    "pe": 31.29,
+    "pb": 9.94,
+    "roe": 31.51362300421002,
+    "roa": 21.578439237976095,
+    "gross_margin": 58.97562990499794,
+    "operating_margin": 49.480930744871266,
+    "net_margin": 43.698196337601544,
+    "current_ratio": 2.6930010188886278,
+    "debt_ratio": 31.526631402890903,
+    "dividend_yield": 1.63,
+    "revenue_growth": null
+  },
+  "ai_analysis": {
+    "summary": "",
+    "overall_score": 8.0,
+    "recommendation": ""
+  }
+}

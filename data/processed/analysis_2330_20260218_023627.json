@@ -1,0 +1,238 @@
+{
+  "stock_id": "2330",
+  "timestamp": "2026-02-18T02:34:22.072307",
+  "stock_info": {
+    "股票代號": "2330",
+    "股票名稱": "台積電",
+    "收盤價": 1915.0,
+    "市值_億": 496599.99999999994,
+    "發行股數_千股": 25932500.0,
+    "Beta": 1.24,
+    "每股淨值": 192.74,
+    "本益比": 31.29,
+    "股價淨值比": 9.94,
+    "殖利率": 1.63,
+    "產業分類": "半導體業",
+    "_latest_eps": 45.25,
+    "無風險利率": 1.43
+  },
+  "scores": {
+    "m_score": {
+      "score": null,
+      "judgment": "N/A",
+      "threshold": -1.78,
+      "indicators": {
+        "DSRI": {
+          "value": null,
+          "name": "應收帳款天數指數",
+          "weight": 0.92
+        },
+        "GMI": {
+          "value": null,
+          "name": "毛利率指數",
+          "weight": 0.528
+        },
+        "AQI": {
+          "value": null,
+          "name": "資產品質指數",
+          "weight": 0.404
+        },
+        "SGI": {
+          "value": null,
+          "name": "營收成長指數",
+          "weight": 0.892
+        },
+        "DEPI": {
+          "value": null,
+          "name": "折舊指數",
+          "weight": 0.115
+        },
+        "SGAI": {
+          "value": null,
+          "name": "營業費用指數",
+          "weight": -0.172
+        },
+        "TATA": {
+          "value": -0.07924831046627051,
+          "name": "總應計項目",
+          "weight": 4.679
+        },
+        "LVGI": {
+          "value": 0.9067675105695966,
+          "name": "槓桿指數",
+          "weight": -0.327
+        }
+      },
+      "description": "數據不足,無法計算"
+    },
+    "z_score": {
+      "score": 15.40893692537709,
+      "judgment": "🟢 Safe Zone",
+      "zone": "Safe",
+      "thresholds": {
+        "safe": 2.99,
+        "grey": 1.81
+      },
+      "indicators": {
+        "X1": {
+          "value": 0.2937273085761684,
+          "name": "營運資金/總資產",
+          "weight": 1.2,
+          "formula": "(流動資產 - 流動負債) / 總資產"
+        },
+        "X2": {
+          "value": 0.6463741314368856,
+          "name": "保留盈餘/總資產",
+          "weight": 1.4,
+          "formula": "保留盈餘 / 總資產"
+        },
+        "X3": {
+          "value": 0.2443398920330156,
+          "name": "EBIT/總資產",
+          "weight": 3.3,
+          "formula": "營業利益(TTM) / 總資產"
+        },
+        "X4": {
+          "value": 21.41902091869743,
+          "name": "市值/總負債",
+          "weight": 0.6,
+          "formula": "市值 / 總負債"
+        },
+        "X5": {
+          "value": 0.4938061761466393,
+          "name": "營收/總資產",
+          "weight": 1.0,
+          "formula": "營業收入(TTM) / 總資產"
+        }
+      },
+      "description": "財務體質健康,破產風險極低"
+    },
+    "f_score": {
+      "score": 6,
+      "max_score": 9,
+      "judgment": "🟡 基本面中性",
+      "details": [
+        {
+          "category": "獲利能力",
+          "indicator": "ROA > 0",
+          "value": "21.58%",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "獲利能力",
+          "indicator": "營運現金流 > 0",
+          "value": "21,697",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "獲利能力",
+          "indicator": "ΔROA > 0",
+          "value": "N/A",
+          "score": 0,
+          "passed": false
+        },
+        {
+          "category": "獲利能力",
+          "indicator": "CFO > 淨利 (盈餘含金量)",
+          "value": "CFO=21,697, NI=15,869",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "財務槓桿",
+          "indicator": "長期負債比率下降",
+          "value": "14.18% → 17.25%",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "財務槓桿",
+          "indicator": "流動比率上升",
+          "value": "2.69 → 2.57",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "財務槓桿",
+          "indicator": "無增資 (股數未增加)",
+          "value": "預設通過",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "營運效率",
+          "indicator": "毛利率上升",
+          "value": "N/A",
+          "score": 0,
+          "passed": false
+        },
+        {
+          "category": "營運效率",
+          "indicator": "資產周轉率上升",
+          "value": "N/A",
+          "score": 0,
+          "passed": false
+        }
+      ],
+      "description": "得分 6/9,經營體質變化不大"
+    },
+    "magic_formula": {
+      "roic": 31.750715623564336,
+      "earnings_yield": 3.629536415547481,
+      "enterprise_value": 495076.99999999994,
+      "invested_capital": 56594.0,
+      "ebit": 17969.0,
+      "description": "ROIC 31.8%,資本回報率優異; 盈餘殖利率 3.6%,估值偏高"
+    },
+    "lynch": {
+      "category": "快速成長股",
+      "eps_cagr": 22.690272110103727,
+      "fair_pe_range": [
+        22.690272110103727,
+        45.380544220207454
+      ],
+      "current_pe": 31.29,
+      "valuation": "合理",
+      "description": "EPS 年複合成長率 22.7%,成長動能強勁",
+      "strategy": "短中期持有,密切關注成長率是否放緩,設定嚴格停利"
+    }
+  },
+  "ratios": {
+    "毛利率": 58.97562990499794,
+    "營業利益率": 49.480930744871266,
+    "稅後淨利率": 43.698196337601544,
+    "ROA": 21.578439237976095,
+    "ROE": 31.51362300421002,
+    "營收成長率": null,
+    "流動比率": 2.6930010188886278,
+    "負債比率": 31.526631402890903,
+    "資產周轉率": 0.4938061761466393,
+    "營運資金": 21601.0,
+    "企業價值": 495076.99999999994
+  },
+  "ai_analysis": {
+    "overall_score": 8.0,
+    "m_score_analysis": "台積電的 M-Score 為 N/A，無法評估財報操縱風險，需持續關注財報透明度。",
+    "z_score_analysis": "Z-Score 為 15.41，顯示公司處於安全區域，破產風險極低，財務穩健。",
+    "f_score_analysis": "F-Score 為 6/9，顯示公司在營運體質上中性，需進一步觀察其資產管理及盈利能力。",
+    "magic_formula_analysis": "ROIC 為 31.75%，顯示資本使用效率高；盈餘殖利率為 3.63%，在價值投資中具吸引力。",
+    "lynch_analysis": "台積電被分類為快速成長股，EPS 年增率為 22.69%，顯示未來成長潛力強，合理 PE 範圍為 22.69 至 45.38。",
+    "strengths": [
+      "毛利率高達 58.98%，顯示產品競爭力強。",
+      "ROE 31.51%，顯示股東權益的回報率極高。",
+      "流動比率為 2.69，顯示公司短期償債能力良好。"
+    ],
+    "risks": [
+      "負債比率為 31.53%，雖然不高，但需注意未來資本運作的風險。",
+      "目前無法獲得質化資訊，可能影響對市場動態的理解。",
+      "全球半導體市場競爭激烈，可能影響未來的市場份額。"
+    ],
+    "qualitative_insights": [],
+    "investment_suggestion": "考慮持有並觀察市場動態，特別是全球半導體需求的變化。",
+    "target_action": "建議持有觀望，若市場出現回調可考慮逢低布局。",
+    "key_monitoring": "需關注全球半導體市場的供需變化及台積電的財報表現。"
+  },
+  "report_image": "/home/runner/work/Stock-Assistant/Stock-Assistant/data/reports/fundamental_2330_20260218_023624.png"
+}
