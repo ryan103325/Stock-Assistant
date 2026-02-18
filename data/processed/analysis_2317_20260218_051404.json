@@ -1,0 +1,240 @@
+{
+  "stock_id": "2317",
+  "timestamp": "2026-02-18T05:12:49.666945",
+  "stock_info": {
+    "股票代號": "2317",
+    "股票名稱": "鴻海",
+    "收盤價": 227.0,
+    "市值_億": 31700.0,
+    "發行股數_千股": 13964200.0,
+    "Beta": 1.24,
+    "每股淨值": 117.18,
+    "本益比": 16.55,
+    "股價淨值比": 1.94,
+    "殖利率": 3.1,
+    "產業分類": "其他電子業",
+    "_latest_eps": 11.01,
+    "無風險利率": 1.43
+  },
+  "scores": {
+    "m_score": {
+      "score": null,
+      "judgment": "N/A",
+      "threshold": -1.78,
+      "indicators": {
+        "DSRI": {
+          "value": null,
+          "name": "應收帳款天數指數",
+          "weight": 0.92
+        },
+        "GMI": {
+          "value": null,
+          "name": "毛利率指數",
+          "weight": 0.528
+        },
+        "AQI": {
+          "value": null,
+          "name": "資產品質指數",
+          "weight": 0.404
+        },
+        "SGI": {
+          "value": null,
+          "name": "營收成長指數",
+          "weight": 0.892
+        },
+        "DEPI": {
+          "value": null,
+          "name": "折舊指數",
+          "weight": 0.115
+        },
+        "SGAI": {
+          "value": null,
+          "name": "營業費用指數",
+          "weight": -0.172
+        },
+        "TATA": {
+          "value": -0.07701913802731102,
+          "name": "總應計項目",
+          "weight": 4.679
+        },
+        "LVGI": {
+          "value": 0.9521539689357937,
+          "name": "槓桿指數",
+          "weight": -0.327
+        }
+      },
+      "description": "數據不足,無法計算"
+    },
+    "z_score": {
+      "score": 3.341743393553342,
+      "judgment": "🟢 Safe Zone",
+      "zone": "Safe",
+      "thresholds": {
+        "safe": 2.99,
+        "grey": 1.81
+      },
+      "indicators": {
+        "X1": {
+          "value": 0.2859789837047566,
+          "name": "營運資金/總資產",
+          "weight": 1.2,
+          "formula": "(流動資產 - 流動負債) / 總資產"
+        },
+        "X2": {
+          "value": 0.3221229504035738,
+          "name": "保留盈餘/總資產",
+          "weight": 1.4,
+          "formula": "保留盈餘 / 總資產"
+        },
+        "X3": {
+          "value": 0.042268643078328845,
+          "name": "EBIT/總資產",
+          "weight": 3.3,
+          "formula": "營業利益(TTM) / 總資產"
+        },
+        "X4": {
+          "value": 1.4067006878189483,
+          "name": "市值/總負債",
+          "weight": 0.6,
+          "formula": "市值 / 總負債"
+        },
+        "X5": {
+          "value": 1.5640895476927763,
+          "name": "營收/總資產",
+          "weight": 1.0,
+          "formula": "營業收入(TTM) / 總資產"
+        }
+      },
+      "description": "財務體質健康,破產風險極低"
+    },
+    "f_score": {
+      "score": 6,
+      "max_score": 9,
+      "judgment": "🟡 基本面中性",
+      "details": [
+        {
+          "category": "獲利能力",
+          "indicator": "ROA > 0",
+          "value": "3.61%",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "獲利能力",
+          "indicator": "營運現金流 > 0",
+          "value": "4,455",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "獲利能力",
+          "indicator": "ΔROA > 0",
+          "value": "N/A",
+          "score": 0,
+          "passed": false
+        },
+        {
+          "category": "獲利能力",
+          "indicator": "CFO > 淨利 (盈餘含金量)",
+          "value": "CFO=4,455, NI=1,421",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "財務槓桿",
+          "indicator": "長期負債比率下降",
+          "value": "8.74% → 8.94%",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "財務槓桿",
+          "indicator": "流動比率上升",
+          "value": "1.59 → 1.51",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "財務槓桿",
+          "indicator": "無增資 (股數未增加)",
+          "value": "預設通過",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "營運效率",
+          "indicator": "毛利率上升",
+          "value": "N/A",
+          "score": 0,
+          "passed": false
+        },
+        {
+          "category": "營運效率",
+          "indicator": "資產周轉率上升",
+          "value": "N/A",
+          "score": 0,
+          "passed": false
+        }
+      ],
+      "description": "得分 6/9,經營體質變化不大"
+    },
+    "magic_formula": {
+      "roic": 10.950877885184454,
+      "earnings_yield": 3.9407922760187417,
+      "enterprise_value": 42258.0,
+      "invested_capital": 15207.0,
+      "ebit": 1665.3,
+      "description": "ROIC 11.0%,資本回報率一般; 盈餘殖利率 3.9%,估值偏高"
+    },
+    "lynch": {
+      "category": "穩定成長股",
+      "eps_cagr": 10.668191970032147,
+      "fair_pe_range": [
+        10.668191970032147,
+        16.00228795504822
+      ],
+      "current_pe": 16.55,
+      "valuation": "高估",
+      "description": "EPS 年複合成長率 10.7%,穩定成長",
+      "strategy": "中長期持有,適合作為投資組合的核心部位"
+    }
+  },
+  "ratios": {
+    "毛利率": 6.29482976858914,
+    "營業利益率": 2.702443932361819,
+    "稅後淨利率": 2.305994612313784,
+    "ROA": 3.606782070155846,
+    "ROE": 8.427232831218124,
+    "營收成長率": null,
+    "流動比率": 1.5901115592101818,
+    "負債比率": 57.198334940859944,
+    "資產周轉率": 1.5640895476927763,
+    "營運資金": 11267.0,
+    "企業價值": 42258.0
+  },
+  "ai_analysis": {
+    "overall_score": 7.5,
+    "comprehensive_summary": "綜合六大面向的分析顯示，鴻海在財報可信度方面尚無數據評分，但其Altman Z-Score為3.34，顯示出良好的破產風險防範能力，屬於安全區域。Piotroski F-Score為6分，顯示其營運體質中性，雖然有一定的盈利能力，但仍有改善空間。ROIC為10.95%，顯示出資本運用效率尚可，但未達到優異標準（>25%）。盈餘殖利率為3.94%，相對於目前的本益比16.55，顯示股價略顯高估。Peter Lynch分類為穩定成長股，EPS年增率為10.67%，顯示出一定的成長潛力，但合理PE範圍顯示目前估值偏高，需謹慎觀察。整體而言，鴻海在財務穩健性上表現良好，但在估值和營運效率上仍需關注。",
+    "dimension_analyses": {
+      "m_score": "M-Score目前無法評估，但缺乏負面信號，需持續觀察財報的透明度。",
+      "z_score": "Altman Z-Score為3.34，顯示出良好的破產風險防範能力，屬於安全區域，表明公司財務狀況穩健。",
+      "f_score": "Piotroski F-Score為6，顯示其營運體質中性，雖然有一定的盈利能力，但仍有改善空間，特別是在營業利益率和稅後淨利率方面。",
+      "roic": "ROIC為10.95%，顯示出資本運用效率尚可，但未達到優異標準（>25%），需進一步提升資本利用效率。",
+      "earnings_yield": "盈餘殖利率為3.94%，相對於本益比16.55，顯示股價略顯高估，需謹慎評估投資價值。",
+      "lynch": "Peter Lynch分類為穩定成長股，EPS年增率為10.67%，顯示出一定的成長潛力，但合理PE範圍顯示目前估值偏高，需謹慎觀察。"
+    },
+    "strengths": [
+      "Altman Z-Score為3.34，顯示出良好的破產風險防範能力。",
+      "ROIC為10.95%，顯示出一定的資本運用效率。",
+      "EPS年增率為10.67%，顯示出穩定的成長潛力。"
+    ],
+    "risks": [
+      "Piotroski F-Score為6，顯示營運體質中性，存在改善空間。",
+      "盈餘殖利率為3.94%，顯示股價相對高估，需謹慎評估投資價值。",
+      "負債比率為57.20%，顯示公司財務槓桿較高，需注意潛在的財務風險。"
+    ],
+    "target_action": "建議持有觀望，並密切關注後續財報及市場動態，特別是營運效率的改善情況。",
+    "key_monitoring": "後續需要關注的重點包括：1) 營業利益率及稅後淨利率的變化，2) 公司的資本運用效率提升情況，3) 市場對於鴻海估值的反應及調整。"
+  },
+  "report_image": null
+}
