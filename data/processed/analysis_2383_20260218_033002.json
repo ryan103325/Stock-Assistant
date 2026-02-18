@@ -1,0 +1,238 @@
+{
+  "stock_id": "2383",
+  "timestamp": "2026-02-18T03:28:53.334334",
+  "stock_info": {
+    "股票代號": "2383",
+    "股票名稱": "台光電",
+    "收盤價": 2195.0,
+    "市值_億": 7611.68,
+    "發行股數_千股": 358300.0,
+    "Beta": 1.45,
+    "每股淨值": 124.18,
+    "本益比": 56.56,
+    "股價淨值比": 17.68,
+    "殖利率": 1.72,
+    "產業分類": "電子零組件業",
+    "_latest_eps": 27.81,
+    "無風險利率": 1.43
+  },
+  "scores": {
+    "m_score": {
+      "score": null,
+      "judgment": "N/A",
+      "threshold": -1.78,
+      "indicators": {
+        "DSRI": {
+          "value": null,
+          "name": "應收帳款天數指數",
+          "weight": 0.92
+        },
+        "GMI": {
+          "value": null,
+          "name": "毛利率指數",
+          "weight": 0.528
+        },
+        "AQI": {
+          "value": null,
+          "name": "資產品質指數",
+          "weight": 0.404
+        },
+        "SGI": {
+          "value": null,
+          "name": "營收成長指數",
+          "weight": 0.892
+        },
+        "DEPI": {
+          "value": null,
+          "name": "折舊指數",
+          "weight": 0.115
+        },
+        "SGAI": {
+          "value": null,
+          "name": "營業費用指數",
+          "weight": -0.172
+        },
+        "TATA": {
+          "value": 0.05182631958020373,
+          "name": "總應計項目",
+          "weight": 4.679
+        },
+        "LVGI": {
+          "value": 1.0015282065926452,
+          "name": "槓桿指數",
+          "weight": -0.327
+        }
+      },
+      "description": "數據不足,無法計算"
+    },
+    "z_score": {
+      "score": 10.911715945779491,
+      "judgment": "🟢 Safe Zone",
+      "zone": "Safe",
+      "thresholds": {
+        "safe": 2.99,
+        "grey": 1.81
+      },
+      "indicators": {
+        "X1": {
+          "value": 0.25959460849881677,
+          "name": "營運資金/總資產",
+          "weight": 1.2,
+          "formula": "(流動資產 - 流動負債) / 總資產"
+        },
+        "X2": {
+          "value": 0.3191686387488425,
+          "name": "保留盈餘/總資產",
+          "weight": 1.4,
+          "formula": "保留盈餘 / 總資產"
+        },
+        "X3": {
+          "value": 0.18210721267620128,
+          "name": "EBIT/總資產",
+          "weight": 3.3,
+          "formula": "營業利益(TTM) / 總資產"
+        },
+        "X4": {
+          "value": 14.413330808558985,
+          "name": "市值/總負債",
+          "weight": 0.6,
+          "formula": "市值 / 總負債"
+        },
+        "X5": {
+          "value": 0.9044140343656756,
+          "name": "營收/總資產",
+          "weight": 1.0,
+          "formula": "營業收入(TTM) / 總資產"
+        }
+      },
+      "description": "財務體質健康,破產風險極低"
+    },
+    "f_score": {
+      "score": 4,
+      "max_score": 9,
+      "judgment": "🟡 基本面中性",
+      "details": [
+        {
+          "category": "獲利能力",
+          "indicator": "ROA > 0",
+          "value": "13.95%",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "獲利能力",
+          "indicator": "營運現金流 > 0",
+          "value": "85",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "獲利能力",
+          "indicator": "ΔROA > 0",
+          "value": "N/A",
+          "score": 0,
+          "passed": false
+        },
+        {
+          "category": "獲利能力",
+          "indicator": "CFO > 淨利 (盈餘含金量)",
+          "value": "CFO=85, NI=136",
+          "score": 0,
+          "passed": false
+        },
+        {
+          "category": "財務槓桿",
+          "indicator": "長期負債比率下降",
+          "value": "10.99% → 10.41%",
+          "score": 0,
+          "passed": false
+        },
+        {
+          "category": "財務槓桿",
+          "indicator": "流動比率上升",
+          "value": "1.60 → 1.54",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "財務槓桿",
+          "indicator": "無增資 (股數未增加)",
+          "value": "預設通過",
+          "score": 1,
+          "passed": true
+        },
+        {
+          "category": "營運效率",
+          "indicator": "毛利率上升",
+          "value": "N/A",
+          "score": 0,
+          "passed": false
+        },
+        {
+          "category": "營運效率",
+          "indicator": "資產周轉率上升",
+          "value": "N/A",
+          "score": 0,
+          "passed": false
+        }
+      ],
+      "description": "得分 4/9,經營體質變化不大"
+    },
+    "magic_formula": {
+      "roic": 34.24066550590056,
+      "earnings_yield": 2.218370145317721,
+      "enterprise_value": 7978.380000000001,
+      "invested_capital": 516.9000000000001,
+      "ebit": 176.99,
+      "description": "ROIC 34.2%,資本回報率優異; 盈餘殖利率 2.2%,估值過高"
+    },
+    "lynch": {
+      "category": "快速成長股",
+      "eps_cagr": 25.167843458345196,
+      "fair_pe_range": [
+        25.167843458345196,
+        50.33568691669039
+      ],
+      "current_pe": 56.56,
+      "valuation": "高估",
+      "description": "EPS 年複合成長率 25.2%,成長動能強勁",
+      "strategy": "短中期持有,密切關注成長率是否放緩,設定嚴格停利"
+    }
+  },
+  "ratios": {
+    "毛利率": 29.89761092150171,
+    "營業利益率": 20.135381114903296,
+    "稅後淨利率": 15.426621160409553,
+    "ROA": 13.952052680316903,
+    "ROE": 30.55430374042361,
+    "營收成長率": null,
+    "流動比率": 1.5988606693567529,
+    "負債比率": 54.33686593270913,
+    "資產周轉率": 0.9044140343656756,
+    "營運資金": 252.3,
+    "企業價值": 7978.380000000001
+  },
+  "ai_analysis": {
+    "overall_score": 7.5,
+    "m_score_analysis": "台光電的 M-Score 無法評估，因為數據缺失，無法判斷是否存在財報操縱風險。",
+    "z_score_analysis": "Z-Score 為 10.91，顯示公司處於安全區域，破產風險極低，財務穩健。",
+    "f_score_analysis": "F-Score 為 4/9，顯示公司營運體質中性，雖然有一些正面指標，但仍有改進空間。",
+    "magic_formula_analysis": "ROIC 為 34.24%，顯示資本效率高；盈餘殖利率為 2.22%，相對於市場來說，顯示出一定的價值潛力。",
+    "lynch_analysis": "根據 Peter Lynch 分類，台光電被視為快速成長股，EPS 年增率為 25.17%，但合理 PE 區間為 25.17 至 50.34，顯示目前估值偏高。",
+    "strengths": [
+      "Z-Score 高達 10.91，顯示公司財務穩健，破產風險極低。",
+      "ROE 為 30.55%，顯示公司對股東資本的回報能力強。",
+      "毛利率 29.90%，顯示公司在成本控制及定價能力上具優勢。"
+    ],
+    "risks": [
+      "本益比高達 56.56，顯示市場對其未來成長預期過高，存在估值風險。",
+      "F-Score 僅為 4/9，顯示公司在某些營運指標上表現不佳，需改善。",
+      "負債比率為 54.34%，雖然在可接受範圍內，但仍需關注財務杠桿風險。"
+    ],
+    "qualitative_insights": [],
+    "investment_suggestion": "考慮到公司財務穩健及成長潛力，建議投資者可在價格回調時考慮進場，但需謹慎評估高估值風險。",
+    "target_action": "逢低布局，特別是在市場調整時。",
+    "key_monitoring": "後續需關注公司營收成長率及市場競爭環境變化，特別是原材料價格波動對毛利率的影響。"
+  },
+  "report_image": null
+}
