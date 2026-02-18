@@ -1,0 +1,71 @@
+{
+  "stock_id": "2330",
+  "stock_name": "2330",
+  "analysis_date": "2026-02-18",
+  "analysis_time": "2026-02-18 08:22:27",
+  "total_score": 0,
+  "rating": "觀望/中性",
+  "rating_en": "Neutral",
+  "low_volume_penalty": false,
+  "dimensions": {
+    "institutional": {
+      "score": 0.0,
+      "max": 35.0,
+      "trust": 0.0,
+      "trust_note": "投信無買超",
+      "foreign_align": 0.0,
+      "align_note": "外資與投信均賣超"
+    },
+    "ownership": {
+      "score": 0.0,
+      "max": 35.0,
+      "whale": 0.0,
+      "whale_note": "大戶持股資料不足",
+      "retail": 0.0,
+      "retail_note": "散戶持股資料不足"
+    },
+    "broker": {
+      "score": 0.0,
+      "max": 20.0,
+      "abnormal": 0.0,
+      "abnormal_note": "無明顯分點集中買盤",
+      "geo": 0.0,
+      "geo_note": "非地緣券商（預設，需人工確認）"
+    },
+    "sentiment": {
+      "score": 0.0,
+      "max": 10.0,
+      "margin": 0.0,
+      "margin_note": "融資近5日增加 0 張（散戶追價）",
+      "squeeze": 0.0,
+      "squeeze_note": "券資比 0.0%（軋空壓力不足）"
+    }
+  },
+  "highlights": [],
+  "risks": [],
+  "strategy": "建議等待籌碼面更明確的多方訊號後再行動",
+  "raw_data": {
+    "trust_buy_5d": null,
+    "trust_consecutive_days": 0,
+    "foreign_buy_5d": null,
+    "whale_pct_this": null,
+    "whale_pct_last": null,
+    "retail_pct_this": null,
+    "retail_pct_last": null,
+    "broker_name_1d": null,
+    "broker_buy_1d": null,
+    "broker_name_5d": null,
+    "broker_buy_5d": null,
+    "broker_name_10d": null,
+    "broker_buy_10d": null,
+    "broker_name_20d": null,
+    "broker_buy_20d": null,
+    "total_volume_1d": null,
+    "is_geo_broker": false,
+    "margin_change": null,
+    "short_ratio": null,
+    "price_above_ma": null,
+    "current_price": null,
+    "data_date": null
+  }
+}
