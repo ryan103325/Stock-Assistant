@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ stock_id }} {{ stock_name }} - 投資體檢報告</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            width: 1200px;
+            padding: 0;
+        }
+
+        .report {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            padding: 40px;
+        }
+
+        /* === 頂部區域 === */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 32px;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d1b69 100%);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .header-left h1 {
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00d2ff, #7b68ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-left .subtitle {
+            font-size: 14px;
+            color: #8892b0;
+            margin-top: 4px;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .price-tag {
+            font-size: 36px;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .price-unit { font-size: 14px; color: #8892b0; }
+
+        .overall-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+            margin-top: 8px;
+        }
+
+        .overall-score .label { font-size: 13px; color: #8892b0; }
+        .overall-score .value {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffd700;
+        }
+
+        /* === 基本資訊欄 === */
+        .info-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .info-item {
+            background: rgba(255,255,255,0.05);
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+        }
+
+        .info-item .label { font-size: 11px; color: #8892b0; margin-bottom: 4px; }
+        .info-item .value { font-size: 18px; font-weight: 700; color: #fff; }
+
+        /* === 五大模型儀表板 === */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .model-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .model-card .icon { font-size: 28px; margin-bottom: 8px; }
+        .model-card .title { font-size: 12px; color: #8892b0; margin-bottom: 6px; }
+        .model-card .score {
+            font-size: 22px;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+        .model-card .judgment {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 3px 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .status-pass { color: #00e676; }
+        .status-pass .judgment { background: rgba(0,230,118,0.15); color: #00e676; }
+        .status-safe { color: #00e676; }
+        .status-safe .judgment { background: rgba(0,230,118,0.15); color: #00e676; }
+        .status-grey { color: #ffd740; }
+        .status-grey .judgment { background: rgba(255,215,64,0.15); color: #ffd740; }
+        .status-fail { color: #ff5252; }
+        .status-fail .judgment { background: rgba(255,82,82,0.15); color: #ff5252; }
+        .status-distress { color: #ff5252; }
+        .status-distress .judgment { background: rgba(255,82,82,0.15); color: #ff5252; }
+        .status-neutral { color: #64b5f6; }
+        .status-neutral .judgment { background: rgba(100,181,246,0.15); color: #64b5f6; }
+
+        /* === 模型詳細分析 === */
+        .analysis-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title .emoji { font-size: 20px; }
+
+        .analysis-text {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #b0b8d1;
+        }
+
+        /* === F-Score 詳細表格 === */
+        .f-score-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .f-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .f-item .check { font-size: 14px; }
+        .f-item.passed .check { color: #00e676; }
+        .f-item.failed .check { color: #ff5252; }
+
+        /* === 優勢與風險 === */
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .pros-card, .cons-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .pros-card { border-left: 4px solid #00e676; }
+        .cons-card { border-left: 4px solid #ff5252; }
+
+        .pros-card h3 { color: #00e676; margin-bottom: 12px; font-size: 16px; }
+        .cons-card h3 { color: #ff5252; margin-bottom: 12px; font-size: 16px; }
+
+        .point-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .point-list li {
+            padding: 8px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #b0b8d1;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .point-list li:last-child { border-bottom: none; }
+        .point-list li::before { margin-right: 8px; }
+        .pros-card .point-list li::before { content: '✅'; }
+        .cons-card .point-list li::before { content: '⚠️'; }
+
+        /* === 投資建議 === */
+        .suggestion-card {
+            background: linear-gradient(135deg, rgba(0,210,255,0.08), rgba(123,104,238,0.08));
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0,210,255,0.2);
+        }
+
+        .suggestion-card h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: #00d2ff;
+        }
+
+        .suggestion-action {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+
+        .suggestion-detail {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #b0b8d1;
+        }
+
+        .monitoring {
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            font-size: 13px;
+            color: #8892b0;
+        }
+
+        .monitoring strong { color: #ffd740; }
+
+        /* === 免責聲明 === */
+        .disclaimer {
+            margin-top: 24px;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .disclaimer p {
+            font-size: 11px;
+            color: #5a6177;
+            line-height: 1.6;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 11px;
+            color: #3a3f54;
+        }
+    </style>
+</head>
+<body>
+<div class="report">
+
+    <!-- 頂部 -->
+    <div class="header">
+        <div class="header-left">
+            <h1>{{ stock_id }} {{ stock_name }}</h1>
+            <div class="subtitle">{{ industry }} | 基本面評分大師 投資體檢報告</div>
+        </div>
+        <div class="header-right">
+            <div class="price-tag">{{ price }} <span class="price-unit">TWD</span></div>
+            <div class="overall-score">
+                <span class="label">綜合評分</span>
+                <span class="value">{{ overall_score }}/10</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 基本資訊 -->
+    <div class="info-bar">
+        <div class="info-item">
+            <div class="label">市值 (億)</div>
+            <div class="value">{{ market_cap }}</div>
+        </div>
+        <div class="info-item">
+            <div class="label">本益比</div>
+            <div class="value">{{ pe_ratio }}</div>
+        </div>
+        <div class="info-item">
+            <div class="label">殖利率</div>
+            <div class="value">{{ dividend_yield }}%</div>
+        </div>
+        <div class="info-item">
+            <div class="label">ROE</div>
+            <div class="value">{{ roe }}%</div>
+        </div>
+        <div class="info-item">
+            <div class="label">營收成長率</div>
+            <div class="value">{{ revenue_growth }}%</div>
+        </div>
+    </div>
+
+    <!-- 五大模型儀表板 -->
+    <div class="models-grid">
+        <!-- M-Score -->
+        <div class="model-card {{ m_score_status_class }}">
+            <div class="icon">🔍</div>
+            <div class="title">M-Score 財報操縱</div>
+            <div class="score">{{ m_score_value }}</div>
+            <div class="judgment">{{ m_score_judgment }}</div>
+        </div>
+        <!-- Z-Score -->
+        <div class="model-card {{ z_score_status_class }}">
+            <div class="icon">💪</div>
+            <div class="title">Z-Score 破產風險</div>
+            <div class="score">{{ z_score_value }}</div>
+            <div class="judgment">{{ z_score_judgment }}</div>
+        </div>
+        <!-- F-Score -->
+        <div class="model-card {{ f_score_status_class }}">
+            <div class="icon">📈</div>
+            <div class="title">F-Score 營運體質</div>
+            <div class="score">{{ f_score_value }}/9</div>
+            <div class="judgment">{{ f_score_judgment }}</div>
+        </div>
+        <!-- Magic Formula -->
+        <div class="model-card status-neutral">
+            <div class="icon">💎</div>
+            <div class="title">Magic Formula</div>
+            <div class="score">{{ roic }}%</div>
+            <div class="judgment">ROIC</div>
+        </div>
+        <!-- Lynch -->
+        <div class="model-card status-neutral">
+            <div class="icon">🎯</div>
+            <div class="title">Lynch 分類</div>
+            <div class="score" style="font-size:16px;">{{ lynch_category }}</div>
+            <div class="judgment">{{ lynch_valuation }}</div>
+        </div>
+    </div>
+
+    <!-- 模型詳細分析 -->
+    <div class="analysis-section">
+        <div class="section-title"><span class="emoji">📊</span> 五大模型分析摘要</div>
+        <div class="analysis-text">
+            <p><strong>🔍 M-Score:</strong> {{ m_score_analysis }}</p>
+            <p style="margin-top:8px;"><strong>💪 Z-Score:</strong> {{ z_score_analysis }}</p>
+            <p style="margin-top:8px;"><strong>📈 F-Score:</strong> {{ f_score_analysis }}</p>
+            <p style="margin-top:8px;"><strong>💎 Magic Formula:</strong> {{ magic_formula_analysis }}</p>
+            <p style="margin-top:8px;"><strong>🎯 Lynch:</strong> {{ lynch_analysis }}</p>
+        </div>
+    </div>
+
+    <!-- F-Score 詳細項目 -->
+    {% if f_score_details %}
+    <div class="analysis-section">
+        <div class="section-title"><span class="emoji">📋</span> F-Score 九大檢測項目</div>
+        <div class="f-score-grid">
+            {% for item in f_score_details %}
+            <div class="f-item {{ 'passed' if item.passed else 'failed' }}">
+                <span class="check">{{ '✓' if item.passed else '✗' }}</span>
+                <span>{{ item.indicator }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 優勢與風險 -->
+    <div class="pros-cons">
+        <div class="pros-card">
+            <h3>💡 投資優勢</h3>
+            <ul class="point-list">
+                {% for s in strengths %}
+                <li>{{ s }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="cons-card">
+            <h3>⚠️ 投資風險</h3>
+            <ul class="point-list">
+                {% for r in risks %}
+                <li>{{ r }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- 投資建議 -->
+    <div class="suggestion-card">
+        <h3>💡 參謀總結</h3>
+        <div class="suggestion-action">{{ target_action }}</div>
+        <div class="suggestion-detail">{{ investment_suggestion }}</div>
+        <div class="monitoring">
+            <strong>🔔 後續關注:</strong> {{ key_monitoring }}
+        </div>
+    </div>
+
+    <!-- 免責聲明 -->
+    <div class="disclaimer">
+        <p>【免責聲明】本頁面之分析結果係經由 AI 模型依據歷史數據運算生成，僅供投資研究參考，不代表任何形式之投資建議或獲利保證。本平台無法保證原始數據之即時性與正確性，投資人應審慎評估並自負風險。</p>
+    </div>
+
+    <div class="footer">
+        基本面評分大師 Fundamental Master | 報告生成時間: {{ report_time }} | 數據來源: Goodinfo / MacroMicro
+    </div>
+
+</div>
+</body>
+</html>

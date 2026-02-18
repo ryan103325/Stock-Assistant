@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台股技術分析圖表</title>
-    <meta name="description" content="互動式台股技術分析 K 線圖表工具">
+    <title>台股分析工具</title>
+    <meta name="description" content="互動式台股技術分析與基本面分析工具">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
@@ -13,7 +13,7 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>📈 台股技術分析圖表</h1>
+            <h1>📈 台股分析工具</h1>
             <div class="search-box">
                 <input type="text" id="stockInput" placeholder="輸入股票代碼或名稱 (例: 2330、台積電)" autocomplete="off">
                 <button id="searchBtn">查詢</button>
@@ -28,28 +28,101 @@
         </div>
 
         <div class="controls">
-            <div class="timeframe-btns">
+            <div class="tab-btns">
+                <button class="tab-btn active" data-tab="technical">技術分析</button>
+                <button class="tab-btn" data-tab="fundamental">基本面分析</button>
+            </div>
+            <div class="timeframe-btns" id="timeframeBtns">
                 <button class="tf-btn active" data-tf="D">日線</button>
                 <button class="tf-btn" data-tf="W">週線</button>
             </div>
         </div>
 
-        <div class="chart-container">
-            <div class="indicator-label"><span>K線</span></div>
-            <div class="chart-wrapper">
-                <div id="chart"></div>
-                <canvas id="vpCanvas"></canvas>
+        <!-- 技術分析頁籤 -->
+        <div id="technical-tab" class="tab-content active">
+            <div class="chart-container">
+                <div class="indicator-label"><span>K線</span></div>
+                <div class="chart-wrapper">
+                    <div id="chart"></div>
+                    <canvas id="vpCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="volume-container">
+                <div class="indicator-label"><span>成交量</span></div>
+                <div id="volumeChart"></div>
+            </div>
+
+            <div class="rsi-container">
+                <div class="indicator-label"><span>RSI</span></div>
+                <div id="rsiChart"></div>
             </div>
         </div>
 
-        <div class="volume-container">
-            <div class="indicator-label"><span>成交量</span></div>
-            <div id="volumeChart"></div>
-        </div>
+        <!-- 基本面分析頁籤 -->
+        <div id="fundamental-tab" class="tab-content">
+            <div class="fundamental-panel">
+                <!-- 分析控制 -->
+                <div class="fund-control">
+                    <button id="startAnalysis" class="analysis-btn">
+                        <span class="btn-icon">🔬</span>
+                        <span class="btn-text">開始基本面分析</span>
+                    </button>
+                    <button id="configToken" class="config-btn" title="設定 GitHub Token">⚙️</button>
+                    <div id="analysisStatus" class="analysis-status"></div>
+                </div>
 
-        <div class="rsi-container">
-            <div class="indicator-label"><span>RSI</span></div>
-            <div id="rsiChart"></div>
+                <!-- 分析結果 -->
+                <div id="fundResult" class="fund-result" style="display: none;">
+                    <!-- 評分卡片 -->
+                    <div class="score-grid">
+                        <div class="score-card" id="zScoreCard">
+                            <div class="score-label">Z-Score</div>
+                            <div class="score-value" id="zScoreValue">--</div>
+                            <div class="score-badge" id="zScoreBadge">--</div>
+                        </div>
+                        <div class="score-card" id="fScoreCard">
+                            <div class="score-label">F-Score</div>
+                            <div class="score-value" id="fScoreValue">--</div>
+                            <div class="score-badge" id="fScoreBadge">--</div>
+                        </div>
+                        <div class="score-card" id="mScoreCard">
+                            <div class="score-label">M-Score</div>
+                            <div class="score-value" id="mScoreValue">--</div>
+                            <div class="score-badge" id="mScoreBadge">--</div>
+                        </div>
+                        <div class="score-card" id="roicCard">
+                            <div class="score-label">ROIC</div>
+                            <div class="score-value" id="roicValue">--</div>
+                            <div class="score-badge" id="roicBadge">--</div>
+                        </div>
+                        <div class="score-card" id="lynchCard">
+                            <div class="score-label">Lynch 分類</div>
+                            <div class="score-value" id="lynchValue">--</div>
+                            <div class="score-badge" id="lynchBadge">--</div>
+                        </div>
+                        <div class="score-card" id="eyCard">
+                            <div class="score-label">盈餘殖利率</div>
+                            <div class="score-value" id="eyValue">--</div>
+                            <div class="score-badge" id="eyBadge">--</div>
+                        </div>
+                    </div>
+
+                    <!-- 財務比率 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">📊 財務比率</h3>
+                        <div class="ratio-grid" id="ratioGrid"></div>
+                    </div>
+
+                    <!-- AI 分析 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">🤖 AI 分析摘要</h3>
+                        <div class="ai-summary" id="aiSummary">
+                            <p>尚未分析</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="suggestions" id="suggestions"></div>
@@ -59,6 +132,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="fundamental.js"></script>
     <script src="volume_profile.js"></script>
 </body>
 

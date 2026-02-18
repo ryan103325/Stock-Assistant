@@ -430,3 +430,324 @@ body {
         font-size: 0.8rem;
     }
 }
+
+/* === Tab System === */
+.tab-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.tab-btn {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    background: var(--accent);
+    color: var(--bg-primary);
+    border-color: var(--accent);
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* === Fundamental Panel === */
+.fundamental-panel {
+    min-height: 400px;
+}
+
+.fund-control {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.analysis-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #58a6ff 0%, #388bfd 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(88, 166, 255, 0.25);
+}
+
+.analysis-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(88, 166, 255, 0.35);
+}
+
+.analysis-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-icon {
+    font-size: 1.2rem;
+}
+
+.analysis-status {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.analysis-status.loading {
+    color: var(--accent);
+}
+
+.analysis-status.success {
+    color: var(--green);
+}
+
+.analysis-status.error {
+    color: var(--red);
+}
+
+.analysis-status.warning {
+    color: #d29922;
+}
+
+.config-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.3rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.config-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+}
+
+.refresh-btn {
+    display: inline-block;
+    margin-left: 12px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    background: var(--bg-tertiary);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background: var(--accent);
+    color: var(--bg-primary);
+}
+
+/* === Score Grid === */
+.score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.score-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: border-color 0.2s;
+}
+
+.score-card:hover {
+    border-color: var(--accent);
+}
+
+.score-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.score-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    margin-bottom: 6px;
+}
+
+.score-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.score-badge.good {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--green);
+}
+
+.score-badge.neutral {
+    background: rgba(210, 153, 34, 0.15);
+    color: #d29922;
+}
+
+.score-badge.bad {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--red);
+}
+
+/* === Fund Section === */
+.fund-section {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 12px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* === Ratio Grid === */
+.ratio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.ratio-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.ratio-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.ratio-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: monospace;
+}
+
+/* === AI Summary === */
+.ai-summary {
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+}
+
+.ai-summary p {
+    margin-bottom: 8px;
+}
+
+.ai-score {
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(56, 139, 253, 0.05));
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    font-size: 1.1rem;
+}
+
+.ai-recommendation {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* === Responsive - Fundamental === */
+@media (max-width: 768px) {
+    .fund-control {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .score-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ratio-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .controls {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .score-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .score-card {
+        padding: 12px;
+    }
+
+    .score-value {
+        font-size: 1.3rem;
+    }
+
+    .analysis-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
