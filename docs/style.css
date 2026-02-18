@@ -1082,6 +1082,31 @@ body {
     line-height: 1.5;
 }
 
+/* 原始資料分類區塊 */
+.raw-section {
+    margin-bottom: 12px;
+}
+
+.raw-section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* 維度提示樣式 */
+.dim-warning {
+    color: #f59e0b !important;
+    font-weight: 600;
+}
+
+.dim-info {
+    color: var(--text-secondary) !important;
+    font-style: italic;
+}
+
 /* 原始資料格 */
 .raw-item {
     display: flex;

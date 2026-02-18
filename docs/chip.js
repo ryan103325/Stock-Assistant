@@ -218,17 +218,18 @@ function renderChipResult(data) {
 
     // 分析日期
     const dateEl = document.getElementById('chipAnalysisDate');
-    if (dateEl) dateEl.textContent = `資料日期：${data.raw_data?.data_date || data.analysis_date || '--'}`;
+    const rawDate = data.raw_data?.ownership?.data_date || data.analysis_date || '--';
+    if (dateEl) dateEl.textContent = `資料日期：${rawDate}`;
 
     // 儲存 raw_data
     _chipRawData = data.raw_data || {};
 
     // 四維度卡片
     const dims = data.dimensions || {};
-    renderDimCard('dimInstitutional', '法人動能', dims.institutional, 35);
-    renderDimCard('dimOwnership', '內部人結構', dims.ownership, 35);
+    renderDimCard('dimInstitutional', '法人動能', dims.institutional, 30);
+    renderDimCard('dimOwnership', '股東結構', dims.ownership, 30);
     renderBrokerCard(dims.broker, data.raw_data);
-    renderDimCard('dimSentiment', '市場情緒', dims.sentiment, 10);
+    renderDimCard('dimSentiment', '市場情緒', dims.sentiment, 20);
 
     // 亮點
     const highlightsEl = document.getElementById('chipHighlights');
@@ -279,11 +280,13 @@ function renderDimCard(elId, label, dim, maxScore) {
         </div>
         <div class="dim-notes">
             ${dim.trust_note ? `<div class="dim-note">• ${dim.trust_note}</div>` : ''}
+            ${dim.trust_turning ? `<div class="dim-note dim-warning">• ${dim.trust_turning}</div>` : ''}
+            ${dim.foreign_note ? `<div class="dim-note">• ${dim.foreign_note}</div>` : ''}
             ${dim.align_note ? `<div class="dim-note">• ${dim.align_note}</div>` : ''}
+            ${dim.dealer_5d != null ? `<div class="dim-note">• 自營商近5日：${dim.dealer_5d > 0 ? '買超' : '賣超'} ${Math.abs(dim.dealer_5d).toLocaleString()} 張</div>` : ''}
             ${dim.whale_note ? `<div class="dim-note">• ${dim.whale_note}</div>` : ''}
             ${dim.retail_note ? `<div class="dim-note">• ${dim.retail_note}</div>` : ''}
-            ${dim.abnormal_note ? `<div class="dim-note">• ${dim.abnormal_note}</div>` : ''}
-            ${dim.geo_note ? `<div class="dim-note">• ${dim.geo_note}</div>` : ''}
+            ${dim.holders_info ? `<div class="dim-note dim-info">• ${dim.holders_info}</div>` : ''}
             ${dim.margin_note ? `<div class="dim-note">• ${dim.margin_note}</div>` : ''}
             ${dim.squeeze_note ? `<div class="dim-note">• ${dim.squeeze_note}</div>` : ''}
         </div>
@@ -306,20 +309,23 @@ function renderBrokerCard(dim, raw) {
         <div class="dim-bar-bg">
             <div class="dim-bar-fill ${cls}" style="width:${pct}%"></div>
         </div>
+        <div class="dim-notes">
+            ${dim?.long_note ? `<div class="dim-note">• ${dim.long_note}</div>` : ''}
+            ${dim?.exit_note ? `<div class="dim-note">${dim.exit_note.startsWith('⚠') ? '' : '• '}${dim.exit_note}</div>` : ''}
+            ${dim?.period_note ? `<div class="dim-note">• ${dim.period_note}</div>` : ''}
+        </div>
         <div class="broker-period-switcher">
-            <button class="broker-period-btn active" data-period="1" onclick="switchBrokerPeriod('1')">1日</button>
-            <button class="broker-period-btn" data-period="5" onclick="switchBrokerPeriod('5')">5日</button>
-            <button class="broker-period-btn" data-period="10" onclick="switchBrokerPeriod('10')">10日</button>
-            <button class="broker-period-btn" data-period="20" onclick="switchBrokerPeriod('20')">20日</button>
+            <button class="broker-period-btn active" data-period="1d" onclick="switchBrokerPeriod('1d')">1日</button>
+            <button class="broker-period-btn" data-period="5d" onclick="switchBrokerPeriod('5d')">5日</button>
+            <button class="broker-period-btn" data-period="10d" onclick="switchBrokerPeriod('10d')">10日</button>
+            <button class="broker-period-btn" data-period="20d" onclick="switchBrokerPeriod('20d')">20日</button>
+            <button class="broker-period-btn" data-period="60d" onclick="switchBrokerPeriod('60d')">60日</button>
         </div>
         <div id="brokerPeriodDetail" class="dim-notes"></div>
-        <div class="dim-notes">
-            ${dim?.geo_note ? `<div class="dim-note">• ${dim.geo_note}</div>` : ''}
-        </div>
     `;
 
     // 預設顯示 1 日
-    switchBrokerPeriod('1');
+    switchBrokerPeriod('1d');
 }
 
 function switchBrokerPeriod(period) {
@@ -331,21 +337,20 @@ function switchBrokerPeriod(period) {
         btn.classList.toggle('active', btn.dataset.period === period);
     });
 
-    const name = raw[`broker_name_${period}d`] || 'N/A';
-    const buy = raw[`broker_buy_${period}d`];
-    const vol = raw.total_volume_1d;
-    const buyStr = buy != null ? buy.toLocaleString() : 'N/A';
-
-    let ratioStr = '';
-    if (buy != null && vol != null && vol > 0) {
-        ratioStr = `（佔成交量 ${((buy / vol) * 100).toFixed(1)}%）`;
-    }
+    const brokerRaw = raw.broker || {};
+    const pd = brokerRaw[`broker_${period}`] || {};
+    const name = pd.top_buy_broker || 'N/A';
+    const buy = pd.top_buy_net;
+    const sellName = pd.top_sell_broker || 'N/A';
+    const sellNet = pd.top_sell_net;
+    const buyStr = buy != null ? Math.abs(buy).toLocaleString() : 'N/A';
+    const sellStr = sellNet != null ? Math.abs(sellNet).toLocaleString() : 'N/A';
 
     const detail = document.getElementById('brokerPeriodDetail');
     if (detail) {
         detail.innerHTML = `
-            <div class="dim-note">• 買超第一名：<strong>${name}</strong></div>
-            <div class="dim-note">• 買超張數：${buyStr} 張${ratioStr}</div>
+            <div class="dim-note">• 買超第一名：<strong>${name}</strong>（${buy > 0 ? '買超' : '賣超'} ${buyStr} 張）</div>
+            <div class="dim-note">• 賣超第一名：<strong>${sellName}</strong>（賣超 ${sellStr} 張）</div>
         `;
     }
 }
@@ -354,27 +359,63 @@ function renderRawData(raw) {
     const el = document.getElementById('chipRawData');
     if (!el || !raw) return;
 
-    const items = [
-        ['投信近5日買賣超', raw.trust_buy_5d != null ? `${raw.trust_buy_5d?.toLocaleString()} 張` : 'N/A'],
-        ['投信連續買超天數', raw.trust_consecutive_days != null ? `${raw.trust_consecutive_days} 天` : 'N/A'],
-        ['外資近5日買賣超', raw.foreign_buy_5d != null ? `${raw.foreign_buy_5d?.toLocaleString()} 張` : 'N/A'],
-        ['千張大戶（本週）', raw.whale_pct_this != null ? `${raw.whale_pct_this}%` : 'N/A'],
-        ['千張大戶（上週）', raw.whale_pct_last != null ? `${raw.whale_pct_last}%` : 'N/A'],
-        ['散戶持股（本週）', raw.retail_pct_this != null ? `${raw.retail_pct_this}%` : 'N/A'],
-        ['散戶持股（上週）', raw.retail_pct_last != null ? `${raw.retail_pct_last}%` : 'N/A'],
-        ['近1日買超第一名', raw.broker_name_1d || 'N/A'],
-        ['近1日買超張數', raw.broker_buy_1d != null ? `${raw.broker_buy_1d?.toLocaleString()} 張` : 'N/A'],
-        ['近5日買超第一名', raw.broker_name_5d || 'N/A'],
-        ['近20日買超第一名', raw.broker_name_20d || 'N/A'],
-        ['當日總成交量', raw.total_volume_1d != null ? `${raw.total_volume_1d?.toLocaleString()} 張` : 'N/A'],
-        ['融資近5日增減', raw.margin_change != null ? `${raw.margin_change?.toLocaleString()} 張` : 'N/A'],
-        ['券資比', raw.short_ratio != null ? `${raw.short_ratio}%` : 'N/A'],
-        ['地緣券商', raw.is_geo_broker ? '是' : '否（預設）'],
+    const inst = raw.institutional || {};
+    const own = raw.ownership || {};
+    const bkr = raw.broker || {};
+    const sent = raw.sentiment || {};
+
+    const fmt = (v, suffix = '') => v != null ? `${typeof v === 'number' ? v.toLocaleString() : v}${suffix}` : 'N/A';
+
+    const sections = [
+        {
+            title: '📊 法人動態',
+            items: [
+                ['投信近5日買賣超', fmt(inst.trust_buy_5d, ' 張')],
+                ['投信連續買超天數', fmt(inst.trust_consecutive_days, ' 天')],
+                ['外資近5日買賣超', fmt(inst.foreign_buy_5d, ' 張')],
+                ['外資連續買超天數', fmt(inst.foreign_consecutive_days, ' 天')],
+                ['自營商近5日買賣超', fmt(inst.dealer_buy_5d, ' 張')],
+            ]
+        },
+        {
+            title: '👥 股東結構',
+            items: [
+                ['大戶持股（本週）', fmt(own.whale_pct_this, '%')],
+                ['大戶持股（上週）', fmt(own.whale_pct_last, '%')],
+                ['散戶持股（本週）', fmt(own.retail_pct_this, '%')],
+                ['總股東人數', fmt(own.total_holders_this, ' 人')],
+                ['平均張數/人', fmt(own.avg_shares_this, ' 張')],
+                ['資料日期', fmt(own.data_date)],
+            ]
+        },
+        {
+            title: '🏢 分點主力',
+            items: [
+                ['主力近5日淨買超', fmt(bkr.main_force_net_5d, ' 張')],
+                ['主力連續買超天數', fmt(bkr.main_force_consecutive, ' 天')],
+                ...['1d', '5d', '10d', '20d', '60d'].map(p => {
+                    const pd = bkr[`broker_${p}`] || {};
+                    return [`近${p}買超第一`, pd.top_buy_broker ? `${pd.top_buy_broker}（${fmt(pd.top_buy_net, ' 張')}）` : 'N/A'];
+                }),
+            ]
+        },
+        {
+            title: '📈 市場情緒',
+            items: [
+                ['融資近5日增減', fmt(sent.margin_change, ' 張')],
+                ['券資比', fmt(sent.short_ratio, '%')],
+            ]
+        },
     ];
 
-    el.innerHTML = items.map(([label, val]) =>
+    el.innerHTML = sections.map(s => `
+        <div class="raw-section">
+            <div class="raw-section-title">${s.title}</div>
+            ${s.items.map(([label, val]) =>
         `<div class="raw-item"><span class="raw-label">${label}</span><span class="raw-value">${val}</span></div>`
-    ).join('');
+    ).join('')}
+        </div>
+    `).join('');
 }
 
 // === UI 更新 ===

@@ -2,7 +2,7 @@
 籌碼面評分引擎 — 四維度版
 總分 0-100 分
 維度一：法人動能（30分）
-維度二：內部人結構（30分）
+維度二：股東結構（30分）
 維度三：分點主力（20分）
 維度四：市場情緒（20分）
 """
@@ -39,50 +39,91 @@ def _clamp(val: float, lo: float, hi: float) -> float:
 def score_institutional(data: dict) -> DimensionScore:
     """
     維度一：法人動能（滿分 30 分）
-    - 投信子項（17分）
-    - 土洋對照子項（13分）
+    - 投信趨勢（12分）：連續天數 + 金額方向
+    - 外資趨勢（10分）：同上
+    - 三大法人一致性（8分）：同方向加分
+    含轉折偵測
     """
     dim = DimensionScore(max_score=30.0)
 
     trust_5d = data.get('trust_buy_5d') or 0
     trust_days = data.get('trust_consecutive_days') or 0
     foreign_5d = data.get('foreign_buy_5d') or 0
+    foreign_days = data.get('foreign_consecutive_days') or 0
+    dealer_5d = data.get('dealer_buy_5d') or 0
+    daily = data.get('institutional_daily') or []
 
-    # 投信子項（17分）
+    # 投信趨勢（12分）
     trust_score = 0.0
     trust_note = ''
-    if trust_5d < 0:
-        trust_score = 0.0
-        trust_note = f'投信近5日賣超 {abs(trust_5d):,} 張'
-    elif trust_5d > 0:
+    if trust_5d > 0:
         if trust_days >= 3:
-            trust_score = _clamp(trust_days * 2.5, 0, 17)
+            trust_score = _clamp(trust_days * 2, 0, 12)
         else:
-            trust_score = _clamp(trust_days * 2, 0, 8)
+            trust_score = _clamp(trust_days * 1.5, 0, 6)
         trust_note = f'投信近5日買超 {trust_5d:,} 張（連續 {trust_days} 天）'
+    elif trust_5d < 0:
+        trust_note = f'投信近5日賣超 {abs(trust_5d):,} 張'
     else:
         trust_note = '投信無買超'
 
-    # 土洋對照子項（13分）
+    # 轉折偵測（投信）
+    trust_turning = ''
+    if len(daily) >= 5:
+        trust_vals = [d.get('trust_net') or 0 for d in daily[:5]]
+        if trust_vals[0] > 0 and all(v <= 0 for v in trust_vals[2:5]):
+            trust_turning = '⚡ 投信疑似轉買超'
+        elif trust_vals[0] < 0 and all(v > 0 for v in trust_vals[2:5]):
+            trust_turning = '⚠️ 投信疑似轉賣超'
+
+    # 外資趨勢（10分）
+    foreign_score = 0.0
+    foreign_note = ''
+    if foreign_5d > 0:
+        if foreign_days >= 3:
+            foreign_score = _clamp(foreign_days * 1.5, 0, 10)
+        else:
+            foreign_score = _clamp(foreign_days * 1.2, 0, 5)
+        foreign_note = f'外資近5日買超 {foreign_5d:,} 張（連續 {foreign_days} 天）'
+    elif foreign_5d < 0:
+        foreign_note = f'外資近5日賣超 {abs(foreign_5d):,} 張'
+    else:
+        foreign_note = '外資無買超'
+
+    # 三大法人一致性（8分）
     align_score = 0.0
     align_note = ''
-    if foreign_5d > 0 and trust_5d > 0:
-        align_score = 13.0
-        align_note = '外資與投信同步買超（籌碼方向一致）'
-    elif foreign_5d > 0 and trust_5d <= 0:
-        align_score = 4.0
-        align_note = '外資買超但投信賣超（外資主導）'
-    elif foreign_5d <= 0 and trust_5d > 0:
-        align_score = 6.5
-        align_note = '土洋對作：投信買超但外資賣超'
-    else:
-        align_score = 0.0
-        align_note = '外資與投信均賣超'
+    buy_count = sum(1 for v in [trust_5d, foreign_5d, dealer_5d] if v > 0)
+    sell_count = sum(1 for v in [trust_5d, foreign_5d, dealer_5d] if v < 0)
 
-    dim.score = trust_score + align_score
+    if buy_count == 3:
+        align_score = 8.0
+        align_note = '三大法人同步買超（籌碼方向一致）'
+    elif buy_count == 2:
+        align_score = 5.0
+        sellers = []
+        if trust_5d < 0: sellers.append('投信')
+        if foreign_5d < 0: sellers.append('外資')
+        if dealer_5d < 0: sellers.append('自營商')
+        align_note = f'二買一賣（{"、".join(sellers)}賣超）'
+    elif buy_count == 1:
+        align_score = 2.0
+        buyers = []
+        if trust_5d > 0: buyers.append('投信')
+        if foreign_5d > 0: buyers.append('外資')
+        if dealer_5d > 0: buyers.append('自營商')
+        align_note = f'土洋對作：僅{"、".join(buyers)}買超'
+    else:
+        align_note = '三大法人均賣超'
+
+    dim.score = trust_score + foreign_score + align_score
     dim.breakdown = {
         'trust': round(trust_score, 1),
         'trust_note': trust_note,
+        'trust_turning': trust_turning,
+        'foreign': round(foreign_score, 1),
+        'foreign_note': foreign_note,
+        'dealer_5d': dealer_5d,
         'foreign_align': round(align_score, 1),
         'align_note': align_note,
     }
@@ -91,44 +132,99 @@ def score_institutional(data: dict) -> DimensionScore:
 
 def score_ownership(data: dict) -> DimensionScore:
     """
-    維度二：內部人與大戶結構（滿分 30 分）
-    - 大戶趨勢（17分）
-    - 散戶趨勢（13分）
+    維度二：股東結構（滿分 30 分）
+    - 大戶長期趨勢（17分）：近 4/13/50 週變化
+    - 散戶趨勢 + 股東人數/平均張數（13分）
     """
     dim = DimensionScore(max_score=30.0)
 
+    weekly = data.get('ownership_weekly') or []
     whale_this = data.get('whale_pct_this')
     whale_last = data.get('whale_pct_last')
     retail_this = data.get('retail_pct_this')
     retail_last = data.get('retail_pct_last')
+    total_holders = data.get('total_holders_this')
+    avg_shares = data.get('avg_shares_this')
 
     # 大戶趨勢（17分）
     whale_score = 0.0
     whale_note = ''
     if whale_this is not None and whale_last is not None:
-        whale_change = whale_this - whale_last
-        if whale_change > 0:
-            whale_score = _clamp((whale_change / 0.5) * 3.5, 0, 17)
-            whale_note = f'千張大戶持股增加 {whale_change:.2f}%（{whale_last:.1f}% -> {whale_this:.1f}%）'
+        # 短期趨勢（近1週）
+        whale_1w_change = whale_this - whale_last
+
+        # 中期趨勢（近4週）
+        whale_4w_change = None
+        if len(weekly) >= 4 and weekly[3].get('whale_400_pct') is not None:
+            whale_4w_change = whale_this - weekly[3]['whale_400_pct']
+
+        # 長期趨勢（近13週）
+        whale_13w_change = None
+        if len(weekly) >= 13 and weekly[12].get('whale_400_pct') is not None:
+            whale_13w_change = whale_this - weekly[12]['whale_400_pct']
+
+        # 評分邏輯
+        if whale_4w_change is not None and whale_13w_change is not None:
+            if whale_4w_change > 0 and whale_13w_change > 0:
+                whale_score = _clamp(whale_13w_change * 4, 0, 17)  # 長短期同步增加
+                whale_note = f'大戶持股長短期同步增加（4週 +{whale_4w_change:.2f}%, 13週 +{whale_13w_change:.2f}%）'
+            elif whale_4w_change > 0 and whale_13w_change <= 0:
+                whale_score = _clamp(whale_4w_change * 5, 0, 10)
+                whale_note = f'大戶近期轉增（4週 +{whale_4w_change:.2f}%），但長期仍減少'
+            elif whale_4w_change <= 0 and whale_13w_change > 0:
+                whale_score = _clamp(whale_13w_change * 2, 0, 8)
+                whale_note = f'大戶長期增加但近期放緩（4週 {whale_4w_change:+.2f}%）'
+            else:
+                whale_note = f'大戶持股長短期均減少（4週 {whale_4w_change:+.2f}%, 13週 {whale_13w_change:+.2f}%）'
+        elif whale_4w_change is not None:
+            if whale_4w_change > 0:
+                whale_score = _clamp(whale_4w_change * 5, 0, 12)
+                whale_note = f'大戶近4週持股增加 {whale_4w_change:+.2f}%'
+            else:
+                whale_note = f'大戶近4週持股減少 {whale_4w_change:+.2f}%'
         else:
-            whale_score = 0.0
-            whale_note = f'千張大戶持股減少 {abs(whale_change):.2f}%（{whale_last:.1f}% -> {whale_this:.1f}%）'
+            if whale_1w_change > 0:
+                whale_score = _clamp(whale_1w_change * 5, 0, 8)
+                whale_note = f'大戶持股增加 {whale_1w_change:+.2f}%（{whale_last:.1f}% → {whale_this:.1f}%）'
+            else:
+                whale_note = f'大戶持股減少 {whale_1w_change:+.2f}%（{whale_last:.1f}% → {whale_this:.1f}%）'
     else:
         whale_note = '大戶持股資料不足'
 
-    # 散戶趨勢（13分）
+    # 散戶趨勢 + 股東人數（13分）
     retail_score = 0.0
     retail_note = ''
     if retail_this is not None and retail_last is not None:
         retail_change = retail_this - retail_last
         if retail_change < 0:
-            retail_score = _clamp((abs(retail_change) / 0.5) * 2.5, 0, 13)
-            retail_note = f'散戶持股減少 {abs(retail_change):.2f}%（{retail_last:.1f}% -> {retail_this:.1f}%）'
+            retail_score = _clamp(abs(retail_change) * 5, 0, 8)
+            retail_note = f'散戶持股減少 {abs(retail_change):.2f}%'
         else:
-            retail_score = 0.0
-            retail_note = f'散戶持股增加 {retail_change:.2f}%（{retail_last:.1f}% -> {retail_this:.1f}%）'
+            retail_note = f'散戶持股增加 {retail_change:.2f}%'
     else:
         retail_note = '散戶持股資料不足'
+
+    # 股東人數趨勢（附加到 retail_score）
+    if len(weekly) >= 4:
+        holders_now = weekly[0].get('total_holders')
+        holders_4w = weekly[3].get('total_holders')
+        if holders_now is not None and holders_4w is not None:
+            holders_change = holders_now - holders_4w
+            if holders_change < 0:  # 股東減少 = 籌碼集中 = 偏多
+                retail_score += _clamp(abs(holders_change) / 5000, 0, 5)
+                retail_note += f'，股東人數近4週減少 {abs(holders_change):,} 人（籌碼集中）'
+            elif holders_change > 0:
+                retail_note += f'，股東人數近4週增加 {holders_change:,} 人（籌碼分散）'
+
+    # 加入平均張數資訊
+    holders_info = ''
+    if total_holders is not None:
+        holders_info = f'總股東人數 {total_holders:,} 人'
+    if avg_shares is not None:
+        if holders_info:
+            holders_info += f'，平均 {avg_shares:.2f} 張/人'
+        else:
+            holders_info = f'平均 {avg_shares:.2f} 張/人'
 
     dim.score = whale_score + retail_score
     dim.breakdown = {
@@ -136,6 +232,7 @@ def score_ownership(data: dict) -> DimensionScore:
         'whale_note': whale_note,
         'retail': round(retail_score, 1),
         'retail_note': retail_note,
+        'holders_info': holders_info,
     }
     return dim
 
@@ -143,54 +240,106 @@ def score_ownership(data: dict) -> DimensionScore:
 def score_broker(data: dict) -> DimensionScore:
     """
     維度三：分點主力（滿分 20 分）
-    - 主力連續買超天數（10分）
-    - Top 1 買超券商淨買張數（10分）
+    - 60日主力方向（8分）
+    - 主力出脫偵測（7分）：60日 Top 1 在近期是否轉賣超
+    - 多期間一致性（5分）
     """
     dim = DimensionScore(max_score=20.0)
 
+    # 取各期間資料
+    b60 = data.get('broker_60d') or {}
+    b20 = data.get('broker_20d') or {}
+    b5 = data.get('broker_5d') or {}
+    b1 = data.get('broker_1d') or {}
+
+    # 主力走勢
     consecutive = data.get('main_force_consecutive') or 0
     net_5d = data.get('main_force_net_5d') or 0
-    top_buy_broker = data.get('top_buy_broker') or ''
-    top_buy_net = data.get('top_buy_net') or 0
 
-    # 主力連續買超天數（10分）
-    consec_score = 0.0
-    consec_note = ''
-    if consecutive >= 3:
-        consec_score = _clamp(consecutive * 2, 0, 10)
-        consec_note = f'主力連續買超 {consecutive} 天'
-    elif consecutive > 0:
-        consec_score = consecutive * 1.5
-        consec_note = f'主力買超 {consecutive} 天（不夠連貫）'
-    elif net_5d < 0:
-        consec_note = f'主力近5日淨賣超 {abs(net_5d):,} 張'
-    else:
-        consec_note = '主力無明顯買超'
+    # 60日主力方向（8分）
+    long_score = 0.0
+    long_note = ''
+    top_60_buy = b60.get('top_buy_net') or 0
+    top_60_broker = b60.get('top_buy_broker') or ''
+    top_60_sell_net = b60.get('top_sell_net') or 0
 
-    # Top 1 買超券商集中度（10分）
-    top_score = 0.0
-    top_note = ''
-    if top_buy_net and top_buy_net > 0:
-        if top_buy_net >= 1000:
-            top_score = 10.0
-        elif top_buy_net >= 500:
-            top_score = 7.0
-        elif top_buy_net >= 100:
-            top_score = 4.0
+    if top_60_buy > 0:
+        if top_60_buy >= 1000:
+            long_score = 8.0
+        elif top_60_buy >= 500:
+            long_score = 6.0
+        elif top_60_buy >= 100:
+            long_score = 4.0
         else:
-            top_score = 2.0
-        top_note = f'最大買超券商：{top_buy_broker}（淨買 {top_buy_net:,} 張）'
-    elif top_buy_broker:
-        top_note = f'最大買超券商：{top_buy_broker}（{top_buy_net} 張）'
+            long_score = 2.0
+        long_note = f'60日最大買超：{top_60_broker}（淨買 {top_60_buy:,} 張）'
+    elif top_60_broker:
+        long_note = f'60日最大買超：{top_60_broker}（{top_60_buy} 張）'
     else:
-        top_note = '無券商分點資料'
+        long_note = '無60日分點資料'
 
-    dim.score = consec_score + top_score
+    # 主力出脫偵測（7分）：60日 Top 1 在近1/5日是否仍買超
+    exit_score = 0.0
+    exit_note = ''
+    if top_60_broker:
+        # 檢查 60日 Top 1 在近期的位置
+        recent_buy_names_5d = [b.get('broker', '') for b in (b5.get('buy_brokers') or [])]
+        recent_sell_names_5d = [b.get('broker', '') for b in (b5.get('sell_brokers') or [])]
+        recent_buy_names_1d = [b.get('broker', '') for b in (b1.get('buy_brokers') or [])]
+        recent_sell_names_1d = [b.get('broker', '') for b in (b1.get('sell_brokers') or [])]
+
+        if top_60_broker in recent_buy_names_5d:
+            exit_score = 7.0
+            exit_note = f'{top_60_broker} 60日主力仍在近5日買超中（持續布局）'
+        elif top_60_broker in recent_buy_names_1d:
+            exit_score = 5.0
+            exit_note = f'{top_60_broker} 60日主力今日仍買超'
+        elif top_60_broker in recent_sell_names_5d:
+            exit_score = 0.0
+            exit_note = f'⚠️ {top_60_broker} 60日主力近5日已轉賣超（疑似出脫）'
+        elif top_60_broker in recent_sell_names_1d:
+            exit_score = 1.0
+            exit_note = f'⚠️ {top_60_broker} 60日主力今日轉賣超'
+        else:
+            exit_score = 3.0
+            exit_note = f'{top_60_broker} 60日主力近期無明顯動作'
+    else:
+        exit_note = '無主力追蹤資料'
+
+    # 多期間一致性（5分）
+    period_score = 0.0
+    period_note = ''
+    period_directions = []
+    for label, bd in [('1d', b1), ('5d', b5), ('20d', b20), ('60d', b60)]:
+        tb = bd.get('top_buy_net')
+        ts = bd.get('top_sell_net')
+        if tb is not None and ts is not None:
+            if abs(tb) > abs(ts):
+                period_directions.append('buy')
+            else:
+                period_directions.append('sell')
+
+    if len(period_directions) >= 3:
+        buy_pct = period_directions.count('buy') / len(period_directions)
+        if buy_pct >= 0.75:
+            period_score = 5.0
+            period_note = '多期間方向一致偏多'
+        elif buy_pct >= 0.5:
+            period_score = 3.0
+            period_note = '多期間方向分歧'
+        else:
+            period_note = '多期間方向偏空'
+    else:
+        period_note = '期間資料不足'
+
+    dim.score = long_score + exit_score + period_score
     dim.breakdown = {
-        'consecutive': round(consec_score, 1),
-        'consec_note': consec_note,
-        'top_broker': round(top_score, 1),
-        'top_note': top_note,
+        'long_term': round(long_score, 1),
+        'long_note': long_note,
+        'exit_detect': round(exit_score, 1),
+        'exit_note': exit_note,
+        'period_align': round(period_score, 1),
+        'period_note': period_note,
     }
     return dim
 
@@ -243,15 +392,23 @@ def generate_highlights(inst: DimensionScore, own: DimensionScore,
                         broker: DimensionScore, sent: DimensionScore) -> list[str]:
     items = [
         (inst.breakdown.get('trust', 0), inst.breakdown.get('trust_note', '')),
+        (inst.breakdown.get('foreign', 0), inst.breakdown.get('foreign_note', '')),
         (inst.breakdown.get('foreign_align', 0), inst.breakdown.get('align_note', '')),
         (own.breakdown.get('whale', 0), own.breakdown.get('whale_note', '')),
         (own.breakdown.get('retail', 0), own.breakdown.get('retail_note', '')),
-        (broker.breakdown.get('consecutive', 0), broker.breakdown.get('consec_note', '')),
-        (broker.breakdown.get('top_broker', 0), broker.breakdown.get('top_note', '')),
+        (broker.breakdown.get('long_term', 0), broker.breakdown.get('long_note', '')),
+        (broker.breakdown.get('exit_detect', 0), broker.breakdown.get('exit_note', '')),
         (sent.breakdown.get('margin', 0), sent.breakdown.get('margin_note', '')),
         (sent.breakdown.get('squeeze', 0), sent.breakdown.get('squeeze_note', '')),
     ]
-    top = sorted([(s, n) for s, n in items if s > 0 and n], reverse=True)[:3]
+    # 加入轉折偵測
+    turning = inst.breakdown.get('trust_turning', '')
+    if turning:
+        items.append((5, turning))
+    holders = own.breakdown.get('holders_info', '')
+    if holders:
+        items.append((1, holders))
+    top = sorted([(s, n) for s, n in items if s > 0 and n], reverse=True)[:4]
     return [note for _, note in top]
 
 

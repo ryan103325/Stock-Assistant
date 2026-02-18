@@ -13,11 +13,59 @@ from .scorer import ChipScore
 
 def build_output(stock_id: str, stock_name: str, raw_data: dict, score: ChipScore) -> dict:
     """組裝最終輸出 JSON 結構"""
+
+    # 分類 rawData
+    raw_institutional = {
+        'trust_buy_5d': raw_data.get('trust_buy_5d'),
+        'trust_consecutive_days': raw_data.get('trust_consecutive_days'),
+        'foreign_buy_5d': raw_data.get('foreign_buy_5d'),
+        'foreign_consecutive_days': raw_data.get('foreign_consecutive_days'),
+        'dealer_buy_5d': raw_data.get('dealer_buy_5d'),
+        'dealer_consecutive_days': raw_data.get('dealer_consecutive_days'),
+        'institutional_daily': raw_data.get('institutional_daily', [])[:20],
+    }
+
+    raw_ownership = {
+        'whale_pct_this': raw_data.get('whale_pct_this'),
+        'whale_pct_last': raw_data.get('whale_pct_last'),
+        'retail_pct_this': raw_data.get('retail_pct_this'),
+        'retail_pct_last': raw_data.get('retail_pct_last'),
+        'total_holders_this': raw_data.get('total_holders_this'),
+        'avg_shares_this': raw_data.get('avg_shares_this'),
+        'data_date': raw_data.get('data_date'),
+        'ownership_weekly': raw_data.get('ownership_weekly', [])[:50],
+    }
+
+    raw_broker = {
+        'main_force_net_5d': raw_data.get('main_force_net_5d'),
+        'main_force_consecutive': raw_data.get('main_force_consecutive'),
+        'main_force_trend': raw_data.get('main_force_trend', [])[-20:],
+    }
+    # 各期間分點資料
+    for period in ['1d', '5d', '10d', '20d', '60d']:
+        key = f'broker_{period}'
+        pd = raw_data.get(key) or {}
+        raw_broker[key] = {
+            'top_buy_broker': pd.get('top_buy_broker'),
+            'top_buy_net': pd.get('top_buy_net'),
+            'top_sell_broker': pd.get('top_sell_broker'),
+            'top_sell_net': pd.get('top_sell_net'),
+            'buy_brokers': pd.get('buy_brokers', [])[:15],
+            'sell_brokers': pd.get('sell_brokers', [])[:15],
+        }
+
+    raw_sentiment = {
+        'margin_change': raw_data.get('margin_change'),
+        'short_ratio': raw_data.get('short_ratio'),
+    }
+
     return {
         'stock_id': stock_id,
         'stock_name': stock_name,
         'analysis_date': datetime.now().strftime('%Y-%m-%d'),
         'analysis_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'current_price': raw_data.get('current_price'),
+        'total_volume_1d': raw_data.get('total_volume_1d'),
         'total_score': score.total,
         'rating': score.rating,
         'rating_en': score.rating_en,
@@ -48,36 +96,11 @@ def build_output(stock_id: str, stock_name: str, raw_data: dict, score: ChipScor
         'risks': score.risks,
         'strategy': score.strategy,
         'raw_data': {
-            'trust_buy_5d': raw_data.get('trust_buy_5d'),
-            'trust_consecutive_days': raw_data.get('trust_consecutive_days'),
-            'foreign_buy_5d': raw_data.get('foreign_buy_5d'),
-            'whale_pct_this': raw_data.get('whale_pct_this'),
-            'whale_pct_last': raw_data.get('whale_pct_last'),
-            'retail_pct_this': raw_data.get('retail_pct_this'),
-            'retail_pct_last': raw_data.get('retail_pct_last'),
-            'broker_name_1d': raw_data.get('broker_name_1d'),
-            'broker_buy_1d': raw_data.get('broker_buy_1d'),
-            'broker_name_5d': raw_data.get('broker_name_5d'),
-            'broker_buy_5d': raw_data.get('broker_buy_5d'),
-            'broker_name_10d': raw_data.get('broker_name_10d'),
-            'broker_buy_10d': raw_data.get('broker_buy_10d'),
-            'broker_name_20d': raw_data.get('broker_name_20d'),
-            'broker_buy_20d': raw_data.get('broker_buy_20d'),
-            'top_buy_broker': raw_data.get('top_buy_broker'),
-            'top_buy_net': raw_data.get('top_buy_net'),
-            'top_sell_broker': raw_data.get('top_sell_broker'),
-            'top_sell_net': raw_data.get('top_sell_net'),
-            'main_force_net_5d': raw_data.get('main_force_net_5d'),
-            'main_force_consecutive': raw_data.get('main_force_consecutive'),
-            'total_volume_1d': raw_data.get('total_volume_1d'),
-            'margin_change': raw_data.get('margin_change'),
-            'short_ratio': raw_data.get('short_ratio'),
-            'current_price': raw_data.get('current_price'),
-            'data_date': raw_data.get('data_date'),
+            'institutional': raw_institutional,
+            'ownership': raw_ownership,
+            'broker': raw_broker,
+            'sentiment': raw_sentiment,
         },
-        'buy_brokers': raw_data.get('buy_brokers', [])[:15],
-        'sell_brokers': raw_data.get('sell_brokers', [])[:15],
-        'main_force_trend': raw_data.get('main_force_trend', [])[-20:],
     }
 
 

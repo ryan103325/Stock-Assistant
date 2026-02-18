@@ -166,17 +166,23 @@ def _find_table_by_id(soup: BeautifulSoup, table_id: str):
 
 def fetch_institutional(stock_id: str) -> dict:
     """
-    抓取法人買賣超
+    抓取法人買賣超（20天日線含三大法人）
     URL: ShowBuySaleChart.asp?CHT_CAT2=DATE
     資料表: id=tblDetail
-    欄位（已 debug 確認）:
-      col[0]=期別, col[4]=成交量, col[7]=外資買賣超, col[12]=投信買賣超
+    欄位（已 debug 確認 19 cols）:
+      col[0]=期別, col[4]=成交量
+      col[5~7]=外資(買/賣/淨), col[8~9]=外資持有+持股比
+      col[10~12]=投信(買/賣/淨)
+      col[13~15]=自營商(買/賣/淨)
+      col[16~18]=三大法人合計(買/賣/淨)
     """
     result = {
         'trust_buy_5d': None,
         'trust_consecutive_days': 0,
         'foreign_buy_5d': None,
+        'dealer_buy_5d': None,
         'total_volume_1d': None,
+        'institutional_daily': [],  # 最近20天日線
     }
 
     url = f'{GOODINFO_BASE}/ShowBuySaleChart.asp?STOCK_ID={stock_id}&CHT_CAT2=DATE'
@@ -190,16 +196,13 @@ def fetch_institutional(stock_id: str) -> dict:
         return result
 
     rows = table.find_all('tr')
-    # row[0] = header1: 期別 | 成交 | 漲跌 | 漲跌(%) | 成交量(張) | 外資(買進/賣出/買賣超/持有/持股比) | 投信(買進/賣出/買賣超) | ...
-    # row[1] = header2: 買進(張) | 賣出(張) | 買賣超(張) | ...
-    # row[2+] = 資料: '26/02/11 | 1915 | +35 | +1.86 | 44,684 | 24,488 | 29,430 | -4,941 | 18,699,093 | 72.1 | 1,362 | 221 | +1,141 | ...
 
     VOLUME_COL = 4
     FOREIGN_NET_COL = 7
     TRUST_NET_COL = 12
+    DEALER_NET_COL = 15
 
-    foreign_vals = []
-    trust_vals = []
+    daily_data = []
     volume_1d = None
 
     for row in rows[2:]:
@@ -207,26 +210,37 @@ def fetch_institutional(stock_id: str) -> dict:
         if len(cells) < 13:
             continue
         texts = [c.get_text(strip=True) for c in cells]
-        # 確認是日期行
         if not re.match(r"'?\d{2}/\d{2}/\d{2}", texts[0]):
             continue
 
         vol = _parse_int(texts[VOLUME_COL]) if len(texts) > VOLUME_COL else None
         foreign_net = _parse_int(texts[FOREIGN_NET_COL]) if len(texts) > FOREIGN_NET_COL else None
         trust_net = _parse_int(texts[TRUST_NET_COL]) if len(texts) > TRUST_NET_COL else None
+        dealer_net = _parse_int(texts[DEALER_NET_COL]) if len(texts) > DEALER_NET_COL else None
 
         if vol is not None and volume_1d is None:
             volume_1d = vol
-        if foreign_net is not None:
-            foreign_vals.append(foreign_net)
-        if trust_net is not None:
-            trust_vals.append(trust_net)
+
+        daily_data.append({
+            'date': texts[0].lstrip("'"),
+            'volume': vol,
+            'foreign_net': foreign_net,
+            'trust_net': trust_net,
+            'dealer_net': dealer_net,
+        })
+        if len(daily_data) >= 20:
+            break
 
     result['total_volume_1d'] = volume_1d
+    result['institutional_daily'] = daily_data
+
+    # 彙總
+    foreign_vals = [d['foreign_net'] for d in daily_data if d['foreign_net'] is not None]
+    trust_vals = [d['trust_net'] for d in daily_data if d['trust_net'] is not None]
+    dealer_vals = [d['dealer_net'] for d in daily_data if d['dealer_net'] is not None]
 
     if foreign_vals:
         result['foreign_buy_5d'] = sum(foreign_vals[:5])
-
     if trust_vals:
         result['trust_buy_5d'] = sum(trust_vals[:5])
         consecutive = 0
@@ -236,11 +250,27 @@ def fetch_institutional(stock_id: str) -> dict:
             else:
                 break
         result['trust_consecutive_days'] = consecutive
+    if dealer_vals:
+        result['dealer_buy_5d'] = sum(dealer_vals[:5])
+
+    # 各法人連續天數
+    def _count_consecutive(vals):
+        cnt = 0
+        for v in vals:
+            if v > 0:
+                cnt += 1
+            else:
+                break
+        return cnt
+
+    result['foreign_consecutive_days'] = _count_consecutive(foreign_vals) if foreign_vals else 0
+    result['dealer_consecutive_days'] = _count_consecutive(dealer_vals) if dealer_vals else 0
 
     print(f"[fetcher] Institutional: trust_5d={result['trust_buy_5d']}, "
-          f"foreign_5d={result['foreign_buy_5d']}, "
-          f"consecutive={result['trust_consecutive_days']}, "
-          f"volume={result['total_volume_1d']}")
+          f"foreign_5d={result['foreign_buy_5d']}, dealer_5d={result['dealer_buy_5d']}, "
+          f"consecutive(trust/foreign/dealer)={result['trust_consecutive_days']}/"
+          f"{result['foreign_consecutive_days']}/{result['dealer_consecutive_days']}, "
+          f"volume={result['total_volume_1d']}, daily_rows={len(daily_data)}")
     return result
 
 
@@ -337,72 +367,127 @@ def fetch_margin(stock_id: str) -> dict:
     return result
 
 # ================================================================
-# 股權分散（內部人結構）
+# 股東結構（神秘金字塔 norway.twsthr.info）
 # ================================================================
+
+NORWAY_BASE = 'https://norway.twsthr.info'
 
 def fetch_ownership(stock_id: str) -> dict:
     """
-    抓取股權分散表（內部人結構）
-    URL: EquityDistributionClassHis.asp
-    資料表: id=tblDetail
+    從神秘金字塔抓取股東結構（最多 50 週趨勢）
+    URL: StockHolders.aspx?stock={id}
+    資料表: table[9] id=Details (16 cols)
     欄位（已 debug 確認）:
-      row[0]: 週別 | 統計日期 | 當週股價 | 集保庫存 | 各持股等級股東之持有比例(%)
-      row[1]: 收盤 | 漲跌(元) | 漲跌(%) | <=10張 | >10<=50張 | >50<=100張 | >100<=200張 | >200<=400張 | >400<=800張 | >800<=1千張 | >1千張
-      row[2]: 26W07 | - | 1915 | ... (未結算，統計日期為 '-')
-      row[3]: 26W06 | 02/06 | 1780 | 2593 | 4.81 | 2.67 | 1.04 | 1.04 | 1.41 | 1.93
-    散戶 = col[3] (⩽10張)
-    大戶 = col[-1] (>1千張)
+      col[2]=資料日期, col[3]=集保總張數, col[4]=總股東人數,
+      col[5]=平均張數/人, col[6]=>400張大股東持有張數,
+      col[7]=>400張大股東持有百分比, col[8]=>400張大股東人數,
+      col[13]=>1000張大股東持有百分比, col[14]=收盤價
+    散戶 = 總股東人數 - >400張大股東人數
     """
     result = {
         'whale_pct_this': None,
         'whale_pct_last': None,
         'retail_pct_this': None,
         'retail_pct_last': None,
+        'total_holders_this': None,
+        'avg_shares_this': None,
         'data_date': None,
+        'ownership_weekly': [],  # 最多50週趨勢
     }
 
-    url = f'{GOODINFO_BASE}/EquityDistributionClassHis.asp?STOCK_ID={stock_id}'
-    soup = _fetch_page(url)
-    if not soup:
+    try:
+        headers = {
+            'User-Agent': random.choice(USER_AGENTS),
+            'Referer': f'{NORWAY_BASE}/StockHolders.aspx',
+        }
+        resp = requests.get(
+            f'{NORWAY_BASE}/StockHolders.aspx?stock={stock_id}',
+            headers=headers,
+            timeout=15,
+        )
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, 'lxml')
+    except Exception as e:
+        print(f"[fetcher] WARNING: ownership fetch failed: {e}")
         return result
 
-    table = _find_table_by_id(soup, 'tblDetail')
-    if not table:
-        print(f"[fetcher] WARNING: ownership tblDetail not found")
+    # 找 table id=Details 且 row[0] 含 '資料日期' 和 16 cols
+    details_tables = soup.find_all('table', id='Details')
+    target_table = None
+    for t in details_tables:
+        first_row = t.find('tr')
+        if first_row:
+            cells = first_row.find_all(['td', 'th'])
+            if len(cells) == 16:
+                target_table = t
+                break
+
+    if not target_table:
+        print(f"[fetcher] WARNING: ownership Details table not found")
         return result
 
-    rows = table.find_all('tr')
-    data_rows = []
+    rows = target_table.find_all('tr')
+    weekly_data = []
 
-    for row in rows[2:]:  # 跳過兩行 header
+    for row in rows:
         cells = row.find_all(['td', 'th'])
+        if len(cells) != 16:
+            continue
         texts = [c.get_text(strip=True) for c in cells]
-        if len(texts) < 8:
+        # col[2] = 日期 (YYYYMMDD)
+        date_str = texts[2]
+        if not re.match(r'\d{8}', date_str):
             continue
-        # 第二欄是統計日期（MM/DD 或 '-'）
-        # 跳過未結算的週（統計日期為 '-'）
-        if texts[1] == '-' or not texts[1]:
-            continue
-        data_rows.append(texts)
-        if len(data_rows) >= 2:
+
+        total_shares = _parse_int(texts[3])
+        total_holders = _parse_int(texts[4])
+        avg_shares = _parse_float(texts[5])
+        whale_400_pct = _parse_float(texts[7])   # >400張大股東持有百分比
+        whale_400_count = _parse_int(texts[8])    # >400張大股東人數
+        whale_1000_pct = _parse_float(texts[13])  # >1000張持有百分比
+        price = _parse_float(texts[14])
+
+        # 散戶人數 = 總股東人數 - 400張以上大股東人數
+        retail_count = None
+        retail_pct = None
+        if total_holders is not None and whale_400_count is not None:
+            retail_count = total_holders - whale_400_count
+            # 散戶持股比 = 100% - 大戶持股比
+            if whale_400_pct is not None:
+                retail_pct = round(100.0 - whale_400_pct, 2)
+
+        weekly_data.append({
+            'date': date_str,
+            'total_holders': total_holders,
+            'avg_shares': avg_shares,
+            'whale_400_pct': whale_400_pct,
+            'whale_1000_pct': whale_1000_pct,
+            'retail_count': retail_count,
+            'retail_pct': retail_pct,
+            'price': price,
+        })
+        if len(weekly_data) >= 50:
             break
 
-    if data_rows:
-        result['data_date'] = data_rows[0][1]  # MM/DD 格式
-        for row_idx, row_texts in enumerate(data_rows[:2]):
-            # 散戶 = col[3] (⩽10張持股比例)
-            # 大戶 = col[-1] (>1千張持股比例)
-            retail = _parse_float(row_texts[3]) if len(row_texts) > 3 else None
-            whale = _parse_float(row_texts[-1]) if row_texts else None
-            if row_idx == 0:
-                result['retail_pct_this'] = retail
-                result['whale_pct_this'] = whale
-            else:
-                result['retail_pct_last'] = retail
-                result['whale_pct_last'] = whale
+    result['ownership_weekly'] = weekly_data
 
-    print(f"[fetcher] Ownership: whale={result['whale_pct_this']}, "
-          f"retail={result['retail_pct_this']}, date={result['data_date']}")
+    if weekly_data:
+        latest = weekly_data[0]
+        result['data_date'] = latest['date']
+        result['whale_pct_this'] = latest['whale_400_pct']
+        result['total_holders_this'] = latest['total_holders']
+        result['avg_shares_this'] = latest['avg_shares']
+        result['retail_pct_this'] = latest['retail_pct']
+
+    if len(weekly_data) >= 2:
+        last = weekly_data[1]
+        result['whale_pct_last'] = last['whale_400_pct']
+        result['retail_pct_last'] = last['retail_pct']
+
+    print(f"[fetcher] Ownership(norway): whale={result['whale_pct_this']}, "
+          f"retail={result['retail_pct_this']}, holders={result['total_holders_this']}, "
+          f"avg_shares={result['avg_shares_this']}, date={result['data_date']}, "
+          f"weeks={len(weekly_data)}")
     return result
 
 
@@ -524,7 +609,7 @@ def fetch_broker_detail(stock_id: str, period: str = '1') -> dict:
     """
     券商分點明細（需 Selenium 渲染頁面）
     資料在 SysJustIFRAME iframe 內的 #oMainTable
-    period: '1'=1日, '2'=5日, '3'=10日, '4'=20日
+    period: '1'=1日, '2'=5日, '3'=10日, '4'=20日, '5'=40日, '6'=60日
     row[7]=header, row[8~22]=10-cell 買賣超明細, row[23]=合計
     """
     result = {
@@ -632,8 +717,115 @@ def fetch_broker_detail(stock_id: str, period: str = '1') -> dict:
 # 整合
 # ================================================================
 
+def fetch_broker_all_periods(stock_id: str) -> dict:
+    """
+    用同一個 WebDriver session 依序抓取五個期間的分點明細。
+    先載入頁面一次，然後用 select 切換期間。
+    period mapping: 1=1日, 2=5日, 3=10日, 4=20日, 6=60日
+    """
+    periods = {
+        '1d': '1',
+        '5d': '2',
+        '10d': '3',
+        '20d': '4',
+        '60d': '6',
+    }
+    result = {}
+
+    driver = _get_driver()
+    url = f'{SINOTRADE_BROKER_URL}?ticker={stock_id}'
+
+    try:
+        driver.get(url)
+        time.sleep(8)
+        driver.switch_to.frame('SysJustIFRAME')
+        time.sleep(3)
+
+        for label, period_val in periods.items():
+            try:
+                if period_val != '1':  # 第一次載入就是近一日，但我們先切到該期間
+                    from selenium.webdriver.support.ui import Select
+                    sel_el = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, 'select[name="D"]'))
+                    )
+                    Select(sel_el).select_by_value(period_val)
+                    time.sleep(3)
+
+                soup = BeautifulSoup(driver.page_source, 'lxml')
+                table = soup.find(id='oMainTable')
+                if not table:
+                    print(f"[fetcher] WARNING: #oMainTable not found for period {label}")
+                    result[f'broker_{label}'] = {'buy_brokers': [], 'sell_brokers': []}
+                    continue
+
+                rows = table.find_all('tr')
+                buy_list, sell_list = [], []
+                for row in rows:
+                    cells = row.find_all('td')
+                    if len(cells) != 10:
+                        continue
+                    texts = [c.get_text(strip=True) for c in cells]
+                    if texts[0] == '買超券商':
+                        continue
+                    buy_list.append({
+                        'broker': texts[0], 'buy': texts[1],
+                        'sell': texts[2], 'net': texts[3], 'ratio': texts[4],
+                    })
+                    sell_list.append({
+                        'broker': texts[5], 'buy': texts[6],
+                        'sell': texts[7], 'net': texts[8], 'ratio': texts[9],
+                    })
+
+                period_data = {
+                    'buy_brokers': buy_list,
+                    'sell_brokers': sell_list,
+                }
+                if buy_list:
+                    period_data['top_buy_broker'] = buy_list[0]['broker']
+                    try:
+                        period_data['top_buy_net'] = int(buy_list[0]['net'].replace(',', ''))
+                    except (ValueError, AttributeError):
+                        period_data['top_buy_net'] = None
+                if sell_list:
+                    period_data['top_sell_broker'] = sell_list[0]['broker']
+                    try:
+                        period_data['top_sell_net'] = int(sell_list[0]['net'].replace(',', ''))
+                    except (ValueError, AttributeError):
+                        period_data['top_sell_net'] = None
+
+                result[f'broker_{label}'] = period_data
+                print(f"[fetcher] BrokerDetail({label}): "
+                      f"buy_top={period_data.get('top_buy_broker')}({period_data.get('top_buy_net')}), "
+                      f"sell_top={period_data.get('top_sell_broker')}({period_data.get('top_sell_net')})")
+
+            except Exception as e:
+                print(f"[fetcher] WARNING: broker period {label} failed: {e}")
+                result[f'broker_{label}'] = {'buy_brokers': [], 'sell_brokers': []}
+
+        driver.switch_to.default_content()
+
+    except Exception as e:
+        print(f"[fetcher] WARNING: broker all periods failed: {e}")
+        try:
+            driver.switch_to.default_content()
+        except Exception:
+            pass
+
+    # 向後相容：將 5d 的 top 資料放到根層級
+    if 'broker_5d' in result:
+        bd = result['broker_5d']
+        result['top_buy_broker'] = bd.get('top_buy_broker')
+        result['top_buy_net'] = bd.get('top_buy_net')
+        result['top_sell_broker'] = bd.get('top_sell_broker')
+        result['top_sell_net'] = bd.get('top_sell_net')
+        result['buy_brokers'] = bd.get('buy_brokers', [])
+        result['sell_brokers'] = bd.get('sell_brokers', [])
+
+    return result
+
+
 def fetch_all(stock_id: str) -> dict:
-    """抓取所有籌碼面資料（法人、融資券、股權分散、分點主力）"""
+    """抓取所有籌碼面資料（法人、股東結構、融資券、分點主力）"""
     print(f"[fetcher] ===== Start fetching {stock_id} =====")
 
     info = fetch_stock_info(stock_id)
@@ -641,7 +833,7 @@ def fetch_all(stock_id: str) -> dict:
     ownership = fetch_ownership(stock_id)
     margin = fetch_margin(stock_id)
     broker_trend = fetch_broker_trend(stock_id)
-    broker_detail = fetch_broker_detail(stock_id, period='2')  # 近5日
+    broker_all = fetch_broker_all_periods(stock_id)
 
     return {
         **info,
@@ -649,6 +841,6 @@ def fetch_all(stock_id: str) -> dict:
         **ownership,
         **margin,
         **broker_trend,
-        **broker_detail,
+        **broker_all,
         'stock_id': stock_id,
     }
