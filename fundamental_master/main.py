@@ -32,7 +32,7 @@ from fundamental_master.telegram_bot.image_sender import send_report_image, send
 logger = setup_logger('main')
 
 
-def analyze_stock(stock_id: str, send_telegram: bool = True, qualitative_info: str = '') -> dict:
+def analyze_stock(stock_id: str, send_telegram: bool = True, qualitative_info: str = '', web_only: bool = False) -> dict:
     """
     完整的股票基本面分析流程
 
@@ -40,6 +40,7 @@ def analyze_stock(stock_id: str, send_telegram: bool = True, qualitative_info: s
         stock_id: 股票代號 (例如 '2330')
         send_telegram: 是否發送至 Telegram
         qualitative_info: 質化資訊 (法說會摘要等)
+        web_only: True 時跳過報告圖片生成 (前端直接渲染)
 
     Returns:
         dict: 完整分析結果
@@ -166,26 +167,29 @@ def analyze_stock(stock_id: str, send_telegram: bool = True, qualitative_info: s
         result['ai_analysis'] = ai_result
 
         # ==================== 階段 5: 報告生成 ====================
-        logger.info("\n📄 階段 5/5: 報告生成")
+        if web_only:
+            logger.info("\n📄 階段 5/5: 跳過報告圖片 (web-only 模式)")
+        else:
+            logger.info("\n📄 階段 5/5: 報告生成")
 
-        analysis_data = {
-            'stock_info': raw_data['stock_info'],
-            'scores': result['scores'],
-            'ratios': ratios,
-            'ai_analysis': ai_result,
-        }
+            analysis_data = {
+                'stock_info': raw_data['stock_info'],
+                'scores': result['scores'],
+                'ratios': ratios,
+                'ai_analysis': ai_result,
+            }
 
-        # 生成 HTML
-        html_content = generate_html_report(analysis_data)
+            # 生成 HTML
+            html_content = generate_html_report(analysis_data)
 
-        # 生成圖片
-        image_path = html_to_image(html_content, stock_id)
-        result['report_image'] = image_path
+            # 生成圖片
+            image_path = html_to_image(html_content, stock_id)
+            result['report_image'] = image_path
 
-        # 發送至 Telegram
-        if send_telegram and image_path:
-            stock_name = raw_data['stock_info'].get('股票名稱', '')
-            send_report_image(image_path, stock_id, stock_name)
+            # 發送至 Telegram
+            if send_telegram and image_path:
+                stock_name = raw_data['stock_info'].get('股票名稱', '')
+                send_report_image(image_path, stock_id, stock_name)
 
         # 儲存結果 JSON
         _save_result(result, stock_id)
@@ -339,6 +343,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='基本面評分大師 - 股票基本面分析')
     parser.add_argument('stock_id', help='股票代號 (例如: 2330)')
     parser.add_argument('--no-telegram', action='store_true', help='不發送至 Telegram')
+    parser.add_argument('--web-only', action='store_true', help='僅產生 JSON (跳過報告圖片)')
     parser.add_argument('--info', type=str, default='', help='補充的質化資訊')
 
     args = parser.parse_args()
@@ -348,6 +353,7 @@ if __name__ == '__main__':
             stock_id=args.stock_id,
             send_telegram=not args.no_telegram,
             qualitative_info=args.info,
+            web_only=args.web_only,
         )
 
         # 印出摘要

@@ -1,13 +1,24 @@
 /**
- * 基本面分析模組 — GitHub Actions 版
- * 前端觸發 GitHub workflow → polling 結果 JSON → 渲染
+ * 基本面分析模組 — GitHub Actions 版 v2
+ * 用 GitHub API 追蹤 workflow run 進度 + 視覺進度條
  */
 
 // === 設定 ===
 const GITHUB_OWNER = 'ryan103325';
 const GITHUB_REPO = 'Stock-Assistant';
 const WORKFLOW_FILE = 'step_fundamental_master.yml';
-const RESULT_BASE_URL = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/docs/data/fundamental`;
+const GITHUB_API = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}`;
+
+// === Workflow 步驟進度對照 ===
+const STEP_PROGRESS = {
+    'Checkout code': { pct: 5, label: '📥 下載程式碼...' },
+    'Set up Python': { pct: 15, label: '🐍 設定 Python 環境...' },
+    'Install system dependencies': { pct: 25, label: '📦 安裝系統依賴...' },
+    'Install Python dependencies': { pct: 35, label: '📦 安裝 Python 套件...' },
+    'Install Playwright browsers': { pct: 45, label: '🌐 安裝瀏覽器...' },
+    'Run Fundamental Analysis': { pct: 60, label: '🔬 執行基本面分析中...' },
+    'Commit outputs': { pct: 90, label: '💾 儲存結果...' },
+};
 
 // === 頁籤切換 ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,26 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const tab = btn.dataset.tab;
-
-            // 更新按鈕狀態
             tabBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-
-            // 切換頁籤
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.remove('active');
-            });
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`${tab}-tab`).classList.add('active');
-
-            // 技術分析才顯示日線/週線切換
             tfBtns.style.display = tab === 'technical' ? 'flex' : 'none';
         });
     });
 
-    // 開始分析按鈕
     document.getElementById('startAnalysis').addEventListener('click', startFundamentalAnalysis);
-
-    // Token 設定按鈕
     document.getElementById('configToken').addEventListener('click', configureToken);
 });
 
@@ -49,8 +49,8 @@ function configureToken() {
     const current = getToken();
     const token = prompt(
         'GitHub Personal Access Token (PAT)\n\n' +
-        '需要 workflow (read & write) 權限的 Fine-grained token\n' +
-        '建立方式: GitHub → Settings → Developer settings → Fine-grained tokens\n\n' +
+        '需要 Actions (read & write) + Contents (read) 權限\n' +
+        '建立: GitHub → Settings → Developer settings → Fine-grained tokens\n\n' +
         '目前' + (current ? '已設定' : '未設定'),
         current
     );
@@ -58,98 +58,109 @@ function configureToken() {
     if (token !== null) {
         if (token.trim()) {
             localStorage.setItem('github_pat', token.trim());
-            showAnalysisStatus('✅ Token 已儲存', 'success');
+            updateStatusUI('✅ Token 已儲存', 'success', null);
         } else {
             localStorage.removeItem('github_pat');
-            showAnalysisStatus('🗑️ Token 已移除', 'warning');
+            updateStatusUI('🗑️ Token 已移除', 'warning', null);
         }
     }
 }
 
-// === 分析觸發 ===
+// === 主流程 ===
 async function startFundamentalAnalysis() {
     const stockId = document.getElementById('stockId').textContent;
     if (!stockId || stockId === '--') {
-        showAnalysisStatus('⚠️ 請先查詢一檔股票', 'warning');
+        updateStatusUI('⚠️ 請先查詢一檔股票', 'warning', null);
         return;
     }
 
-    // 先檢查是否有快取結果
-    showAnalysisStatus('🔍 檢查是否有已存在的分析結果...', 'loading');
-    const cached = await fetchCachedResult(stockId);
-    if (cached) {
-        const cacheTime = new Date(cached.timestamp);
-        const now = new Date();
-        const hoursDiff = (now - cacheTime) / (1000 * 60 * 60);
-
-        // 顯示快取結果
-        renderFundamentalResult(cached);
-        showAnalysisStatus(
-            `📋 顯示快取結果 (${formatTimeAgo(cacheTime)})。點擊「重新分析」可更新。`,
-            'success'
-        );
-        showRefreshBtn(stockId);
-        return;
-    }
-
-    // 沒有快取，觸發新分析
-    await triggerAnalysis(stockId);
-}
-
-async function triggerAnalysis(stockId) {
     const token = getToken();
     if (!token) {
-        showAnalysisStatus(
-            '🔑 需要設定 GitHub Token 才能觸發分析。請點擊右側 ⚙️ 設定。',
-            'warning'
+        updateStatusUI('🔑 需要設定 GitHub Token 才能觸發分析。請點擊 ⚙️ 設定。', 'warning', null);
+        return;
+    }
+
+    // 先檢查快取
+    updateStatusUI('🔍 檢查已存在的分析結果...', 'loading', null);
+    const cached = await fetchResult(stockId, token);
+    if (cached) {
+        renderFundamentalResult(cached);
+        const cacheTime = new Date(cached.timestamp);
+        updateStatusUI(
+            `📋 顯示快取結果 (${formatTimeAgo(cacheTime)})`,
+            'success',
+            { stockId, token }
         );
         return;
     }
 
+    await triggerAndTrack(stockId, token);
+}
+
+// === 觸發 + 追蹤 ===
+async function triggerAndTrack(stockId, token) {
     const btn = document.getElementById('startAnalysis');
     btn.disabled = true;
-    btn.querySelector('.btn-text').textContent = '觸發中...';
+    btn.querySelector('.btn-text').textContent = '分析中...';
     btn.querySelector('.btn-icon').textContent = '⏳';
 
     try {
-        // 觸發 GitHub Actions workflow
-        showAnalysisStatus('🚀 觸發 GitHub Actions 分析...', 'loading');
+        // 1. 記錄觸發時間
+        const triggerTime = new Date().toISOString();
 
-        const res = await fetch(
-            `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
+        // 2. 觸發 workflow
+        updateStatusUI('🚀 觸發 GitHub Actions...', 'loading', null);
+        const triggerRes = await ghFetch(
+            `${GITHUB_API}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
+            token,
             {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                },
                 body: JSON.stringify({
                     ref: 'main',
                     inputs: {
                         stock_id: stockId,
                         force_mode: 'true',
                         no_telegram: 'true',
+                        web_only: 'true',
                     }
                 })
             }
         );
 
-        if (res.status === 204) {
-            showAnalysisStatus('✅ 已觸發分析！正在等待結果 (預計 2~3 分鐘)...', 'loading');
-            btn.querySelector('.btn-text').textContent = '等待結果中...';
+        if (triggerRes.status === 204) {
+            // 3. 等待 workflow run 出現
+            updateProgressUI(0, '⏳ 等待 GitHub 排隊...', '正在排入佇列');
+            const runId = await waitForRun(token, triggerTime);
 
-            // 開始 polling
-            await pollForResult(stockId);
-        } else if (res.status === 401 || res.status === 403) {
-            showAnalysisStatus('❌ Token 無效或權限不足。請重新設定 Token (⚙️)', 'error');
-        } else if (res.status === 422) {
-            showAnalysisStatus('❌ Workflow 不存在或參數錯誤', 'error');
+            if (runId) {
+                // 4. 追蹤進度
+                const success = await trackRunProgress(runId, token);
+
+                if (success) {
+                    // 5. 讀取結果
+                    updateProgressUI(95, '📥 讀取分析結果...', '下載結果 JSON');
+                    await sleep(5000); // 等 GitHub commit 傳播
+                    const result = await fetchResult(stockId, token);
+                    if (result) {
+                        updateProgressUI(100, '✅ 分析完成！', '完成');
+                        renderFundamentalResult(result);
+                        await sleep(1000);
+                        updateStatusUI('✅ 分析完成！', 'success', { stockId, token });
+                    } else {
+                        updateStatusUI('⚠️ 分析已完成但無法讀取結果，請稍後重試', 'warning', null);
+                    }
+                }
+            } else {
+                updateStatusUI('⏰ 無法找到 workflow run，請到 GitHub Actions 頁面查看', 'warning', null);
+            }
+        } else if (triggerRes.status === 401 || triggerRes.status === 403) {
+            updateStatusUI('❌ Token 無效或權限不足。請重新設定 (⚙️)', 'error', null);
         } else {
-            const err = await res.json().catch(() => ({}));
-            showAnalysisStatus(`❌ 觸發失敗: ${res.status} ${err.message || ''}`, 'error');
+            const err = await triggerRes.json().catch(() => ({}));
+            updateStatusUI(`❌ 觸發失敗: ${triggerRes.status} ${err.message || ''}`, 'error', null);
         }
     } catch (e) {
-        showAnalysisStatus(`❌ 網路錯誤: ${e.message}`, 'error');
+        updateStatusUI(`❌ ${e.message}`, 'error', null);
     } finally {
         btn.disabled = false;
         btn.querySelector('.btn-text').textContent = '開始基本面分析';
@@ -157,45 +168,102 @@ async function triggerAnalysis(stockId) {
     }
 }
 
-// === Polling ===
-async function pollForResult(stockId, maxMinutes = 5) {
-    const startTime = Date.now();
-    const maxMs = maxMinutes * 60 * 1000;
-    const interval = 15000; // 每 15 秒
-
-    let dots = 0;
-    while (Date.now() - startTime < maxMs) {
-        await sleep(interval);
-
-        dots = (dots + 1) % 4;
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        showAnalysisStatus(
-            `⏳ 等待分析結果${'.'.repeat(dots + 1)} (已等待 ${elapsed} 秒)`,
-            'loading'
+// === 等待 Workflow Run 出現 ===
+async function waitForRun(token, triggerTime, maxWait = 30000) {
+    const start = Date.now();
+    while (Date.now() - start < maxWait) {
+        await sleep(3000);
+        const res = await ghFetch(
+            `${GITHUB_API}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=1&created=>${triggerTime.slice(0, 19)}`,
+            token
         );
-
-        const result = await fetchCachedResult(stockId);
-        if (result) {
-            const resultTime = new Date(result.timestamp);
-            // 確認是新結果 (在觸發之後產生的)
-            if (resultTime.getTime() > startTime - 60000) {
-                renderFundamentalResult(result);
-                showAnalysisStatus('✅ 分析完成！', 'success');
-                return;
+        if (res.ok) {
+            const data = await res.json();
+            if (data.workflow_runs?.length > 0) {
+                return data.workflow_runs[0].id;
             }
         }
     }
-
-    showAnalysisStatus('⏰ 等待超時。請到 GitHub Actions 查看執行狀態。', 'warning');
+    return null;
 }
 
-async function fetchCachedResult(stockId) {
+// === 追蹤 Run 進度 ===
+async function trackRunProgress(runId, token) {
+    const maxMinutes = 10;
+    const start = Date.now();
+    const maxMs = maxMinutes * 60 * 1000;
+
+    while (Date.now() - start < maxMs) {
+        await sleep(5000);
+
+        // 取得 run 狀態
+        const runRes = await ghFetch(`${GITHUB_API}/actions/runs/${runId}`, token);
+        if (!runRes.ok) continue;
+        const run = await runRes.json();
+
+        if (run.status === 'completed') {
+            if (run.conclusion === 'success') {
+                return true;
+            } else {
+                updateStatusUI(
+                    `❌ 分析失敗 (${run.conclusion})。請到 GitHub Actions 查看錯誤日誌。`,
+                    'error', null
+                );
+                return false;
+            }
+        }
+
+        // 取得 job 步驟
+        const jobRes = await ghFetch(`${GITHUB_API}/actions/runs/${runId}/jobs`, token);
+        if (!jobRes.ok) continue;
+        const jobData = await jobRes.json();
+
+        if (jobData.jobs?.length > 0) {
+            const job = jobData.jobs[0];
+            const steps = job.steps || [];
+
+            // 找到目前進行中的步驟
+            let currentPct = 5;
+            let currentLabel = '⏳ 排隊中...';
+            let currentStep = '等待開始';
+
+            for (const step of steps) {
+                const mapped = STEP_PROGRESS[step.name];
+                if (step.status === 'completed' && mapped) {
+                    currentPct = mapped.pct;
+                    currentLabel = `✅ ${step.name}`;
+                    currentStep = step.name;
+                }
+                if (step.status === 'in_progress' && mapped) {
+                    currentPct = mapped.pct;
+                    currentLabel = mapped.label;
+                    currentStep = step.name;
+                    break; // 當前步驟
+                }
+            }
+
+            const elapsed = Math.floor((Date.now() - start) / 1000);
+            updateProgressUI(currentPct, currentLabel, `${currentStep} (${elapsed}s)`);
+        }
+    }
+
+    updateStatusUI('⏰ 等待超時 (10 分鐘)。請到 GitHub Actions 查看。', 'warning', null);
+    return false;
+}
+
+// === 取得結果 JSON ===
+async function fetchResult(stockId, token) {
     try {
-        // 加 timestamp 防止瀏覽器快取
-        const url = `${RESULT_BASE_URL}/${stockId}.json?t=${Date.now()}`;
-        const res = await fetch(url, { cache: 'no-store' });
+        // 用 GitHub API 而非 raw.githubusercontent.com (避免 CDN 快取)
+        const res = await ghFetch(
+            `${GITHUB_API}/contents/docs/data/fundamental/${stockId}.json?ref=main`,
+            token
+        );
         if (res.ok) {
-            return await res.json();
+            const fileData = await res.json();
+            // content 是 base64 encoded
+            const content = atob(fileData.content.replace(/\n/g, ''));
+            return JSON.parse(content);
         }
     } catch (e) {
         // 檔案不存在
@@ -203,29 +271,64 @@ async function fetchCachedResult(stockId) {
     return null;
 }
 
-// === UI Helpers ===
-function showAnalysisStatus(message, type) {
-    const el = document.getElementById('analysisStatus');
-    el.textContent = message;
-    el.className = `analysis-status ${type}`;
+// === UI 更新 ===
+function updateStatusUI(message, type, refreshInfo) {
+    const container = document.getElementById('analysisStatus');
+    // 移除進度條 (如果有)
+    const existing = document.getElementById('progressContainer');
+    if (existing) existing.remove();
+
+    container.innerHTML = '';
+    container.textContent = message;
+    container.className = `analysis-status ${type}`;
+
+    if (refreshInfo) {
+        const refreshBtn = document.createElement('button');
+        refreshBtn.textContent = '🔄 重新分析';
+        refreshBtn.className = 'refresh-btn';
+        refreshBtn.onclick = () => triggerAndTrack(refreshInfo.stockId, refreshInfo.token);
+        container.appendChild(refreshBtn);
+    }
 }
 
-function showRefreshBtn(stockId) {
-    const el = document.getElementById('analysisStatus');
-    const refreshBtn = document.createElement('button');
-    refreshBtn.textContent = '🔄 重新分析';
-    refreshBtn.className = 'refresh-btn';
-    refreshBtn.onclick = () => triggerAnalysis(stockId);
-    el.appendChild(refreshBtn);
+function updateProgressUI(pct, label, stepName) {
+    let container = document.getElementById('progressContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'progressContainer';
+        container.className = 'progress-container';
+        document.getElementById('analysisStatus').innerHTML = '';
+        document.getElementById('analysisStatus').className = 'analysis-status';
+        document.getElementById('analysisStatus').appendChild(container);
+    }
+
+    container.innerHTML = `
+        <div class="progress-label">${label}</div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: ${pct}%"></div>
+        </div>
+        <div class="progress-detail">${stepName} — ${pct}%</div>
+    `;
 }
 
+// === GitHub API Helper ===
+async function ghFetch(url, token, options = {}) {
+    return fetch(url, {
+        ...options,
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            ...(options.headers || {}),
+        }
+    });
+}
+
+// === Utils ===
 function formatTimeAgo(date) {
-    const now = new Date();
-    const diff = now - date;
+    const diff = Date.now() - date.getTime();
     const mins = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-
     if (mins < 60) return `${mins} 分鐘前`;
     if (hours < 24) return `${hours} 小時前`;
     return `${days} 天前`;
@@ -317,12 +420,11 @@ function renderFundamentalResult(data) {
         aiEl.innerHTML = html;
     }
 
-    // Lynch 策略提示
     if (lynchDetail?.strategy) {
-        const strategyEl = document.createElement('div');
-        strategyEl.className = 'ai-recommendation';
-        strategyEl.textContent = `🎯 Lynch 策略: ${lynchDetail.strategy}`;
-        document.getElementById('aiSummary').appendChild(strategyEl);
+        const el = document.createElement('div');
+        el.className = 'ai-recommendation';
+        el.textContent = `🎯 Lynch 策略: ${lynchDetail.strategy}`;
+        document.getElementById('aiSummary').appendChild(el);
     }
 }
 

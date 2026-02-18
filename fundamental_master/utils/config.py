@@ -50,12 +50,12 @@ class Config:
     ]
     
     # 請求間隔 (秒)
-    REQUEST_DELAY_MIN = 2
-    REQUEST_DELAY_MAX = 5
+    REQUEST_DELAY_MIN = 1
+    REQUEST_DELAY_MAX = 2
     
     # 重試設定
     MAX_RETRIES = 3
-    RETRY_DELAY = 5
+    RETRY_DELAY = 3
     
     # ==================== 資料儲存路徑 ====================
     BASE_DIR = Path(__file__).parent.parent.parent

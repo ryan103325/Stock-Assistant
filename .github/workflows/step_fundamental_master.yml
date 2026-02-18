@@ -17,6 +17,11 @@ on:
         required: false
         type: boolean
         default: false
+      web_only:
+        description: '僅產生 JSON (跳過報告圖片，前端直接渲染)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   fundamental-analysis:
@@ -34,6 +39,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+          cache: 'pip'
 
       - name: Install system dependencies
         run: |
@@ -47,6 +53,7 @@ jobs:
           pip install -r fundamental_master/requirements.txt
 
       - name: Install Playwright browsers
+        if: ${{ github.event.inputs.web_only != 'true' }}
         run: |
           playwright install chromium
           playwright install-deps chromium
@@ -64,6 +71,9 @@ jobs:
           ARGS="${{ github.event.inputs.stock_id }}"
           if [ "${{ github.event.inputs.no_telegram }}" = "true" ]; then
             ARGS="$ARGS --no-telegram"
+          fi
+          if [ "${{ github.event.inputs.web_only }}" = "true" ]; then
+            ARGS="$ARGS --web-only --no-telegram"
           fi
           python -m fundamental_master.main $ARGS
 

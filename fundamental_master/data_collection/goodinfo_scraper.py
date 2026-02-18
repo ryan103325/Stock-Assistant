@@ -96,7 +96,7 @@ class GoodinfoScraper:
         try:
             logger.info("🍪 預熱 Cookies: 訪問 Goodinfo 首頁...")
             self.driver.get(Config.GOODINFO_BASE_URL)
-            time.sleep(3)
+            time.sleep(1)
 
             # Goodinfo 首頁有時會有 JS redirect, 等它跳轉完成
             for _ in range(5):
@@ -104,7 +104,7 @@ class GoodinfoScraper:
                 # 偵測是否還在 redirect 頁面
                 if 'location.replace' in page_source or 'meta http-equiv="refresh"' in page_source.lower():
                     logger.info("  ⏳ 偵測到 redirect, 等待跳轉...")
-                    time.sleep(3)
+                    time.sleep(1.5)
                 else:
                     break
 
