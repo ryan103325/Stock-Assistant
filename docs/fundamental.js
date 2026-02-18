@@ -409,8 +409,8 @@ function renderFundamentalResult(data) {
         eyData != null ? `${eyData.toFixed(1)}%` : 'N/A';
     const eyBadge = document.getElementById('eyBadge');
     if (eyData != null) {
-        eyBadge.textContent = eyData > 10 ? '極具吸引力' : eyData > 6 ? '合理' : eyData > 3 ? '偏高' : '過高';
-        eyBadge.className = `score-badge ${eyData > 6 ? 'good' : eyData > 3 ? 'neutral' : 'bad'}`;
+        eyBadge.textContent = eyData > 5 ? '便宜' : eyData > 3.75 ? '合理偏低' : eyData > 3 ? '合理偏高' : '昂貴';
+        eyBadge.className = `score-badge ${eyClass}`;
     }
 
     // 財務比率

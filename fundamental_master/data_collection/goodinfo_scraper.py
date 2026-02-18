@@ -201,6 +201,40 @@ class GoodinfoScraper:
 
         logger.warning("  ⚠️ redirect 處理逾時, 繼續嘗試解析")
 
+    def _expand_quarters(self, min_quarters: int = 8):
+        """
+        在 FinDetail 頁面上切換 QRY_TIME 下拉選單,
+        選擇更早的起始季度, 讓頁面顯示足夠多的季度數據
+        (M-Score/營收成長率需要至少 8 季)
+        """
+        try:
+            from selenium.webdriver.support.ui import Select
+            select_el = self.driver.find_element('css selector', 'select#QRY_TIME')
+            sel = Select(select_el)
+            options = sel.options
+
+            if len(options) < min_quarters:
+                logger.info(f"  📅 QRY_TIME 只有 {len(options)} 個選項, 無法擴展")
+                return
+
+            # 選擇足夠早的季度 (index = min_quarters - 1, 從 0 起算)
+            target_idx = min(min_quarters - 1, len(options) - 1)
+            target_text = options[target_idx].text
+            logger.info(f"  📅 切換 QRY_TIME 到 {target_text} (取 {target_idx + 1} 季)")
+
+            sel.select_by_index(target_idx)
+            # Goodinfo 用 onchange 自動 submit, 等待頁面重新載入
+            time.sleep(1)
+
+            from selenium.webdriver.support import expected_conditions as EC
+            WebDriverWait(self.driver, 15).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'table#tblFinDetail'))
+            )
+            time.sleep(random.uniform(Config.REQUEST_DELAY_MIN, Config.REQUEST_DELAY_MAX))
+
+        except Exception as e:
+            logger.warning(f"  ⚠️ 擴展季度失敗 (非致命): {e}")
+
     def _parse_number(self, text: str) -> Optional[float]:
         """
         解析數字文字,處理逗號、括號、百分比等格式
@@ -554,6 +588,7 @@ class GoodinfoScraper:
 
         self._wait_and_get_page(url, wait_selector='table')
         time.sleep(2)  # 等待表格完全載入
+        self._expand_quarters()  # 擴展到 8+ 季以確保前期 TTM
 
         soup = BeautifulSoup(self.driver.page_source, 'lxml')
 
@@ -599,6 +634,7 @@ class GoodinfoScraper:
 
         self._wait_and_get_page(url, wait_selector='table')
         time.sleep(2)
+        self._expand_quarters()  # 擴展到 8+ 季以確保前期 TTM
 
         soup = BeautifulSoup(self.driver.page_source, 'lxml')
 
@@ -641,6 +677,7 @@ class GoodinfoScraper:
 
         self._wait_and_get_page(url, wait_selector='table')
         time.sleep(2)
+        self._expand_quarters()  # 擴展到 8+ 季以確保前期 TTM
 
         soup = BeautifulSoup(self.driver.page_source, 'lxml')
         result = self._parse_cashflow_findetail(soup)

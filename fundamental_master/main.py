@@ -324,25 +324,37 @@ def _save_web_result(result: dict, stock_id: str):
     # AI 分析
     ai = result.get('ai_analysis', {})
 
-    # 組合 summary: 從各模型分析 + strengths + risks 組成摘要
-    summary_parts = []
-    for key in ['m_score_analysis', 'z_score_analysis', 'f_score_analysis',
-                'magic_formula_analysis', 'lynch_analysis']:
-        val = ai.get(key)
-        if val:
-            summary_parts.append(val)
+    # 組合 summary: 優先用 comprehensive_summary (新版 prompt)
+    summary = ai.get('comprehensive_summary', '')
 
+    # 如果沒有 comprehensive_summary，從 dimension_analyses 組合 (新版) 或舊版 key
+    if not summary:
+        dims = ai.get('dimension_analyses', {})
+        if dims:
+            summary_parts = [f"【{k.upper()}】{v}" for k, v in dims.items() if v]
+            summary = '\n\n'.join(summary_parts)
+        else:
+            # fallback: 舊版 prompt 格式
+            summary_parts = []
+            for key in ['m_score_analysis', 'z_score_analysis', 'f_score_analysis',
+                        'magic_formula_analysis', 'lynch_analysis']:
+                val = ai.get(key)
+                if val:
+                    summary_parts.append(val)
+            summary = '\n\n'.join(summary_parts)
+
+    # 加入優勢/風險
     strengths = ai.get('strengths', [])
     risks = ai.get('risks', [])
     if strengths:
-        summary_parts.append('【優勢】' + '；'.join(strengths))
+        summary += '\n\n【優勢】' + '；'.join(strengths)
     if risks:
-        summary_parts.append('【風險】' + '；'.join(risks))
+        summary += '\n\n【風險】' + '；'.join(risks)
 
     web_data['ai_analysis'] = {
-        'summary': '\n\n'.join(summary_parts) if summary_parts else ai.get('investment_suggestion', '尚未分析'),
+        'summary': summary if summary else '尚未分析',
         'overall_score': ai.get('overall_score'),
-        'recommendation': ai.get('target_action', ai.get('investment_suggestion', '')),
+        'recommendation': ai.get('target_action', ''),
         'key_monitoring': ai.get('key_monitoring', ''),
     }
 

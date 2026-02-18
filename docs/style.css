@@ -672,6 +672,26 @@ body {
     color: var(--red);
 }
 
+.score-badge.ey-cheap {
+    background: rgba(63, 185, 80, 0.15);
+    color: #3fb950;
+}
+
+.score-badge.ey-fair-low {
+    background: rgba(63, 185, 80, 0.1);
+    color: #a9e6ae;
+}
+
+.score-badge.ey-fair-high {
+    background: rgba(248, 81, 73, 0.1);
+    color: #edafaf;
+}
+
+.score-badge.ey-expensive {
+    background: rgba(248, 81, 73, 0.15);
+    color: #f85149;
+}
+
 /* === Fund Section === */
 .fund-section {
     background: var(--bg-secondary);
