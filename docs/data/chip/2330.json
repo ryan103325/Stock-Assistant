@@ -1,11 +1,11 @@
 {
   "stock_id": "2330",
   "stock_name": "台積電",
-  "analysis_date": "2026-02-18",
-  "analysis_time": "2026-02-18 23:47:41",
+  "analysis_date": "2026-02-19",
+  "analysis_time": "2026-02-19 03:14:40",
   "current_price": 1915.0,
   "total_volume_1d": 44684,
-  "total_score": 39.0,
+  "total_score": 31.0,
   "rating": "觀望/中性",
   "rating_en": "Neutral",
   "low_volume_penalty": false,
@@ -27,19 +27,22 @@
       "max": 30.0,
       "whale": 0.0,
       "whale_note": "大戶持股資料不足",
-      "retail": 0.0,
-      "retail_note": "散戶持股資料不足",
-      "holders_info": ""
+      "whale_warning": "",
+      "holders": 0.0,
+      "holders_note": "股東人數資料不足",
+      "avg_shares": 0.0,
+      "avg_note": "平均張數資料不足"
     },
     "broker": {
-      "score": 15.0,
+      "score": 7.0,
       "max": 20.0,
-      "long_term": 8.0,
-      "long_note": "60日最大買超：富邦證券（淨買 27,450 張）",
+      "long_term": 0.0,
+      "long_note": "60日前5大賣超 178,040 張＞買超 88,896 張（主力偏空）",
       "exit_detect": 7.0,
-      "exit_note": "富邦證券 60日主力仍在近5日買超中（持續布局）",
+      "exit_note": "60d 前5大主力中 5 家仍在近期買超（持續布局）",
+      "intent_label": "🟢 主力持續布局",
       "period_align": 0.0,
-      "period_note": "多期間方向偏空"
+      "period_note": "多時框前5大方向偏空"
     },
     "sentiment": {
       "score": 10.0,
@@ -53,11 +56,11 @@
   "highlights": [
     "投信近5日買超 3,847 張（連續 11 天）",
     "融資近5日減少 999 張（籌碼健康）",
-    "60日最大買超：富邦證券（淨買 27,450 張）",
-    "富邦證券 60日主力仍在近5日買超中（持續布局）"
+    "60d 前5大主力中 5 家仍在近期買超（持續布局）",
+    "土洋對作：僅投信買超"
   ],
   "risks": [],
-  "strategy": "建議等待籌碼面更明確的多方訊號後再行動",
+  "strategy": "投信連買11天但外資賣超 5,630 張，留意土洋對作風險，若外資轉買可加碼；主力仍在場但整體賣壓較大，宜小量試單，不重倉；籌碼分散中（大戶減持＋股東增加），不宜追高；融資減少 999 張，浮額消化健康",
   "raw_data": {
     "institutional": {
       "trust_buy_5d": 3847,
@@ -212,8 +215,6 @@
     "ownership": {
       "whale_pct_this": null,
       "whale_pct_last": null,
-      "retail_pct_this": null,
-      "retail_pct_last": null,
       "total_holders_this": null,
       "avg_shares_this": null,
       "data_date": null,
