@@ -212,7 +212,25 @@
         <div id="tooltip" class="chart-tooltip"></div>
     </div>
 
+    <!-- 任務排隊面板 -->
+    <div id="tqPanel" class="tq-panel">
+        <div class="tq-header">
+            <span class="tq-title">📋 分析任務</span>
+            <div class="tq-actions">
+                <button class="tq-clear-btn" onclick="TaskQueue.clearDone()" title="清除已完成">🗑️</button>
+                <button class="tq-close-btn" onclick="TaskQueue.togglePanel()" title="收合">✕</button>
+            </div>
+        </div>
+        <div id="tqList" class="tq-list"></div>
+    </div>
+
+    <!-- 排隊觸發浮鈕 -->
+    <button class="tq-fab" onclick="TaskQueue.togglePanel()" title="分析任務佇列">
+        📋<span id="tqBadge" class="tq-badge" style="display:none"></span>
+    </button>
+
     <script src="app.js"></script>
+    <script src="taskqueue.js"></script>
     <script src="fundamental.js"></script>
     <script src="volume_profile.js"></script>
     <script src="chip.js"></script>

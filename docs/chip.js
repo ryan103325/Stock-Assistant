@@ -35,15 +35,25 @@ async function startChipAnalysis() {
         return;
     }
 
-    await triggerChipAndTrack(stockId, token);
+    const stockName = document.getElementById('stockName')?.textContent || stockId;
+    const tqId = typeof TaskQueue !== 'undefined'
+        ? TaskQueue.add({ stockId, stockName, type: 'chip' })
+        : null;
+
+    await triggerChipAndTrack(stockId, token, tqId);
 }
 
 // === 觸發 + 追蹤 ===
-async function triggerChipAndTrack(stockId, token) {
+async function triggerChipAndTrack(stockId, token, tqId = null) {
     const btn = document.getElementById('startChipAnalysis');
     btn.disabled = true;
     btn.querySelector('.btn-text').textContent = '分析中...';
     btn.querySelector('.btn-icon').textContent = '⏳';
+
+    const tqUpdate = (patches) => {
+        if (tqId && typeof TaskQueue !== 'undefined') TaskQueue.update(tqId, patches);
+    };
+    tqUpdate({ status: 'running', label: '觸發 GitHub Actions...' });
 
     try {
         const triggerTime = new Date().toISOString();
@@ -67,12 +77,15 @@ async function triggerChipAndTrack(stockId, token) {
 
         if (triggerRes.status === 204) {
             updateChipProgress(0, '⏳ 等待 GitHub 排隊...', '正在排入佇列');
+            tqUpdate({ pct: 0, label: '等待排隊...' });
             const runId = await waitForChipRun(token, triggerTime);
 
             if (runId) {
-                const success = await trackChipRunProgress(runId, token);
+                tqUpdate({ runId });
+                const success = await trackChipRunProgress(runId, token, tqUpdate);
                 if (success) {
                     updateChipProgress(95, '📥 讀取籌碼分析結果...', '下載結果 JSON');
+                    tqUpdate({ pct: 95, label: '讀取結果中...' });
                     let result = null;
                     for (let i = 0; i < 5; i++) {
                         await sleep(1500);
@@ -84,21 +97,29 @@ async function triggerChipAndTrack(stockId, token) {
                         renderChipResult(result);
                         await sleep(1000);
                         updateChipStatus('✅ 分析完成！', 'success', { stockId, token });
+                        tqUpdate({ status: 'done', pct: 100, label: '分析完成', doneAt: new Date().toISOString(), result });
                     } else {
                         updateChipStatus('⚠️ 分析已完成但無法讀取結果，請稍後重試', 'warning', null);
+                        tqUpdate({ status: 'error', label: '無法讀取結果' });
                     }
+                } else {
+                    tqUpdate({ status: 'error', label: '分析失敗' });
                 }
             } else {
                 updateChipStatus('⏰ 無法找到 workflow run，請到 GitHub Actions 頁面查看', 'warning', null);
+                tqUpdate({ status: 'error', label: '找不到 workflow run' });
             }
         } else if (triggerRes.status === 401 || triggerRes.status === 403) {
             updateChipStatus('❌ Token 無效或權限不足。請重新設定 (⚙️)', 'error', null);
+            tqUpdate({ status: 'error', label: 'Token 無效' });
         } else {
             const err = await triggerRes.json().catch(() => ({}));
             updateChipStatus(`❌ 觸發失敗: ${triggerRes.status} ${err.message || ''}`, 'error', null);
+            tqUpdate({ status: 'error', label: `觸發失敗 ${triggerRes.status}` });
         }
     } catch (e) {
         updateChipStatus(`❌ ${e.message}`, 'error', null);
+        tqUpdate({ status: 'error', label: e.message });
     } finally {
         btn.disabled = false;
         btn.querySelector('.btn-text').textContent = '開始籌碼面分析';
@@ -124,7 +145,7 @@ async function waitForChipRun(token, triggerTime, maxWait = 30000) {
 }
 
 // === 追蹤進度 ===
-async function trackChipRunProgress(runId, token) {
+async function trackChipRunProgress(runId, token, tqUpdate = () => { }) {
     const maxMs = 10 * 60 * 1000;
     const start = Date.now();
 
@@ -165,10 +186,12 @@ async function trackChipRunProgress(runId, token) {
             }
             const elapsed = Math.floor((Date.now() - start) / 1000);
             updateChipProgress(currentPct, currentLabel, `${currentStep} (${elapsed}s)`);
+            tqUpdate({ pct: currentPct, label: currentLabel });
         }
     }
 
     updateChipStatus('⏰ 等待超時 (10 分鐘)。請到 GitHub Actions 查看。', 'warning', null);
+    tqUpdate({ status: 'error', label: '等待超時' });
     return false;
 }
 
@@ -351,16 +374,21 @@ function switchBrokerPeriod(period) {
 
     const detail = document.getElementById('brokerPeriodDetail');
     if (detail) {
-        const top5Buy = buyList.slice(0, 5).map((b, i) =>
-            `<div class="dim-note">• 買超#${i + 1}：<strong>${b.broker}</strong>（${fmtNet(b)} 張）</div>`
-        ).join('');
-        const top5Sell = sellList.slice(0, 5).map((b, i) =>
-            `<div class="dim-note">• 賣超#${i + 1}：<strong>${b.broker}</strong>（${fmtNet(b)} 張）</div>`
-        ).join('');
+        const fmtRow = (b, i, type) => {
+            const label = type === 'buy' ? '買超' : '賣超';
+            const name = b.broker.length > 7 ? b.broker.slice(0, 7) + '…' : b.broker;
+            return `<div class="dim-note broker-row">
+                <span class="broker-rank">#${i + 1}</span>
+                <span class="broker-name" title="${b.broker}">${name}</span>
+                <span class="broker-net ${type === 'buy' ? 'text-bull' : 'text-bear'}">${fmtNet(b)}</span>
+            </div>`;
+        };
+        const top5Buy = buyList.slice(0, 5).map((b, i) => fmtRow(b, i, 'buy')).join('');
+        const top5Sell = sellList.slice(0, 5).map((b, i) => fmtRow(b, i, 'sell')).join('');
         detail.innerHTML = `
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-                <div>${top5Buy || '<div class="dim-note">無資料</div>'}</div>
-                <div>${top5Sell || '<div class="dim-note">無資料</div>'}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;">
+                <div><div class="broker-col-hdr">📈 買超前五</div>${top5Buy || '<div class="dim-note">無資料</div>'}</div>
+                <div><div class="broker-col-hdr">📉 賣超前五</div>${top5Sell || '<div class="dim-note">無資料</div>'}</div>
             </div>
         `;
     }

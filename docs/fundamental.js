@@ -80,22 +80,29 @@ async function startFundamentalAnalysis() {
         return;
     }
 
-    // 直接觸發新分析（不查快取）
-    await triggerAndTrack(stockId, token);
+    const stockName = document.getElementById('stockName')?.textContent || stockId;
+    const tqId = typeof TaskQueue !== 'undefined'
+        ? TaskQueue.add({ stockId, stockName, type: 'fundamental' })
+        : null;
+
+    await triggerAndTrack(stockId, token, tqId);
 }
 
 // === 觸發 + 追蹤 ===
-async function triggerAndTrack(stockId, token) {
+async function triggerAndTrack(stockId, token, tqId = null) {
     const btn = document.getElementById('startAnalysis');
     btn.disabled = true;
     btn.querySelector('.btn-text').textContent = '分析中...';
     btn.querySelector('.btn-icon').textContent = '⏳';
 
+    const tqUpdate = (patches) => {
+        if (tqId && typeof TaskQueue !== 'undefined') TaskQueue.update(tqId, patches);
+    };
+    tqUpdate({ status: 'running', label: '觸發 GitHub Actions...' });
+
     try {
-        // 1. 記錄觸發時間
         const triggerTime = new Date().toISOString();
 
-        // 2. 觸發 workflow
         updateStatusUI('🚀 觸發 GitHub Actions...', 'loading', null);
         const triggerRes = await ghFetch(
             `${GITHUB_API}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
@@ -115,17 +122,17 @@ async function triggerAndTrack(stockId, token) {
         );
 
         if (triggerRes.status === 204) {
-            // 3. 等待 workflow run 出現
             updateProgressUI(0, '⏳ 等待 GitHub 排隊...', '正在排入佇列');
+            tqUpdate({ pct: 0, label: '等待排隊...' });
             const runId = await waitForRun(token, triggerTime);
 
             if (runId) {
-                // 4. 追蹤進度
-                const success = await trackRunProgress(runId, token);
+                tqUpdate({ runId });
+                const success = await trackRunProgress(runId, token, tqUpdate);
 
                 if (success) {
-                    // 5. 讀取結果 (retry loop, 等 commit 傳播)
                     updateProgressUI(95, '📥 讀取分析結果...', '下載結果 JSON');
+                    tqUpdate({ pct: 95, label: '讀取結果中...' });
                     let result = null;
                     for (let i = 0; i < 5; i++) {
                         await sleep(1500);
@@ -137,21 +144,29 @@ async function triggerAndTrack(stockId, token) {
                         renderFundamentalResult(result);
                         await sleep(1000);
                         updateStatusUI('✅ 分析完成！', 'success', { stockId, token });
+                        tqUpdate({ status: 'done', pct: 100, label: '分析完成', doneAt: new Date().toISOString(), result });
                     } else {
                         updateStatusUI('⚠️ 分析已完成但無法讀取結果，請稍後重試', 'warning', null);
+                        tqUpdate({ status: 'error', label: '無法讀取結果' });
                     }
+                } else {
+                    tqUpdate({ status: 'error', label: '分析失敗' });
                 }
             } else {
                 updateStatusUI('⏰ 無法找到 workflow run，請到 GitHub Actions 頁面查看', 'warning', null);
+                tqUpdate({ status: 'error', label: '找不到 workflow run' });
             }
         } else if (triggerRes.status === 401 || triggerRes.status === 403) {
             updateStatusUI('❌ Token 無效或權限不足。請重新設定 (⚙️)', 'error', null);
+            tqUpdate({ status: 'error', label: 'Token 無效' });
         } else {
             const err = await triggerRes.json().catch(() => ({}));
             updateStatusUI(`❌ 觸發失敗: ${triggerRes.status} ${err.message || ''}`, 'error', null);
+            tqUpdate({ status: 'error', label: `觸發失敗 ${triggerRes.status}` });
         }
     } catch (e) {
         updateStatusUI(`❌ ${e.message}`, 'error', null);
+        tqUpdate({ status: 'error', label: e.message });
     } finally {
         btn.disabled = false;
         btn.querySelector('.btn-text').textContent = '開始基本面分析';
@@ -179,7 +194,7 @@ async function waitForRun(token, triggerTime, maxWait = 30000) {
 }
 
 // === 追蹤 Run 進度 ===
-async function trackRunProgress(runId, token) {
+async function trackRunProgress(runId, token, tqUpdate = () => { }) {
     const maxMinutes = 10;
     const start = Date.now();
     const maxMs = maxMinutes * 60 * 1000;
@@ -187,7 +202,6 @@ async function trackRunProgress(runId, token) {
     while (Date.now() - start < maxMs) {
         await sleep(5000);
 
-        // 取得 run 狀態
         const runRes = await ghFetch(`${GITHUB_API}/actions/runs/${runId}`, token);
         if (!runRes.ok) continue;
         const run = await runRes.json();
@@ -204,7 +218,6 @@ async function trackRunProgress(runId, token) {
             }
         }
 
-        // 取得 job 步驟
         const jobRes = await ghFetch(`${GITHUB_API}/actions/runs/${runId}/jobs`, token);
         if (!jobRes.ok) continue;
         const jobData = await jobRes.json();
@@ -213,7 +226,6 @@ async function trackRunProgress(runId, token) {
             const job = jobData.jobs[0];
             const steps = job.steps || [];
 
-            // 找到目前進行中的步驟
             let currentPct = 5;
             let currentLabel = '⏳ 排隊中...';
             let currentStep = '等待開始';
@@ -229,16 +241,18 @@ async function trackRunProgress(runId, token) {
                     currentPct = mapped.pct;
                     currentLabel = mapped.label;
                     currentStep = step.name;
-                    break; // 當前步驟
+                    break;
                 }
             }
 
             const elapsed = Math.floor((Date.now() - start) / 1000);
             updateProgressUI(currentPct, currentLabel, `${currentStep} (${elapsed}s)`);
+            tqUpdate({ pct: currentPct, label: currentLabel });
         }
     }
 
     updateStatusUI('⏰ 等待超時 (10 分鐘)。請到 GitHub Actions 查看。', 'warning', null);
+    tqUpdate({ status: 'error', label: '等待超時' });
     return false;
 }
 

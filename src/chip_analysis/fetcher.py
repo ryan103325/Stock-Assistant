@@ -395,21 +395,45 @@ def fetch_ownership(stock_id: str) -> dict:
         'ownership_weekly': [],  # 最多50週趨勢
     }
 
+    # 優先用 Selenium（帶真實瀏覽器 fingerprint，可繞過 CI IP 封鎖）
+    soup = None
     try:
-        headers = {
-            'User-Agent': random.choice(USER_AGENTS),
-            'Referer': f'{NORWAY_BASE}/StockHolders.aspx',
-        }
-        resp = requests.get(
-            f'{NORWAY_BASE}/StockHolders.aspx?stock={stock_id}',
-            headers=headers,
-            timeout=15,
-        )
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, 'lxml')
+        driver = _get_driver()
+        driver.get(f'{NORWAY_BASE}/StockHolders.aspx?stock={stock_id}')
+        # 等待 Details table 出現
+        start = time.time()
+        while time.time() - start < 20:
+            if len(driver.page_source) > 5000:
+                break
+            time.sleep(1.5)
+        time.sleep(random.uniform(1.0, 2.0))
+        page = driver.page_source
+        if len(page) > 5000:
+            soup = BeautifulSoup(page, 'lxml')
+            print(f"[fetcher] Ownership: fetched via Selenium ({len(page)} bytes)")
+        else:
+            print(f"[fetcher] WARNING: ownership page too small ({len(page)} bytes), trying requests")
     except Exception as e:
-        print(f"[fetcher] WARNING: ownership fetch failed: {e}")
-        return result
+        print(f"[fetcher] WARNING: ownership Selenium failed: {e}, falling back to requests")
+
+    # Fallback: requests
+    if soup is None:
+        try:
+            headers = {
+                'User-Agent': random.choice(USER_AGENTS),
+                'Referer': f'{NORWAY_BASE}/StockHolders.aspx',
+            }
+            resp = requests.get(
+                f'{NORWAY_BASE}/StockHolders.aspx?stock={stock_id}',
+                headers=headers,
+                timeout=15,
+            )
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, 'lxml')
+            print(f"[fetcher] Ownership: fetched via requests fallback")
+        except Exception as e:
+            print(f"[fetcher] WARNING: ownership fetch failed (both methods): {e}")
+            return result
 
     # 找 table id=Details 且 row[0] 含 '資料日期' 和 16 cols
     details_tables = soup.find_all('table', id='Details')

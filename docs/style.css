@@ -937,7 +937,7 @@ body {
 /* 四維度卡片格 */
 .chip-dim-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
 }
 
@@ -1016,6 +1016,53 @@ body {
 
 .dim-note strong {
     color: var(--text-primary);
+}
+
+/* 分點前五名緊湊列 */
+.broker-col-hdr {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--border);
+}
+
+.broker-row {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    gap: 3px;
+    align-items: center;
+    font-size: 0.72rem !important;
+    padding: 1px 0 !important;
+    line-height: 1.4 !important;
+}
+
+.broker-rank {
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+}
+
+.broker-name {
+    color: var(--text-primary);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.broker-net {
+    font-family: monospace;
+    font-size: 0.68rem;
+    white-space: nowrap;
+}
+
+.text-bull {
+    color: #f85149;
+}
+
+.text-bear {
+    color: #3fb950;
 }
 
 /* 分點週期切換 */
@@ -1158,6 +1205,10 @@ body {
         grid-template-columns: 1fr 1fr;
     }
 
+    #dimBroker {
+        grid-column: span 2;
+    }
+
     #chipRawData {
         grid-template-columns: 1fr 1fr;
     }
@@ -1168,7 +1219,267 @@ body {
         grid-template-columns: 1fr;
     }
 
+    #dimBroker {
+        grid-column: span 1;
+    }
+
+
     #chipRawData {
         grid-template-columns: 1fr;
     }
+}
+
+/* ═══════════════════════════════════════════════
+   任務排隊面板 (Task Queue)
+═══════════════════════════════════════════════ */
+.tq-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1f6feb, #388bfd);
+    border: none;
+    color: #fff;
+    font-size: 1.25rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(56, 139, 253, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 900;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.tq-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 24px rgba(56, 139, 253, 0.6);
+}
+
+.tq-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background: #f85149;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    pointer-events: none;
+}
+
+.tq-panel {
+    position: fixed;
+    bottom: 88px;
+    right: 24px;
+    width: 320px;
+    max-height: 480px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 901;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tq-panel.tq-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+}
+
+.tq-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-tertiary);
+    flex-shrink: 0;
+}
+
+.tq-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tq-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.tq-clear-btn,
+.tq-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tq-clear-btn:hover {
+    background: rgba(248, 81, 73, 0.15);
+    color: #f85149;
+}
+
+.tq-close-btn:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.tq-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tq-empty {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    padding: 24px 0;
+}
+
+/* 任務卡片基底 */
+.tq-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tq-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.tq-stock {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tq-sid {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-left: 4px;
+}
+
+.tq-type {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* 進度條 */
+.tq-bar-bg {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 6px 0;
+}
+
+.tq-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+    width: 0%;
+}
+
+.tq-bar-running {
+    background: linear-gradient(90deg, #388bfd, #58a6ff);
+    animation: tq-shimmer 1.5s infinite;
+}
+
+.tq-bar-done {
+    background: linear-gradient(90deg, #3fb950, #2ea043);
+}
+
+.tq-bar-error {
+    background: linear-gradient(90deg, #f85149, #da3633);
+}
+
+@keyframes tq-shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-position: 200px 0;
+    }
+}
+
+.tq-item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tq-label {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+.tq-time {
+    font-size: 0.68rem;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.tq-hint {
+    display: block;
+    font-size: 0.7rem;
+    color: #388bfd;
+    margin-top: 4px;
+    text-align: right;
+}
+
+/* 狀態配色 */
+.tq-running {
+    border-color: #1f6feb;
+    box-shadow: 0 0 0 1px rgba(31, 111, 235, 0.2);
+}
+
+.tq-done {
+    border-color: #2ea043;
+}
+
+.tq-done:hover {
+    box-shadow: 0 2px 12px rgba(46, 160, 67, 0.25);
+    background: rgba(46, 160, 67, 0.05);
+}
+
+.tq-error {
+    border-color: #da3633;
+}
+
+.tq-pending {
+    border-color: var(--border);
+    opacity: 0.8;
 }
