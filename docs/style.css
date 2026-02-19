@@ -1082,16 +1082,29 @@ body {
     line-height: 1.5;
 }
 
-/* 原始資料分類區塊 */
+/* 原始資料容器：四欄橫排 */
+#chipRawData {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* 原始資料分類區塊（卡片） */
 .raw-section {
-    margin-bottom: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .raw-section-title {
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--accent);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     padding-bottom: 4px;
     border-bottom: 1px solid var(--border);
 }
@@ -1112,9 +1125,9 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
+    padding: 6px 8px;
     background: var(--bg-tertiary);
-    border-radius: 8px;
+    border-radius: 6px;
 }
 
 .raw-label {
@@ -1144,10 +1157,18 @@ body {
     .chip-dim-grid {
         grid-template-columns: 1fr 1fr;
     }
+
+    #chipRawData {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (max-width: 480px) {
     .chip-dim-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #chipRawData {
         grid-template-columns: 1fr;
     }
 }

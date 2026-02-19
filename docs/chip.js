@@ -285,8 +285,9 @@ function renderDimCard(elId, label, dim, maxScore) {
             ${dim.align_note ? `<div class="dim-note">• ${dim.align_note}</div>` : ''}
             ${dim.dealer_5d != null ? `<div class="dim-note">• 自營商近5日：${dim.dealer_5d > 0 ? '買超' : '賣超'} ${Math.abs(dim.dealer_5d).toLocaleString()} 張</div>` : ''}
             ${dim.whale_note ? `<div class="dim-note">• ${dim.whale_note}</div>` : ''}
-            ${dim.retail_note ? `<div class="dim-note">• ${dim.retail_note}</div>` : ''}
-            ${dim.holders_info ? `<div class="dim-note dim-info">• ${dim.holders_info}</div>` : ''}
+            ${dim.whale_warning ? `<div class="dim-note dim-warning">• ${dim.whale_warning}</div>` : ''}
+            ${dim.holders_note ? `<div class="dim-note">• ${dim.holders_note}</div>` : ''}
+            ${dim.avg_note ? `<div class="dim-note">• ${dim.avg_note}</div>` : ''}
             ${dim.margin_note ? `<div class="dim-note">• ${dim.margin_note}</div>` : ''}
             ${dim.squeeze_note ? `<div class="dim-note">• ${dim.squeeze_note}</div>` : ''}
         </div>
@@ -310,6 +311,7 @@ function renderBrokerCard(dim, raw) {
             <div class="dim-bar-fill ${cls}" style="width:${pct}%"></div>
         </div>
         <div class="dim-notes">
+            ${dim?.intent_label ? `<div class="dim-note" style="font-weight:600;">${dim.intent_label}</div>` : ''}
             ${dim?.long_note ? `<div class="dim-note">• ${dim.long_note}</div>` : ''}
             ${dim?.exit_note ? `<div class="dim-note">${dim.exit_note.startsWith('⚠') ? '' : '• '}${dim.exit_note}</div>` : ''}
             ${dim?.period_note ? `<div class="dim-note">• ${dim.period_note}</div>` : ''}
@@ -339,18 +341,27 @@ function switchBrokerPeriod(period) {
 
     const brokerRaw = raw.broker || {};
     const pd = brokerRaw[`broker_${period}`] || {};
-    const name = pd.top_buy_broker || 'N/A';
-    const buy = pd.top_buy_net;
-    const sellName = pd.top_sell_broker || 'N/A';
-    const sellNet = pd.top_sell_net;
-    const buyStr = buy != null ? Math.abs(buy).toLocaleString() : 'N/A';
-    const sellStr = sellNet != null ? Math.abs(sellNet).toLocaleString() : 'N/A';
+    const buyList = pd.buy_brokers || [];
+    const sellList = pd.sell_brokers || [];
+
+    const fmtNet = (b) => {
+        const net = parseInt(String(b.net || '0').replace(/,/g, ''), 10);
+        return isNaN(net) ? 'N/A' : Math.abs(net).toLocaleString();
+    };
 
     const detail = document.getElementById('brokerPeriodDetail');
     if (detail) {
+        const top5Buy = buyList.slice(0, 5).map((b, i) =>
+            `<div class="dim-note">• 買超#${i + 1}：<strong>${b.broker}</strong>（${fmtNet(b)} 張）</div>`
+        ).join('');
+        const top5Sell = sellList.slice(0, 5).map((b, i) =>
+            `<div class="dim-note">• 賣超#${i + 1}：<strong>${b.broker}</strong>（${fmtNet(b)} 張）</div>`
+        ).join('');
         detail.innerHTML = `
-            <div class="dim-note">• 買超第一名：<strong>${name}</strong>（${buy > 0 ? '買超' : '賣超'} ${buyStr} 張）</div>
-            <div class="dim-note">• 賣超第一名：<strong>${sellName}</strong>（賣超 ${sellStr} 張）</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                <div>${top5Buy || '<div class="dim-note">無資料</div>'}</div>
+                <div>${top5Sell || '<div class="dim-note">無資料</div>'}</div>
+            </div>
         `;
     }
 }
@@ -382,7 +393,6 @@ function renderRawData(raw) {
             items: [
                 ['大戶持股（本週）', fmt(own.whale_pct_this, '%')],
                 ['大戶持股（上週）', fmt(own.whale_pct_last, '%')],
-                ['散戶持股（本週）', fmt(own.retail_pct_this, '%')],
                 ['總股東人數', fmt(own.total_holders_this, ' 人')],
                 ['平均張數/人', fmt(own.avg_shares_this, ' 張')],
                 ['資料日期', fmt(own.data_date)],

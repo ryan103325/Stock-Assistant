@@ -28,8 +28,6 @@ def build_output(stock_id: str, stock_name: str, raw_data: dict, score: ChipScor
     raw_ownership = {
         'whale_pct_this': raw_data.get('whale_pct_this'),
         'whale_pct_last': raw_data.get('whale_pct_last'),
-        'retail_pct_this': raw_data.get('retail_pct_this'),
-        'retail_pct_last': raw_data.get('retail_pct_last'),
         'total_holders_this': raw_data.get('total_holders_this'),
         'avg_shares_this': raw_data.get('avg_shares_this'),
         'data_date': raw_data.get('data_date'),
