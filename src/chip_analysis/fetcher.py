@@ -283,16 +283,18 @@ def fetch_margin(stock_id: str) -> dict:
     抓取融資融券
     URL: ShowBuySaleChart.asp?CHT_CAT2=MARGIN
     操作：用 Selenium 點選 selKCSheet 下拉選單切換到「融資融券餘額」
-    AJAX 更新後 tblDetail 欄位（已 debug 確認）:
-      row[0]: 期別 | 收盤 | 漲跌 | 漲跌(%) | 成交(張) | 融資(張) | 融券(張) | ... | 券資比(%)
-      row[1]: 買進 | 賣出 | 現償 | 增減 | 餘額 | 使用率 | 買進 | 賣出 | 現償 | 增減 | 餘額 | 使用率
-      row[2]: '26/02/11 | 1915 | +35 | +1.86 | 44,684 | 1,535 | 1,353 | 151 | +31 | 21,275 | 0.33 | 18
-    融資增減 = col[8]
-    券資比 = col[9]
+    AJAX 更新後 tblDetail 欄位（共 21 欄）:
+      col[0]=期別, col[1]=收盤, col[2]=漲跌, col[3]=漲跌%, col[4]=成交量
+      col[5]=融資買進, col[6]=融資賣出, col[7]=融資現償, col[8]=融資增減,
+      col[9]=融資餘額, col[10]=融資使用率
+      col[11]=融券買進, col[12]=融券賣出, col[13]=融券現償, col[14]=融券增減,
+      col[15]=融券餘額, col[16]=融券使用率
+      col[17]=資券互抵, col[18]=資券當沖%, col[19]=券資比%, col[20]=現股當沖%
     """
     result = {
         'margin_change': None,
         'short_ratio': None,
+        'margin_daily': [],  # 最近5日每日 {date, margin_change, short_change}
     }
 
     driver = _get_driver()
