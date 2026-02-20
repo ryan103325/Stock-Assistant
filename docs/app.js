@@ -359,6 +359,7 @@ function initEventListeners() {
     const searchBtn = document.getElementById('searchBtn');
     const suggestions = document.getElementById('suggestions');
 
+    input.addEventListener('focus', () => { input.value = ''; suggestions.classList.remove('show'); });
     searchBtn.addEventListener('click', () => handleSearch(input.value));
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSearch(input.value);

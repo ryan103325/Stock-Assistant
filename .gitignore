@@ -21,3 +21,6 @@ manual_rescue.bat
 
 # Debug scripts (not needed in repo)
 debug_scripts/
+
+# Claude Code local settings
+.claude/

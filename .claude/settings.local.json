@@ -1,7 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e:*)"
+      "Bash(cmd /c \"rmdir /s /q \"\"c:\\\\Users\\\\kyc20\\\\Desktop\\\\AI\\\\TG助手\\\\.claude\"\"\")"
     ]
   }
 }
