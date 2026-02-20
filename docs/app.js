@@ -423,6 +423,17 @@ function handleSearch(query) {
 }
 
 async function loadStock(stockId) {
+    // 切換股票時清除舊的分析結果，避免顯示無關股票的資料
+    if (stockId !== currentStock) {
+        const chipResult = document.getElementById('chipResult');
+        if (chipResult) chipResult.style.display = 'none';
+        const fundResult = document.getElementById('fundResult');
+        if (fundResult) fundResult.style.display = 'none';
+        const chipStatus = document.getElementById('chipAnalysisStatus');
+        if (chipStatus) { chipStatus.textContent = ''; chipStatus.className = 'analysis-status'; }
+        const fundStatus = document.getElementById('analysisStatus');
+        if (fundStatus) { fundStatus.textContent = ''; fundStatus.className = 'analysis-status'; }
+    }
     try {
         const resp = await fetch(`./data/${stockId}.json`);
         if (!resp.ok) throw new Error('找不到股票');
