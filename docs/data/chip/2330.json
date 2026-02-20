@@ -2,10 +2,10 @@
   "stock_id": "2330",
   "stock_name": "台積電",
   "analysis_date": "2026-02-20",
-  "analysis_time": "2026-02-20 14:33:26",
+  "analysis_time": "2026-02-20 15:45:08",
   "current_price": 1915.0,
   "total_volume_1d": 44684,
-  "total_score": 23.0,
+  "total_score": 26.0,
   "rating": "觀望/中性",
   "rating_en": "Neutral",
   "low_volume_penalty": false,
@@ -47,12 +47,12 @@
       "period_note": "多時框前5大方向偏空"
     },
     "sentiment": {
-      "score": 4.0,
+      "score": 7.0,
       "max": 20.0,
       "margin": 3.0,
       "margin_note": "今日融資幾乎持平（相對均值 6%）",
-      "short_change": 1.0,
-      "short_note": "今日融券略有增加 19 張（做空力道略增）",
+      "short_change": 4.0,
+      "short_note": "今日融券明顯增加 19 張（相對均值 +90%，軋空燃料增）",
       "squeeze": 0.0,
       "squeeze_note": "券資比 1.2%（軋空壓力不足）"
     }
@@ -60,11 +60,11 @@
   "highlights": [
     "投信近5日買超 3,847 張（連續 11 天）",
     "60d 前5大主力中 5 家仍在近期買超（持續布局）",
-    "今日融資幾乎持平（相對均值 6%）",
-    "大戶持股 89.08%（1週 +0.04%→, 4週 -0.04%▼, 13週 -0.26%▼）"
+    "今日融券明顯增加 19 張（相對均值 +90%，軋空燃料增）",
+    "今日融資幾乎持平（相對均值 6%）"
   ],
   "risks": [],
-  "strategy": "投信連買11天但外資賣超 5,630 張，留意土洋對作風險，若外資轉買可加碼；主力仍在場但整體賣壓較大，宜小量試單，不重倉；融券今日大量增加，做空力道增強，需留意",
+  "strategy": "投信連買11天但外資賣超 5,630 張，留意土洋對作風險，若外資轉買可加碼；主力仍在場但整體賣壓較大，宜小量試單，不重倉；融券今日明顯增加，累積軋空燃料，若逢法人買超易有軋空行情",
   "raw_data": {
     "institutional": {
       "trust_buy_5d": 3847,
@@ -1933,6 +1933,7 @@
     },
     "sentiment": {
       "margin_change": -999,
+      "short_change": 13,
       "short_ratio": 1.25,
       "margin_daily": [
         {
