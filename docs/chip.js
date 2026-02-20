@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('configChipToken').addEventListener('click', configureToken);
 });
 
-// === 主流程 ===
+// === 主流程（dispatch-only，立即 return，不等分析完成）===
 async function startChipAnalysis() {
     const stockId = document.getElementById('stockId').textContent;
     if (!stockId || stockId === '--') {
@@ -35,30 +35,16 @@ async function startChipAnalysis() {
         return;
     }
 
-    const stockName = document.getElementById('stockName')?.textContent || stockId;
-    const tqId = typeof TaskQueue !== 'undefined'
-        ? TaskQueue.add({ stockId, stockName, type: 'chip' })
-        : null;
-
-    await triggerChipAndTrack(stockId, token, tqId);
-}
-
-// === 觸發 + 追蹤 ===
-async function triggerChipAndTrack(stockId, token, tqId = null) {
     const btn = document.getElementById('startChipAnalysis');
+    const stockName = document.getElementById('stockName')?.textContent || stockId;
     btn.disabled = true;
-    btn.querySelector('.btn-text').textContent = '分析中...';
     btn.querySelector('.btn-icon').textContent = '⏳';
-
-    const tqUpdate = (patches) => {
-        if (tqId && typeof TaskQueue !== 'undefined') TaskQueue.update(tqId, patches);
-    };
-    tqUpdate({ status: 'running', label: '觸發 GitHub Actions...' });
+    btn.querySelector('.btn-text').textContent = '觸發中...';
 
     try {
         const triggerTime = new Date().toISOString();
-
         updateChipStatus('🚀 觸發 GitHub Actions...', 'loading', null);
+
         const triggerRes = await ghFetch(
             `${GITHUB_API}/actions/workflows/${CHIP_WORKFLOW_FILE}/dispatches`,
             token,
@@ -66,66 +52,40 @@ async function triggerChipAndTrack(stockId, token, tqId = null) {
                 method: 'POST',
                 body: JSON.stringify({
                     ref: 'main',
-                    inputs: {
-                        stock_id: stockId,
-                        force_mode: 'true',
-                        no_telegram: 'true',
-                    }
-                })
+                    inputs: { stock_id: stockId, force_mode: 'true', no_telegram: 'true' },
+                }),
             }
         );
 
         if (triggerRes.status === 204) {
-            updateChipProgress(0, '⏳ 等待 GitHub 排隊...', '正在排入佇列');
-            tqUpdate({ pct: 0, label: '等待排隊...' });
-            const runId = await waitForChipRun(token, triggerTime);
-
-            if (runId) {
-                tqUpdate({ runId });
-                const success = await trackChipRunProgress(runId, token, tqUpdate);
-                if (success) {
-                    updateChipProgress(95, '📥 讀取籌碼分析結果...', '下載結果 JSON');
-                    tqUpdate({ pct: 95, label: '讀取結果中...' });
-                    let result = null;
-                    for (let i = 0; i < 5; i++) {
-                        await sleep(1500);
-                        result = await fetchChipResult(stockId, token);
-                        if (result) break;
-                    }
-                    if (result) {
-                        updateChipProgress(100, '✅ 分析完成！', '完成');
-                        renderChipResult(result);
-                        await sleep(1000);
-                        updateChipStatus('✅ 分析完成！', 'success', { stockId, token });
-                        tqUpdate({ status: 'done', pct: 100, label: '分析完成', doneAt: new Date().toISOString(), result });
-                    } else {
-                        updateChipStatus('⚠️ 分析已完成但無法讀取結果，請稍後重試', 'warning', null);
-                        tqUpdate({ status: 'error', label: '無法讀取結果' });
-                    }
-                } else {
-                    tqUpdate({ status: 'error', label: '分析失敗' });
-                }
-            } else {
-                updateChipStatus('⏰ 無法找到 workflow run，請到 GitHub Actions 頁面查看', 'warning', null);
-                tqUpdate({ status: 'error', label: '找不到 workflow run' });
+            const tqId = typeof TaskQueue !== 'undefined'
+                ? TaskQueue.add({ stockId, stockName, type: 'chip' })
+                : null;
+            if (tqId) {
+                TaskQueue.track(tqId, {
+                    token, triggerTime,
+                    workflowFile: CHIP_WORKFLOW_FILE,
+                    stepProgress: CHIP_STEP_PROGRESS,
+                    stockId, type: 'chip',
+                });
             }
+            updateChipStatus('⏳ 已觸發，可在右下角 📋 面板查看進度', 'loading', null);
         } else if (triggerRes.status === 401 || triggerRes.status === 403) {
             updateChipStatus('❌ Token 無效或權限不足。請重新設定 (⚙️)', 'error', null);
-            tqUpdate({ status: 'error', label: 'Token 無效' });
         } else {
             const err = await triggerRes.json().catch(() => ({}));
             updateChipStatus(`❌ 觸發失敗: ${triggerRes.status} ${err.message || ''}`, 'error', null);
-            tqUpdate({ status: 'error', label: `觸發失敗 ${triggerRes.status}` });
         }
     } catch (e) {
         updateChipStatus(`❌ ${e.message}`, 'error', null);
-        tqUpdate({ status: 'error', label: e.message });
     } finally {
         btn.disabled = false;
         btn.querySelector('.btn-text').textContent = '開始籌碼面分析';
         btn.querySelector('.btn-icon').textContent = '📊';
     }
 }
+
+
 
 // === 等待 Workflow Run ===
 async function waitForChipRun(token, triggerTime, maxWait = 30000) {

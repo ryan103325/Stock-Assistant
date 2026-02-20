@@ -1,69 +1,88 @@
 /**
- * TaskQueue — 分析任務排隊面板
+ * TaskQueue v2 — 分析任務排隊面板（支援並行追蹤）
  *
- * 每次觸發基本面/籌碼面分析時，呼叫 TaskQueue.add() 登記任務。
- * 面板顯示各任務的進度，完成後可點擊直接跳到對應頁籤+載入結果。
+ * 架構：
+ *   - 觸發方（fundamental.js/chip.js）只做 dispatch，dispatch 成功後立即 return
+ *   - TaskQueue.track() 記錄追蹤設定，啟動集中輪詢迴圈（setInterval）
+ *   - 每 6 秒 _pollAll() 對所有 pending/running 任務同時查詢 GitHub API
+ *   - 完成後儲存 result，用戶點卡片可跳頁
  *
- * 任務物件結構：
- * {
- *   id:        string  (uid)
- *   stockId:   string  ('2330')
- *   stockName: string  ('台積電')
- *   type:      'chip' | 'fundamental'
- *   status:    'pending' | 'running' | 'done' | 'error'
- *   pct:       number  (0-100)
- *   label:     string  (目前步驟文字)
- *   runId:     number | null
- *   createdAt: string  (ISO)
- *   doneAt:    string | null
- *   result:    object | null  (原始分析 JSON)
- * }
+ * 任務狀態流：
+ *   pending（等待 runId）→ running（追蹤進度）→ done | error
  */
 
+// ── GitHub API helpers（與 fundamental.js 共用，後者載入後會覆蓋 ghFetch，無影響）──
+const _GITHUB_API = 'https://api.github.com/repos/ryan103325/Stock-Assistant';
+
+function _ghFetch(url, token, options = {}) {
+    return fetch(url, {
+        ...options,
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            ...(options.headers || {}),
+        },
+    });
+}
+
+function _sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function _fetchAnalysisResult(stockId, token, type) {
+    const path = type === 'chip' ? 'chip' : 'fundamental';
+    try {
+        const res = await _ghFetch(
+            `${_GITHUB_API}/contents/docs/data/${path}/${stockId}.json?ref=main`,
+            token
+        );
+        if (!res.ok) return null;
+        const fileData = await res.json();
+        const binary = atob(fileData.content.replace(/\n/g, ''));
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return JSON.parse(new TextDecoder('utf-8').decode(bytes));
+    } catch { return null; }
+}
+
+// ── TaskQueue ────────────────────────────────────────────────────────────────
 const TaskQueue = (() => {
     const LS_KEY = 'tq_tasks';
     const MAX_TASKS = 20;
+    const POLL_INTERVAL = 6000;   // ms
+    const FIND_RUN_TIMEOUT = 5 * 60 * 1000;   // 5 min
+    const TRACK_TIMEOUT = 12 * 60 * 1000;  // 12 min
+
     let _tasks = [];
     let _panelVisible = false;
+    let _intervalId = null;
+    let _polling = false;
 
-    // ── localStorage ────────────────────────────────────────────
+    // 追蹤設定（不存 localStorage，含 token/functions）
+    const _tracking = {}; // id → { token, triggerTime, workflowFile, stepProgress, stockId, type, runStart? }
+
+    // ── localStorage ────────────────────────────────────────────────────────
     function _load() {
-        try {
-            _tasks = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-        } catch {
-            _tasks = [];
-        }
+        try { _tasks = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+        catch { _tasks = []; }
     }
 
     function _save() {
-        // 只保留最新 MAX_TASKS 筆
-        if (_tasks.length > MAX_TASKS) {
-            _tasks = _tasks.slice(_tasks.length - MAX_TASKS);
-        }
-        try {
-            localStorage.setItem(LS_KEY, JSON.stringify(_tasks));
-        } catch { }
+        if (_tasks.length > MAX_TASKS) _tasks = _tasks.slice(_tasks.length - MAX_TASKS);
+        try { localStorage.setItem(LS_KEY, JSON.stringify(_tasks)); } catch { }
     }
 
-    function _uid() {
-        return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    }
+    function _getTask(id) { return _tasks.find(t => t.id === id); }
 
-    // ── 公開 API ────────────────────────────────────────────────
+    function _uid() { return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`; }
+
+    // ── 公開 API ─────────────────────────────────────────────────────────────
     function add({ stockId, stockName, type }) {
         _load();
         const task = {
-            id: _uid(),
-            stockId,
-            stockName: stockName || stockId,
-            type,           // 'chip' | 'fundamental'
-            status: 'pending',
-            pct: 0,
-            label: '等待排隊...',
-            runId: null,
-            createdAt: new Date().toISOString(),
-            doneAt: null,
-            result: null,
+            id: _uid(), stockId,
+            stockName: stockName || stockId, type,
+            status: 'pending', pct: 0, label: '等待觸發...',
+            runId: null, createdAt: new Date().toISOString(),
+            doneAt: null, result: null,
         };
         _tasks.push(task);
         _save();
@@ -82,45 +101,189 @@ const TaskQueue = (() => {
         _updateBadge();
     }
 
+    /** 開始背景追蹤（由 fundamental.js/chip.js dispatch 成功後立即呼叫） */
+    function track(id, config) {
+        // config: { token, triggerTime, workflowFile, stepProgress, stockId, type }
+        _tracking[id] = {
+            ...config,
+            runStart: null,
+        };
+        update(id, { status: 'pending', label: '等待 GitHub 排入佇列...' });
+        _startPollLoop();
+    }
+
+    function clearDone() {
+        _load();
+        // 清除追蹤設定
+        _tasks.filter(t => t.status === 'done' || t.status === 'error')
+            .forEach(t => delete _tracking[t.id]);
+        _tasks = _tasks.filter(t => t.status !== 'done' && t.status !== 'error');
+        _save();
+        _render();
+    }
+
     function getActiveCount() {
         _load();
         return _tasks.filter(t => t.status === 'running' || t.status === 'pending').length;
     }
 
-    // ── 渲染 ─────────────────────────────────────────────────────
-    function _showPanel() {
-        _panelVisible = true;
-        const panel = document.getElementById('tqPanel');
-        if (panel) panel.classList.add('tq-visible');
+    // ── 輪詢迴圈 ─────────────────────────────────────────────────────────────
+    function _startPollLoop() {
+        if (_intervalId) return; // 已在跑
+        _intervalId = setInterval(_pollAll, POLL_INTERVAL);
     }
 
-    function _togglePanel() {
+    function _stopPollLoop() {
+        if (_intervalId) { clearInterval(_intervalId); _intervalId = null; }
+    }
+
+    async function _pollAll() {
+        if (_polling) return; // 防重疊
+        _polling = true;
+        try {
+            _load();
+            const active = _tasks.filter(t => t.status === 'pending' || t.status === 'running');
+            if (active.length === 0) { _stopPollLoop(); return; }
+            // 並行輪詢所有 active 任務
+            await Promise.all(active.map(t => _pollTask(t).catch(() => { })));
+        } finally {
+            _polling = false;
+        }
+    }
+
+    async function _pollTask(task) {
+        const cfg = _tracking[task.id];
+        if (!cfg) return; // 無追蹤設定（可能是頁面重整前遺留的 pending 任務）
+
+        const { token, workflowFile, stepProgress, stockId, type, triggerTime } = cfg;
+        const upd = patches => update(task.id, patches);
+
+        if (task.status === 'pending') {
+            // 超時：5 分鐘還找不到 run
+            if (Date.now() - new Date(task.createdAt).getTime() > FIND_RUN_TIMEOUT) {
+                upd({ status: 'error', label: '找不到 workflow run' });
+                delete _tracking[task.id];
+                return;
+            }
+            try {
+                const res = await _ghFetch(
+                    `${_GITHUB_API}/actions/workflows/${workflowFile}/runs?per_page=1&created=>${triggerTime.slice(0, 19)}`,
+                    token
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.workflow_runs?.length > 0) {
+                        const runId = data.workflow_runs[0].id;
+                        cfg.runStart = Date.now();
+                        upd({ status: 'running', runId, label: '開始執行...' });
+                    }
+                }
+            } catch { }
+
+        } else if (task.status === 'running') {
+            const runId = task.runId;
+            if (!runId) return;
+
+            // 超時：12 分鐘
+            if (cfg.runStart && Date.now() - cfg.runStart > TRACK_TIMEOUT) {
+                upd({ status: 'error', label: '等待超時 (12 min)' });
+                delete _tracking[task.id];
+                return;
+            }
+
+            try {
+                const runRes = await _ghFetch(`${_GITHUB_API}/actions/runs/${runId}`, token);
+                if (!runRes.ok) return;
+                const run = await runRes.json();
+
+                if (run.status === 'completed') {
+                    if (run.conclusion === 'success') {
+                        upd({ pct: 95, label: '讀取結果中...' });
+                        const result = await _fetchAnalysisResult(stockId, token, type);
+                        if (result) {
+                            upd({ status: 'done', pct: 100, label: '分析完成', doneAt: new Date().toISOString(), result });
+                        } else {
+                            upd({ status: 'error', label: '無法讀取結果' });
+                        }
+                    } else {
+                        upd({ status: 'error', label: `失敗 (${run.conclusion})` });
+                    }
+                    delete _tracking[task.id];
+                    return;
+                }
+
+                // 還在跑 — 查步驟進度
+                const jobRes = await _ghFetch(`${_GITHUB_API}/actions/runs/${runId}/jobs`, token);
+                if (!jobRes.ok) return;
+                const jobData = await jobRes.json();
+
+                if (jobData.jobs?.length > 0) {
+                    const steps = jobData.jobs[0].steps || [];
+                    let pct = 5, label = '⏳ 排隊中...';
+                    for (const step of steps) {
+                        const mapped = stepProgress[step.name];
+                        if (step.status === 'completed' && mapped) { pct = mapped.pct; label = `✅ ${step.name}`; }
+                        if (step.status === 'in_progress' && mapped) { pct = mapped.pct; label = mapped.label; break; }
+                    }
+                    upd({ pct, label });
+                }
+            } catch { }
+        }
+    }
+
+    // ── 跳頁 ─────────────────────────────────────────────────────────────────
+    function jumpTo(id) {
+        _load();
+        const task = _tasks.find(t => t.id === id);
+        if (!task || !task.result) return;
+
+        // 切股票
+        const inputEl = document.getElementById('stockInput');
+        if (inputEl) { inputEl.value = task.stockId; document.getElementById('searchBtn')?.click(); }
+
+        // 切頁籤
+        const tab = task.type === 'chip' ? 'chip' : 'fundamental';
+        document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.click();
+
+        setTimeout(() => {
+            if (task.type === 'chip' && typeof renderChipResult === 'function') {
+                renderChipResult(task.result);
+                document.getElementById('chipResult').style.display = 'block';
+                if (typeof updateChipStatus === 'function') updateChipStatus('✅ 已從佇列載入結果', 'success', null);
+            } else if (task.type === 'fundamental' && typeof renderFundamentalResult === 'function') {
+                renderFundamentalResult(task.result);
+                document.getElementById('fundResult').style.display = 'block';
+                if (typeof updateStatusUI === 'function') updateStatusUI('✅ 已從佇列載入結果', 'success', null);
+            }
+        }, 300);
+    }
+
+    // ── 渲染 ─────────────────────────────────────────────────────────────────
+    function _showPanel() {
+        _panelVisible = true;
+        document.getElementById('tqPanel')?.classList.add('tq-visible');
+    }
+
+    function togglePanel() {
         _panelVisible = !_panelVisible;
-        const panel = document.getElementById('tqPanel');
-        if (panel) panel.classList.toggle('tq-visible', _panelVisible);
+        document.getElementById('tqPanel')?.classList.toggle('tq-visible', _panelVisible);
     }
 
     function _render() {
         _load();
         const list = document.getElementById('tqList');
         if (!list) return;
-
-        if (_tasks.length === 0) {
-            list.innerHTML = '<div class="tq-empty">尚無排隊任務</div>';
-        } else {
-            // 最新的排在最上面
-            list.innerHTML = [..._tasks].reverse().map(_taskHtml).join('');
-        }
+        list.innerHTML = _tasks.length === 0
+            ? '<div class="tq-empty">尚無排隊任務</div>'
+            : [..._tasks].reverse().map(_taskHtml).join('');
         _updateBadge();
     }
 
     function _renderTask(task) {
         const el = document.getElementById(`tq-${task.id}`);
-        if (!el) {
-            _render(); // 找不到就全部重繪
-            return;
-        }
+        if (!el) { _render(); return; }
         el.outerHTML = _taskHtml(task);
+        _updateBadge();
     }
 
     function _taskHtml(task) {
@@ -137,9 +300,7 @@ const TaskQueue = (() => {
         }
 
         const clickable = task.status === 'done' && task.result;
-        const clickAttr = clickable
-            ? `onclick="TaskQueue.jumpTo('${task.id}')" style="cursor:pointer;"`
-            : '';
+        const clickAttr = clickable ? `onclick="TaskQueue.jumpTo('${task.id}')" style="cursor:pointer;"` : '';
         const hintText = clickable ? '<span class="tq-hint">點擊查看結果 →</span>' : '';
 
         return `
@@ -162,9 +323,9 @@ const TaskQueue = (() => {
     function _updateBadge() {
         const badge = document.getElementById('tqBadge');
         if (!badge) return;
-        const active = getActiveCount();
-        badge.textContent = active > 0 ? active : '';
-        badge.style.display = active > 0 ? 'inline-flex' : 'none';
+        const n = getActiveCount();
+        badge.textContent = n > 0 ? n : '';
+        badge.style.display = n > 0 ? 'inline-flex' : 'none';
     }
 
     function _fmtTime(iso) {
@@ -174,55 +335,24 @@ const TaskQueue = (() => {
         } catch { return ''; }
     }
 
-    // ── 跳頁 ─────────────────────────────────────────────────────
-    function jumpTo(id) {
-        _load();
-        const task = _tasks.find(t => t.id === id);
-        if (!task || !task.result) return;
-
-        // 1. 切到目標股票
-        const inputEl = document.getElementById('stockInput');
-        if (inputEl) {
-            inputEl.value = task.stockId;
-            document.getElementById('searchBtn')?.click();
-        }
-
-        // 2. 切換頁籤
-        const tab = task.type === 'chip' ? 'chip' : 'fundamental';
-        const tabBtn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
-        if (tabBtn) tabBtn.click();
-
-        // 3. 延遲渲染結果（等頁籤切換完）
-        setTimeout(() => {
-            if (task.type === 'chip' && typeof renderChipResult === 'function') {
-                renderChipResult(task.result);
-                document.getElementById('chipResult').style.display = 'block';
-                updateChipStatus('✅ 已從佇列載入結果', 'success', null);
-            } else if (task.type === 'fundamental' && typeof renderFundamentalResult === 'function') {
-                renderFundamentalResult(task.result);
-                document.getElementById('fundResult').style.display = 'block';
-                updateStatusUI('✅ 已從佇列載入結果', 'success', null);
-            }
-        }, 300);
-    }
-
-    // ── 清除完成任務 ──────────────────────────────────────────────
-    function clearDone() {
-        _load();
-        _tasks = _tasks.filter(t => t.status !== 'done' && t.status !== 'error');
-        _save();
-        _render();
-    }
-
-    // ── 初始化（頁面載入時呼叫）──────────────────────────────────
+    // ── 初始化 ────────────────────────────────────────────────────────────────
     function init() {
         _load();
+        // 頁面重整後，把遺留的 pending/running 標為 error（因為 _tracking 不持久化，無法繼續追蹤）
+        let changed = false;
+        _tasks.forEach(t => {
+            if (t.status === 'pending' || t.status === 'running') {
+                t.status = 'error';
+                t.label = '頁面重整後中斷';
+                changed = true;
+            }
+        });
+        if (changed) _save();
         _render();
-        // 如果有進行中的任務，自動展開面板
         if (getActiveCount() > 0) _showPanel();
     }
 
-    return { add, update, jumpTo, clearDone, init, togglePanel: _togglePanel };
+    return { add, update, track, jumpTo, clearDone, init, togglePanel, getActiveCount };
 })();
 
 document.addEventListener('DOMContentLoaded', () => TaskQueue.init());
