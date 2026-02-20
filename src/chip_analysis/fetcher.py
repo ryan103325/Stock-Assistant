@@ -339,9 +339,10 @@ def fetch_margin(stock_id: str) -> dict:
     # col[11~16]=融券(買進/賣出/現償/增減/餘額/使用率)
     # col[17]=資券互抵, col[18]=資券當沖%, col[19]=券資比%, col[20]=現股當沖%
     MARGIN_CHANGE_COL = 8   # 融資增減
+    SHORT_CHANGE_COL = 14   # 融券增減
     SHORT_RATIO_COL = 19    # 券資比(%)
 
-    margin_changes = []
+    margin_daily = []
 
     for row in rows[2:]:
         cells = row.find_all(['td', 'th'])
@@ -352,18 +353,26 @@ def fetch_margin(stock_id: str) -> dict:
             continue
 
         mc = _parse_int(texts[MARGIN_CHANGE_COL])
-        if mc is not None:
-            margin_changes.append(mc)
+        sc = _parse_int(texts[SHORT_CHANGE_COL]) if len(texts) > SHORT_CHANGE_COL else None
+        margin_daily.append({
+            'date': texts[0].lstrip("'"),
+            'margin_change': mc,
+            'short_change': sc,
+        })
 
         if result['short_ratio'] is None:
             sr = _parse_float(texts[SHORT_RATIO_COL])
             if sr is not None and 0 < sr < 100:
                 result['short_ratio'] = sr
 
-    if margin_changes:
-        result['margin_change'] = sum(margin_changes[:5])
+        if len(margin_daily) >= 5:
+            break
 
-    print(f"[fetcher] Margin: change_5d={result['margin_change']}, short_ratio={result['short_ratio']}")
+    result['margin_daily'] = margin_daily
+    if margin_daily:
+        result['margin_change'] = sum(d['margin_change'] or 0 for d in margin_daily)
+
+    print(f"[fetcher] Margin: change_5d={result['margin_change']}, short_ratio={result['short_ratio']}, daily_rows={len(margin_daily)}")
     return result
 
 # ================================================================
@@ -463,7 +472,6 @@ def fetch_ownership(stock_id: str) -> dict:
         if not re.match(r'\d{8}', date_str):
             continue
 
-        total_shares = _parse_int(texts[3])
         total_holders = _parse_int(texts[4])
         avg_shares = _parse_float(texts[5])
         whale_400_pct = _parse_float(texts[7])   # >400張大股東持有百分比

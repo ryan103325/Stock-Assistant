@@ -6,7 +6,6 @@
 import json
 import os
 from datetime import datetime
-from dataclasses import asdict
 
 from .scorer import ChipScore
 
@@ -55,6 +54,7 @@ def build_output(stock_id: str, stock_name: str, raw_data: dict, score: ChipScor
     raw_sentiment = {
         'margin_change': raw_data.get('margin_change'),
         'short_ratio': raw_data.get('short_ratio'),
+        'margin_daily': raw_data.get('margin_daily', []),
     }
 
     return {
