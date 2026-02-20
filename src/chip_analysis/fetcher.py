@@ -373,8 +373,9 @@ def fetch_margin(stock_id: str) -> dict:
     result['margin_daily'] = margin_daily
     if margin_daily:
         result['margin_change'] = sum(d['margin_change'] or 0 for d in margin_daily)
+        result['short_change'] = sum(d['short_change'] or 0 for d in margin_daily)
 
-    print(f"[fetcher] Margin: change_5d={result['margin_change']}, short_ratio={result['short_ratio']}, daily_rows={len(margin_daily)}")
+    print(f"[fetcher] Margin: change_5d={result['margin_change']}, short_5d={result.get('short_change')}, short_ratio={result['short_ratio']}, daily_rows={len(margin_daily)}")
     return result
 
 # ================================================================

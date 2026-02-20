@@ -53,6 +53,7 @@ def build_output(stock_id: str, stock_name: str, raw_data: dict, score: ChipScor
 
     raw_sentiment = {
         'margin_change': raw_data.get('margin_change'),
+        'short_change': raw_data.get('short_change'),
         'short_ratio': raw_data.get('short_ratio'),
         'margin_daily': raw_data.get('margin_daily', []),
     }

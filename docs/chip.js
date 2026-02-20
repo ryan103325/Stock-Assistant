@@ -401,6 +401,7 @@ function renderRawData(raw) {
             title: '📈 市場情緒',
             items: [
                 ['融資近5日增減', fmt(sent.margin_change, ' 張')],
+                ['融券近5日增減', fmt(sent.short_change, ' 張')],
                 ['券資比', fmt(sent.short_ratio, '%')],
             ]
         },

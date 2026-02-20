@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cmd /c \"rmdir /s /q \"\"c:\\\\Users\\\\kyc20\\\\Desktop\\\\AI\\\\TG助手\\\\.claude\"\"\")"
+      "Bash(cmd /c \"rmdir /s /q \"\"c:\\\\Users\\\\kyc20\\\\Desktop\\\\AI\\\\TG助手\\\\.claude\"\"\")",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

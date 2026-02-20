@@ -645,7 +645,8 @@ def score_sentiment(data: dict) -> DimensionScore:
         margin_note = '融資資料不足'
 
     # === 融券動向（6分）===
-    # 融券減少 = 空方回補 = 正面訊號
+    # === 融券動向（6分）===
+    # 融券增加 = 散戶看空 = 軋空燃料增加 = 正面訊號
     short_vals = [d.get('short_change') for d in margin_daily if d.get('short_change') is not None]
     short_score = 0.0
     short_note  = ''
@@ -654,25 +655,25 @@ def score_sentiment(data: dict) -> DimensionScore:
         today_s = short_vals[0]
         avg_abs_s = sum(abs(x) for x in short_vals) / len(short_vals)
         if avg_abs_s > 0:
-            rate_s = today_s / avg_abs_s * 100  # 負=回補（正面）
-            if rate_s < -150:
+            rate_s = today_s / avg_abs_s * 100  # 正=增加（軋空燃料增加）
+            if rate_s > 150:
                 short_score = 6.0
-                short_note = f'今日融券大量回補 {abs(today_s):,} 張（相對均值 {rate_s:.0f}%，軋空壓力大）'
-            elif rate_s < -80:
+                short_note = f'今日融券大量增加 {today_s:,} 張（相對均值 +{rate_s:.0f}%，軋空潛力大增）'
+            elif rate_s > 80:
                 short_score = 4.0
-                short_note = f'今日融券明顯回補 {abs(today_s):,} 張（相對均值 {rate_s:.0f}%）'
-            elif rate_s < -30:
+                short_note = f'今日融券明顯增加 {today_s:,} 張（相對均值 +{rate_s:.0f}%，軋空燃料增）'
+            elif rate_s > 30:
                 short_score = 3.0
-                short_note = f'今日融券略有回補 {abs(today_s):,} 張（相對均值 {rate_s:.0f}%）'
-            elif rate_s <= 30:
+                short_note = f'今日融券略有增加 {today_s:,} 張（相對均值 +{rate_s:.0f}%）'
+            elif rate_s >= -30:
                 short_score = 3.0
                 short_note = f'今日融券幾乎持平（相對均值 {rate_s:.0f}%）'
-            elif rate_s < 100:
+            elif rate_s > -100:
                 short_score = 1.0
-                short_note = f'今日融券略有增加 {today_s:,} 張（做空力道略增）'
+                short_note = f'今日融券略有回補 {abs(today_s):,} 張（相對均值 {rate_s:.0f}%，空方下車）'
             else:
                 short_score = 0.0
-                short_note = f'今日融券大幅增加 {today_s:,} 張（做空力道大增）'
+                short_note = f'今日融券大量回補 {abs(today_s):,} 張（相對均值 {rate_s:.0f}%，軋空力道減弱）'
         else:
             short_score = 3.0
             short_note = '近5日融券無明顯波動（基礎分）'
@@ -782,9 +783,9 @@ def _build_strategy(inst: DimensionScore, own: DimensionScore,
         parts.append('融資今日大幅增加，散戶追價偏高，注意過熱回檔風險')
 
     if short_change >= 4:
-        parts.append('融券今日明顯回補，空方撤退，短線有撐')
+        parts.append('融券今日明顯增加，累積軋空燃料，若逢法人買超易有軋空行情')
     elif short_change <= 1:
-        parts.append('融券今日大量增加，做空力道增強，需留意')
+        parts.append('融券今日大量回補，空方下車，軋空力道減弱')
 
     if squeeze >= 5:
         parts.append(f'券資比 {short_ratio:.1f}%，軋空壓力大，若搭配法人買超可能觸發軋空行情')
