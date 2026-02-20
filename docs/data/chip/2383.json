@@ -2,42 +2,44 @@
   "stock_id": "2383",
   "stock_name": "台光電",
   "analysis_date": "2026-02-20",
-  "analysis_time": "2026-02-20 10:38:45",
+  "analysis_time": "2026-02-20 14:17:21",
   "current_price": 2195.0,
   "total_volume_1d": 5309,
-  "total_score": 35.4,
+  "total_score": 38.0,
   "rating": "觀望/中性",
   "rating_en": "Neutral",
   "low_volume_penalty": false,
   "dimensions": {
     "institutional": {
-      "score": 14.0,
+      "score": 11.0,
       "max": 30.0,
-      "trust": 12,
+      "trust": 10.0,
       "trust_note": "投信近5日買超 2,065 張（連續 8 天）",
       "trust_turning": "",
       "foreign": 0.0,
       "foreign_note": "外資近5日賣超 2,641 張",
+      "dealer": 0.0,
+      "dealer_note": "自營商近5日賣超 442 張",
       "dealer_5d": -442,
-      "foreign_align": 2.0,
+      "foreign_align": 1.0,
       "align_note": "土洋對作：僅投信買超"
     },
     "ownership": {
-      "score": 4.4,
+      "score": 10.0,
       "max": 30.0,
       "whale": 0.0,
-      "whale_note": "大戶持股趨勢下降（1週 -0.83%, 4週 -0.21%, 13週 -0.41%, 長期 -1.54%）",
+      "whale_note": "大戶持股 70.50%（1週 -0.83%▼, 4週 -0.21%▼, 13週 -0.41%▼）",
       "whale_warning": "",
-      "holders": 1.6,
-      "holders_note": "股東人數近4週減少 4,734 人（籌碼集中）（目前 46,866 人）",
-      "avg_shares": 2.8,
-      "avg_note": "籌碼集中趨勢：股東減少且人均張數增加（6.94 → 7.65 張/人）"
+      "holders": 5.0,
+      "holders_note": "股東人數 46,866 人（1週 -4.33%▼, 4週 -9.17%▼, 13週 +5.30%▲）",
+      "avg_shares": 5.0,
+      "avg_note": "均張 7.65 張/人（1週均張 +4.7%▲（股東減）, 4週均張 +10.2%▲（股東減））"
     },
     "broker": {
-      "score": 17.0,
+      "score": 14.0,
       "max": 20.0,
-      "long_term": 8.0,
-      "long_note": "60日前5大買超合計 8,386 張＞賣超 7,031 張（主力偏多）",
+      "long_term": 5.0,
+      "long_note": "各期間方向：60d偏多, 20d偏多, 10d偏空, 5d偏空, 1d偏空（分點方向分 5.0/8）",
       "exit_detect": 7.0,
       "exit_note": "60d 前5大主力中 5 家仍在近期買超（持續布局）",
       "intent_label": "🟢 主力持續布局",
@@ -45,22 +47,24 @@
       "period_note": "多時框方向分歧，多空力道接近"
     },
     "sentiment": {
-      "score": 0.0,
+      "score": 3.0,
       "max": 20.0,
       "margin": 0.0,
-      "margin_note": "融資近5日增加 68 張（散戶追價）",
+      "margin_note": "今日融資大幅增加 158 張（相對均值 263%，散戶追價）",
+      "short_change": 3.0,
+      "short_note": "今日融券幾乎持平（相對均值 -8%）",
       "squeeze": 0.0,
       "squeeze_note": "券資比 4.7%（軋空壓力不足）"
     }
   },
   "highlights": [
     "投信近5日買超 2,065 張（連續 8 天）",
-    "60日前5大買超合計 8,386 張＞賣超 7,031 張（主力偏多）",
     "60d 前5大主力中 5 家仍在近期買超（持續布局）",
-    "籌碼集中趨勢：股東減少且人均張數增加（6.94 → 7.65 張/人）"
+    "股東人數 46,866 人（1週 -4.33%▼, 4週 -9.17%▼, 13週 +5.30%▲）",
+    "均張 7.65 張/人（1週均張 +4.7%▲（股東減）, 4週均張 +10.2%▲（股東減））"
   ],
   "risks": [],
-  "strategy": "投信連買8天但外資賣超 2,641 張，留意土洋對作風險，若外資轉買可加碼；主力持續布局且 60 日量能偏多，可作為買進參考，回檔可分批承接",
+  "strategy": "投信連買8天但外資賣超 2,641 張，留意土洋對作風險，若外資轉買可加碼；主力持續布局且多期間方向偏多，可作為買進參考，回檔可分批承接；融資今日大幅增加，散戶追價偏高，注意過熱回檔風險",
   "raw_data": {
     "institutional": {
       "trust_buy_5d": 2065,
@@ -1929,7 +1933,34 @@
     },
     "sentiment": {
       "margin_change": 68,
-      "short_ratio": 4.71
+      "short_ratio": 4.71,
+      "margin_daily": [
+        {
+          "date": "26/02/11",
+          "margin_change": 158,
+          "short_change": -1
+        },
+        {
+          "date": "26/02/10",
+          "margin_change": -83,
+          "short_change": 1
+        },
+        {
+          "date": "26/02/09",
+          "margin_change": -26,
+          "short_change": 24
+        },
+        {
+          "date": "26/02/06",
+          "margin_change": 26,
+          "short_change": 5
+        },
+        {
+          "date": "26/02/05",
+          "margin_change": -7,
+          "short_change": -33
+        }
+      ]
     }
   }
 }
