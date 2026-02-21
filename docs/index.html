@@ -32,6 +32,7 @@
                 <button class="tab-btn active" data-tab="technical">技術分析</button>
                 <button class="tab-btn" data-tab="fundamental">基本面分析</button>
                 <button class="tab-btn" data-tab="chip">籌碼面分析</button>
+                <button class="tab-btn" data-tab="news">新聞面</button>
             </div>
             <div class="timeframe-btns" id="timeframeBtns">
                 <button class="tf-btn active" data-tf="D">日線</button>
@@ -206,6 +207,52 @@
             </div>
         </div>
 
+        <!-- 新聞面分析頁籤 -->
+        <div id="news-tab" class="tab-content">
+            <div class="fundamental-panel">
+                <!-- 搜尋控制 -->
+                <div class="fund-control">
+                    <input type="text" id="newsSearchInput" placeholder="輸入股票代碼 (例: 2330)" class="news-search-input">
+                    <button id="startNewsSearch" class="analysis-btn">
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">搜尋個股新聞</span>
+                    </button>
+                    <button id="configNewsToken" class="config-btn" title="設定 GitHub Token">⚙️</button>
+                    <div id="newsSearchStatus" class="analysis-status"></div>
+                </div>
+                <div class="fund-section">
+                    <h3 class="section-title">📰 市場情緒總覽</h3>
+                    <div id="newsOverview" class="news-overview">
+                        <div class="news-loading">載入中...</div>
+                    </div>
+                </div>
+
+                <!-- 情緒分佈 -->
+                <div class="fund-section">
+                    <h3 class="section-title">📊 情緒分佈</h3>
+                    <div id="sentimentDistribution" class="sentiment-distribution"></div>
+                </div>
+
+                <!-- 看多排名 -->
+                <div class="fund-section">
+                    <h3 class="section-title">🟢 情緒看多排名</h3>
+                    <div id="bullishRanking" class="news-ranking"></div>
+                </div>
+
+                <!-- 看空排名 -->
+                <div class="fund-section">
+                    <h3 class="section-title">🔴 情緒看空排名</h3>
+                    <div id="bearishRanking" class="news-ranking"></div>
+                </div>
+
+                <!-- 最新新聞 -->
+                <div class="fund-section">
+                    <h3 class="section-title">📋 最新分析新聞</h3>
+                    <div id="recentNews" class="recent-news-list"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="suggestions" id="suggestions"></div>
 
         <!-- 浮動資訊面板 -->
@@ -234,6 +281,7 @@
     <script src="fundamental.js"></script>
     <script src="volume_profile.js"></script>
     <script src="chip.js"></script>
+    <script src="news.js"></script>
     <script>
         function toggleRawData() {
             const el = document.getElementById('chipRawData');

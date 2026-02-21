@@ -47,3 +47,15 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python -m src.alpha_core.main analyze
+
+      - name: Export Sentiment JSON
+        run: |
+          python -m src.alpha_core.main export
+
+      - name: Commit & Push Sentiment Data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data/news/
+          git diff --cached --quiet || git commit -m "📰 Update news sentiment data [skip ci]"
+          git push

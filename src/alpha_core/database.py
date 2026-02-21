@@ -42,10 +42,18 @@ class SentimentDB:
                 summary TEXT,
                 overall_sentiment_score REAL,
                 overall_sentiment_label TEXT,
+                confidence REAL,
                 analyzed INTEGER DEFAULT 0,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        # 向後相容：若舊 DB 缺少 confidence 欄位則自動補上
+        try:
+            cursor.execute('ALTER TABLE news_articles ADD COLUMN confidence REAL')
+            self.conn.commit()
+        except Exception:
+            pass  # 欄位已存在
         
         # Table 2: ticker_sentiments (個股情緒)
         cursor.execute('''
@@ -132,14 +140,14 @@ class SentimentDB:
         ''', (limit,))
         return cursor.fetchall()
     
-    def update_analysis(self, news_id: int, summary: str, score: float, label: str):
+    def update_analysis(self, news_id: int, summary: str, score: float, label: str, confidence: float = None):
         """更新新聞分析結果"""
         cursor = self.conn.cursor()
         cursor.execute('''
             UPDATE news_articles
-            SET summary = ?, overall_sentiment_score = ?, overall_sentiment_label = ?, analyzed = 1
+            SET summary = ?, overall_sentiment_score = ?, overall_sentiment_label = ?, confidence = ?, analyzed = 1
             WHERE id = ?
-        ''', (summary, score, label, news_id))
+        ''', (summary, score, label, confidence, news_id))
         self.conn.commit()
     
     def mark_analyzed(self, news_ids: list):

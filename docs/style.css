@@ -1483,3 +1483,261 @@ body {
     border-color: var(--border);
     opacity: 0.8;
 }
+
+/* === News Tab === */
+.news-loading,
+.news-empty {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 32px;
+    font-size: 0.95rem;
+}
+
+.news-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.news-stat-card {
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+}
+
+.news-stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    margin-bottom: 4px;
+}
+
+.news-stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.news-updated {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+/* Sentiment Distribution Bars */
+.sentiment-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sentiment-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sentiment-bar-label {
+    width: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.sentiment-bar-track {
+    flex: 1;
+    height: 20px;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.sentiment-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    min-width: 2px;
+}
+
+.sentiment-bar-value {
+    width: 90px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-family: monospace;
+    flex-shrink: 0;
+}
+
+/* Ranking Table */
+.news-rank-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+}
+
+.news-rank-table thead th {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.news-rank-table thead th:first-child {
+    border-radius: 8px 0 0 0;
+}
+
+.news-rank-table thead th:last-child {
+    border-radius: 0 8px 0 0;
+}
+
+.news-rank-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+.news-rank-table tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.rank-num {
+    font-weight: 700;
+    color: var(--accent);
+    text-align: center;
+    font-size: 1rem;
+}
+
+.ticker-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.ticker-link:hover {
+    text-decoration: underline;
+}
+
+.news-links-cell {
+    font-size: 0.78rem;
+    line-height: 1.6;
+    max-width: 300px;
+}
+
+.news-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.news-link:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+/* Recent News Feed */
+.recent-news-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.recent-news-item:last-child {
+    border-bottom: none;
+}
+
+.recent-news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.recent-news-title {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+
+.recent-news-title:hover {
+    color: var(--accent);
+}
+
+.recent-news-score {
+    font-weight: 800;
+    font-family: monospace;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.recent-news-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.recent-news-source {
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.recent-news-summary {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-top: 4px;
+}
+
+/* News responsive */
+@media (max-width: 768px) {
+    .news-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .news-rank-table {
+        font-size: 0.78rem;
+    }
+
+    .news-rank-table th:nth-child(6),
+    .news-rank-table td:nth-child(6) {
+        display: none;
+    }
+
+    .sentiment-bar-value {
+        width: 70px;
+        font-size: 0.72rem;
+    }
+}
+
+.news-search-input {
+    max-width: 200px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.news-search-input:focus {
+    border-color: var(--accent);
+}
+
+.news-search-input::placeholder {
+    color: var(--text-secondary);
+}

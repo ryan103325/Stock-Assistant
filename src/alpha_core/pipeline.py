@@ -115,12 +115,19 @@ class SentimentPipeline:
                         if matching:
                             news_id = matching['id']
                             
+                            # 組合 summary（含 key_facts）
+                            summary = item.get('summary', '')
+                            key_facts = item.get('key_facts', [])
+                            if key_facts:
+                                summary += '\n關鍵事實：' + '；'.join(key_facts)
+                            
                             # 更新新聞分析
                             db.update_analysis(
                                 news_id=news_id,
-                                summary=item.get('summary', ''),
+                                summary=summary,
                                 score=item.get('overall_sentiment_score', 0),
-                                label=item.get('overall_sentiment_label', 'Neutral')
+                                label=item.get('overall_sentiment_label', 'Neutral'),
+                                confidence=item.get('confidence', None)
                             )
                             total_analyzed += 1
                             
@@ -153,14 +160,24 @@ class SentimentPipeline:
         items = []
         for i, news in enumerate(batch):
             items.append(f"""
-### News {i+1}
+### 來源{i+1}
 - URL: {news['url']}
 - Title: {news['title']}
 - Source: {news['source']}
 - Content: {news['content'][:2000]}
 """)
         
-        return "\n".join(items)
+        news_list_text = "\n".join(items)
+        
+        # 載入 user template
+        template_path = os.path.join(os.path.dirname(__file__), "prompts", "worker_user_template.txt")
+        try:
+            with open(template_path, 'r', encoding='utf-8') as f:
+                template = f.read()
+            return template.replace('{news_list_text}', news_list_text)
+        except FileNotFoundError:
+            # Fallback
+            return f"請分析以下新聞（UNTRUSTED）：\n{news_list_text}"
     
     # ========== STATS ==========
     
