@@ -28,6 +28,10 @@ function _ghFetch(url, token, options = {}) {
 function _sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function _fetchAnalysisResult(stockId, token, type) {
+    if (type === 'news') {
+        // news 類型不需要抓個股 JSON，直接回傳成功標記
+        return { type: 'news', stockId, success: true };
+    }
     const path = type === 'chip' ? 'chip' : 'fundamental';
     try {
         const res = await _ghFetch(
@@ -242,7 +246,8 @@ const TaskQueue = (() => {
         if (inputEl) { inputEl.value = task.stockId; document.getElementById('searchBtn')?.click(); }
 
         // 切頁籤
-        const tab = task.type === 'chip' ? 'chip' : 'fundamental';
+        const tabMap = { chip: 'chip', fundamental: 'fundamental', news: 'news' };
+        const tab = tabMap[task.type] || 'fundamental';
         document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.click();
 
         setTimeout(() => {
@@ -254,6 +259,8 @@ const TaskQueue = (() => {
                 renderFundamentalResult(task.result);
                 document.getElementById('fundResult').style.display = 'block';
                 if (typeof updateStatusUI === 'function') updateStatusUI('✅ 已從佇列載入結果', 'success', null);
+            } else if (task.type === 'news') {
+                // news 完成後不需要渲染個股結果，資料已由 onComplete reload
             }
         }, 300);
     }
@@ -287,8 +294,10 @@ const TaskQueue = (() => {
     }
 
     function _taskHtml(task) {
-        const typeIcon = task.type === 'chip' ? '📊' : '🔬';
-        const typeLabel = task.type === 'chip' ? '籌碼面' : '基本面';
+        const typeIcons = { chip: '📊', fundamental: '🔬', news: '📰' };
+        const typeLabels = { chip: '籌碼面', fundamental: '基本面', news: '消息面' };
+        const typeIcon = typeIcons[task.type] || '🔬';
+        const typeLabel = typeLabels[task.type] || '基本面';
         const timeStr = _fmtTime(task.createdAt);
 
         let statusIcon, statusClass, barClass;
