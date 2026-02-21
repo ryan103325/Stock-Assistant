@@ -272,6 +272,7 @@ function renderDimCard(elId, label, dim, maxScore) {
             ${dim.holders_note ? `<div class="dim-note">• ${dim.holders_note}</div>` : ''}
             ${dim.avg_note ? `<div class="dim-note">• ${dim.avg_note}</div>` : ''}
             ${dim.margin_note ? `<div class="dim-note">• ${dim.margin_note}</div>` : ''}
+            ${dim.short_note ? `<div class="dim-note">• ${dim.short_note}</div>` : ''}
             ${dim.squeeze_note ? `<div class="dim-note">• ${dim.squeeze_note}</div>` : ''}
         </div>
     `;
