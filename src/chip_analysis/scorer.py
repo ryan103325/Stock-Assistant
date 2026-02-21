@@ -200,7 +200,7 @@ def score_ownership(data: dict) -> DimensionScore:
             else:
                 whale_notes.append(f'1週 {d:+.2f}%▼')
             if d > 0.5:
-                whale_warning = f'⚡ 大戶1週急增 {d:+.2f}%，留意是否為特定事件'
+                whale_warning = f'🔥 大戶1週積極增持 {d:+.2f}%，動能強勁'
 
         # 4週（4分）
         if w_4w is not None:
@@ -823,7 +823,7 @@ def generate_highlights(inst: DimensionScore, own: DimensionScore,
         items.append((5, turning))
     whale_warning = own.breakdown.get('whale_warning', '')
     if whale_warning:
-        items.append((-5, whale_warning))
+        items.append((5, whale_warning))
 
     # 多方亮點（正分前 4 名）
     bullish = sorted([(s, n) for s, n in items if s > 0 and n], reverse=True)[:4]
