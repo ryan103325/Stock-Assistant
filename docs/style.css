@@ -883,6 +883,18 @@ body {
     border: 1px solid rgba(210, 153, 34, 0.3);
 }
 
+.chip-rating-badge.bearish {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.chip-rating-badge.strong-sell {
+    background: rgba(185, 28, 28, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(185, 28, 28, 0.4);
+}
+
 .chip-rating-en {
     font-size: 0.8rem;
     opacity: 0.7;
@@ -916,6 +928,11 @@ body {
 .chip-score-bar-fill.bar-neutral {
     background: linear-gradient(90deg, #d29922, #b08800);
     box-shadow: 0 0 8px rgba(210, 153, 34, 0.4);
+}
+
+.chip-score-bar-fill.bar-bearish {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
 .chip-analysis-date {
@@ -1110,6 +1127,11 @@ body {
     font-size: 0.875rem;
     color: var(--text-primary);
     line-height: 1.5;
+}
+
+.chip-highlight-bear {
+    background: rgba(239, 68, 68, 0.07);
+    border-left-color: #ef4444;
 }
 
 /* 風險警示 */

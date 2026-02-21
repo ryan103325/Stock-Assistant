@@ -823,9 +823,17 @@ def generate_highlights(inst: DimensionScore, own: DimensionScore,
         items.append((5, turning))
     whale_warning = own.breakdown.get('whale_warning', '')
     if whale_warning:
-        items.append((5, whale_warning))
-    top = sorted([(s, n) for s, n in items if s > 0 and n], reverse=True)[:4]
-    return [note for _, note in top]
+        items.append((-5, whale_warning))
+
+    # 多方亮點（正分前 4 名）
+    bullish = sorted([(s, n) for s, n in items if s > 0 and n], reverse=True)[:4]
+    result = [f"✅ {note}" for _, note in bullish]
+
+    # 空方警訊（負分前 3 名）
+    bearish = sorted([(s, n) for s, n in items if s < 0 and n])[:3]
+    result += [f"⚠️ {note}" for _, note in bearish]
+
+    return result
 
 
 def generate_risks(data: dict, total: float) -> list[str]:
@@ -889,9 +897,15 @@ def calculate(data: dict) -> ChipScore:
     elif effective_total >= 60:
         result.rating    = '偏多操作'
         result.rating_en = 'Bullish'
-    else:
+    elif effective_total >= 40:
         result.rating    = '觀望/中性'
         result.rating_en = 'Neutral'
+    elif effective_total >= 20:
+        result.rating    = '偏空操作'
+        result.rating_en = 'Bearish'
+    else:
+        result.rating    = '強力偏空'
+        result.rating_en = 'Strong Sell'
 
     result.strategy = _build_strategy(
         result.institutional, result.ownership,

@@ -189,14 +189,14 @@ function renderChipResult(data) {
 
     const ratingEl = document.getElementById('chipRatingBadge');
     ratingEl.className = 'chip-rating-badge ' + (
-        total > 80 ? 'strong-buy' : total >= 60 ? 'bullish' : 'neutral'
+        total > 80 ? 'strong-buy' : total >= 60 ? 'bullish' : total >= 40 ? 'neutral' : total >= 20 ? 'bearish' : 'strong-sell'
     );
 
     // 總分進度條
     const bar = document.getElementById('chipScoreBar');
     bar.style.width = `${total}%`;
     bar.className = 'chip-score-bar-fill ' + (
-        total > 80 ? 'bar-strong' : total >= 60 ? 'bar-bullish' : 'bar-neutral'
+        total > 80 ? 'bar-strong' : total >= 60 ? 'bar-bullish' : total >= 40 ? 'bar-neutral' : 'bar-bearish'
     );
 
     // 分析日期
@@ -217,9 +217,11 @@ function renderChipResult(data) {
     // 亮點
     const highlightsEl = document.getElementById('chipHighlights');
     if (data.highlights?.length) {
-        highlightsEl.innerHTML = data.highlights.map(h =>
-            `<div class="chip-highlight-item">✅ ${h}</div>`
-        ).join('');
+        highlightsEl.innerHTML = data.highlights.map(h => {
+            const isBear = h.startsWith('⚠️');
+            const cls = isBear ? 'chip-highlight-item chip-highlight-bear' : 'chip-highlight-item';
+            return `<div class="${cls}">${h}</div>`;
+        }).join('');
     } else {
         highlightsEl.innerHTML = '<div class="chip-highlight-item">無特別亮點</div>';
     }
