@@ -283,6 +283,11 @@
             });
         });
 
+        // 監聽 taskqueue 觸發的 reload
+        window.addEventListener('news-reload', () => {
+            loadNewsTab();
+        });
+
         // 搜尋按鈕
         document.getElementById('startNewsSearch')?.addEventListener('click', startNewsSearch);
         document.getElementById('configNewsToken')?.addEventListener('click', configureToken);

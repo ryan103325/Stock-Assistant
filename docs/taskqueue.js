@@ -206,6 +206,10 @@ const TaskQueue = (() => {
                         const result = await _fetchAnalysisResult(stockId, token, type);
                         if (result) {
                             upd({ status: 'done', pct: 100, label: '分析完成', doneAt: new Date().toISOString(), result });
+                            // 呼叫 onComplete callback
+                            if (typeof cfg.onComplete === 'function') {
+                                try { cfg.onComplete(result); } catch (e) { console.error('onComplete error:', e); }
+                            }
                         } else {
                             upd({ status: 'error', label: '無法讀取結果' });
                         }
@@ -241,14 +245,20 @@ const TaskQueue = (() => {
         const task = _tasks.find(t => t.id === id);
         if (!task || !task.result) return;
 
-        // 切股票
-        const inputEl = document.getElementById('stockInput');
-        if (inputEl) { inputEl.value = task.stockId; document.getElementById('searchBtn')?.click(); }
-
         // 切頁籤
         const tabMap = { chip: 'chip', fundamental: 'fundamental', news: 'news' };
         const tab = tabMap[task.type] || 'fundamental';
         document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.click();
+
+        if (task.type === 'news') {
+            // news 完成後重新載入消息面資料
+            window.dispatchEvent(new CustomEvent('news-reload'));
+            return;
+        }
+
+        // 非 news 類型：切股票
+        const inputEl = document.getElementById('stockInput');
+        if (inputEl) { inputEl.value = task.stockId; document.getElementById('searchBtn')?.click(); }
 
         setTimeout(() => {
             if (task.type === 'chip' && typeof renderChipResult === 'function') {
@@ -259,8 +269,6 @@ const TaskQueue = (() => {
                 renderFundamentalResult(task.result);
                 document.getElementById('fundResult').style.display = 'block';
                 if (typeof updateStatusUI === 'function') updateStatusUI('✅ 已從佇列載入結果', 'success', null);
-            } else if (task.type === 'news') {
-                // news 完成後不需要渲染個股結果，資料已由 onComplete reload
             }
         }, 300);
     }
