@@ -145,19 +145,20 @@
 
     // ===== 主載入 =====
     async function loadNewsTab() {
+        const newsInput = document.getElementById('newsSearchInput');
         const stockInput = document.getElementById('stockInput');
-        let stockId = stockInput ? stockInput.value.trim() : '';
 
-        // 如果上面沒選股票，看 newsTab 自己的 input
-        if (!stockId) {
-            const newsInput = document.getElementById('newsSearchInput');
-            stockId = newsInput ? newsInput.value.trim() : '';
-        }
+        // 優先讀取專屬搜尋列，若無則讀取全域搜尋列
+        let stockId = newsInput && newsInput.value.trim() ? newsInput.value.trim() : (stockInput ? stockInput.value.trim() : '');
 
         if (!stockId || !/^\d{4,5}$/.test(stockId)) {
             renderOverview(null); // Show empty state
             return;
         }
+
+        // 確保兩邊輸入框同步顯示
+        if (newsInput && newsInput.value !== stockId) newsInput.value = stockId;
+        if (stockInput && stockInput.value !== stockId) stockInput.value = stockId;
 
         renderOverview(null); // 先清空或顯示 loading (其實可以直接等 fetch 完)
         const summary = await loadData(`${stockId}.json`);
@@ -194,6 +195,10 @@
             updateNewsStatus('⚠️ 請輸入有效的股票代碼 (4-5 碼數字)', 'warning');
             return;
         }
+
+        // 觸發搜尋時，同步更新右上角全域輸入框
+        const globalInput = document.getElementById('stockInput');
+        if (globalInput) globalInput.value = stockId;
 
         const token = getToken();
         if (!token) {
