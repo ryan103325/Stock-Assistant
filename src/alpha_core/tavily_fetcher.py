@@ -31,6 +31,68 @@ def get_stock_name(ticker: str) -> str:
     return ticker
 
 
+def get_stock_metadata(ticker: str) -> dict:
+    """透過 Yahoo Finance API 取得公司英文名稱與產業別"""
+    import urllib.request
+    import json
+    
+    def fetch_yf(symbol):
+        url = f"https://query2.finance.yahoo.com/v1/finance/search?q={symbol}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        try:
+            res = urllib.request.urlopen(req, timeout=5).read()
+            data = json.loads(res.decode('utf-8'))
+            if 'quotes' in data and len(data['quotes']) > 0:
+                quote = data['quotes'][0]
+                if quote.get('symbol', '').startswith(ticker):
+                    return {
+                        'english_name': quote.get('longname', quote.get('shortname', '')),
+                        'industry': quote.get('industryDisp', '')
+                    }
+        except Exception:
+            pass
+        return None
+
+    meta = fetch_yf(f"{ticker}.TW")
+    if not meta:
+        meta = fetch_yf(f"{ticker}.TWO")
+    
+    return meta or {'english_name': '', 'industry': ''}
+
+def get_industry_tags(industry_eng: str) -> str:
+    """將英文產業轉換為中文搜尋標籤"""
+    if not industry_eng:
+        return ""
+        
+    industry_eng = industry_eng.lower()
+    mapping = {
+        "semiconductor": "半導體 晶片 先進製程",
+        "building": "水泥 建材 綠能",
+        "bank": "金融 銀行 升息",
+        "electronic": "電子零組件 供應鏈",
+        "computer": "電腦 伺服器 AI",
+        "auto": "汽車零組件 電動車 車用",
+        "marine": "航運 海運 運價",
+        "steel": "鋼鐵 報價",
+        "software": "軟體 資訊服務 雲端",
+        "telecom": "電信 通訊",
+        "biotech": "生技 醫療 新藥",
+        "chemical": "化學 塑化",
+        "textile": "紡織 成衣",
+        "food": "食品 內需",
+        "machinery": "機械 設備工具",
+        "retail": "零售 消費 內需",
+    }
+    
+    tags = []
+    for key, val in mapping.items():
+        if key in industry_eng:
+            tags.append(val)
+    
+    if tags:
+        return " ".join(tags)
+    return industry_eng
+
 def search_news(ticker: str, max_results: int = 10) -> list:
     """用 Tavily 搜尋個股新聞"""
     api_key = os.getenv("TAVILY_API_KEY", "")
@@ -47,10 +109,17 @@ def search_news(ticker: str, max_results: int = 10) -> list:
     client = TavilyClient(api_key=api_key)
     stock_name = get_stock_name(ticker)
 
-    # 搜尋策略：用股票名稱 + 代碼搜尋台股相關新聞
+    # 取得擴充資訊 (英文名、產業標籤)
+    meta = get_stock_metadata(ticker)
+    eng_name = meta.get('english_name', '')
+    industry_tags = get_industry_tags(meta.get('industry', ''))
+
+    print(f"   ℹ️  股票資訊: {eng_name} | 產業標籤: {industry_tags}")
+
+    # 搜尋策略：用股票名稱 + 英文名稱 + 產業標籤 + 代碼搜尋
     queries = [
-        f"{stock_name} {ticker} 台股 最新消息",
-        f"{stock_name} 財報 營收 法人",
+        f"{stock_name} {eng_name} {ticker} {industry_tags} 台股 最新消息",
+        f"{stock_name} {ticker} {industry_tags} 財報 營收 法人",
     ]
 
     all_results = []

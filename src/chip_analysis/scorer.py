@@ -804,33 +804,66 @@ def _build_strategy(inst: DimensionScore, own: DimensionScore,
 
 def generate_highlights(inst: DimensionScore, own: DimensionScore,
                         broker: DimensionScore, sent: DimensionScore) -> list[str]:
-    items = [
-        (inst.breakdown.get('trust', 0),        inst.breakdown.get('trust_note', '')),
-        (inst.breakdown.get('foreign', 0),       inst.breakdown.get('foreign_note', '')),
-        (inst.breakdown.get('dealer', 0),        inst.breakdown.get('dealer_note', '')),
-        (inst.breakdown.get('foreign_align', 0), inst.breakdown.get('align_note', '')),
-        (own.breakdown.get('whale', 0),          own.breakdown.get('whale_note', '')),
-        (own.breakdown.get('holders', 0),        own.breakdown.get('holders_note', '')),
-        (own.breakdown.get('avg_shares', 0),     own.breakdown.get('avg_note', '')),
-        (broker.breakdown.get('long_term', 0),   broker.breakdown.get('long_note', '')),
-        (broker.breakdown.get('exit_detect', 0), broker.breakdown.get('exit_note', '')),
-        (sent.breakdown.get('margin', 0),        sent.breakdown.get('margin_note', '')),
-        (sent.breakdown.get('short_change', 0),  sent.breakdown.get('short_note', '')),
-        (sent.breakdown.get('squeeze', 0),       sent.breakdown.get('squeeze_note', '')),
-    ]
-    turning = inst.breakdown.get('trust_turning', '')
-    if turning:
-        items.append((5, turning))
-    whale_warning = own.breakdown.get('whale_warning', '')
-    if whale_warning:
-        items.append((5, whale_warning))
+    bullish = []
+    bearish = []
 
-    # 多方亮點（正分前 4 名）
-    bullish = sorted([(s, n) for s, n in items if s > 0 and n], reverse=True)[:4]
+    # 1. 法人動態
+    t_score, t_note = inst.breakdown.get('trust', 0), inst.breakdown.get('trust_note', '')
+    if t_score >= 6: bullish.append((t_score, t_note))
+    elif t_score <= 2 and '賣超' in t_note: bearish.append((-5, t_note))
+
+    f_score, f_note = inst.breakdown.get('foreign', 0), inst.breakdown.get('foreign_note', '')
+    if f_score >= 8: bullish.append((f_score, f_note))
+    elif f_score <= 3 and '賣超' in f_note: bearish.append((-5, f_note))
+
+    d_score, d_note = inst.breakdown.get('dealer', 0), inst.breakdown.get('dealer_note', '')
+    if d_score >= 4: bullish.append((d_score, d_note))
+    elif d_score <= 1 and '賣超' in d_note: bearish.append((-3, d_note))
+
+    a_score, a_note = inst.breakdown.get('foreign_align', 0), inst.breakdown.get('align_note', '')
+    if a_score == 5: bullish.append((a_score, a_note))
+    elif a_score == 0 and '均賣超' in a_note: bearish.append((-4, a_note))
+
+    turning = inst.breakdown.get('trust_turning', '')
+    if turning: bullish.append((5, turning))
+
+    # 2. 股權分散
+    w_score, w_note = own.breakdown.get('whale', 0), own.breakdown.get('whale_note', '')
+    if w_score >= 8: bullish.append((w_score, w_note))
+    elif w_score <= 3 and '▼' in w_note: bearish.append((-4, w_note))
+
+    h_score, h_note = own.breakdown.get('holders', 0), own.breakdown.get('holders_note', '')
+    if h_score >= 6: bullish.append((h_score, h_note))
+    elif h_score <= 2 and '▲' in h_note: bearish.append((-3, h_note)) # 散戶增加是空方
+
+    whale_warning = own.breakdown.get('whale_warning', '')
+    if whale_warning: bullish.append((5, whale_warning))
+
+    # 3. 分點進出
+    l_score, l_note = broker.breakdown.get('long_term', 0), broker.breakdown.get('long_note', '')
+    if l_score >= 6: bullish.append((l_score, l_note))
+    
+    e_score, e_note = broker.breakdown.get('exit_detect', 0), broker.breakdown.get('exit_note', '')
+    # exit_detect 如果分數是 0 且有 warning，則是空方訊號 (因為我們原本是在 Risks 裡，現在也拉進 highlights)
+    if e_note and '獲利了結' in e_note: bearish.append((-5, e_note))
+
+    # 4. 散戶情緒
+    m_score, m_note = sent.breakdown.get('margin', 0), sent.breakdown.get('margin_note', '')
+    if m_score >= 6: bullish.append((m_score, m_note))
+    elif m_score <= 2 and '增加' in m_note: bearish.append((-3, m_note)) # 融資增但價不漲
+
+    sh_score, sh_note = sent.breakdown.get('short_change', 0), sent.breakdown.get('short_note', '')
+    sq_score, sq_note = sent.breakdown.get('squeeze', 0), sent.breakdown.get('squeeze_note', '')
+    if sq_score >= 4: bullish.append((sq_score, sq_note))
+    if sh_score >= 3: bullish.append((sh_score, sh_note))
+    elif sh_score <= 1 and '融券增加' in sh_note and sq_score == 0: bearish.append((-2, sh_note))
+
+
+    # 排序：多方取分數最高前 4 名，空方取分數最低（最負）前 3 名
+    bullish = sorted(bullish, key=lambda x: x[0], reverse=True)[:4]
     result = [f"✅ {note}" for _, note in bullish]
 
-    # 空方警訊（負分前 3 名）
-    bearish = sorted([(s, n) for s, n in items if s < 0 and n])[:3]
+    bearish = sorted(bearish, key=lambda x: x[0])[:3]
     result += [f"⚠️ {note}" for _, note in bearish]
 
     return result
