@@ -11,6 +11,9 @@ on:
 jobs:
   news-search:
     runs-on: ubuntu-latest
+    concurrency:
+      group: news-search-queue
+      cancel-in-progress: false
     permissions:
       contents: write
 
