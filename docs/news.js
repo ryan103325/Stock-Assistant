@@ -43,38 +43,41 @@
         }
     }
 
-    // ===== 渲染：市場情緒總覽 =====
+    // ===== 渲染：個股情緒總覽 =====
     function renderOverview(summary) {
         const el = document.getElementById('newsOverview');
+        const wrapper = document.getElementById('newsContentWrapper');
+        const emptyState = document.getElementById('newsEmptyState');
+
         if (!summary) {
-            el.innerHTML = '<div class="news-empty">尚無新聞情緒資料。請先執行新聞情緒分析。</div>';
+            wrapper.style.display = 'none';
+            emptyState.style.display = 'block';
+            emptyState.innerHTML = '尚無該股票的新聞情緒資料。請輸入代碼並點擊「搜尋個股新聞」。';
             return;
         }
 
-        const avgColor = scoreColor(summary.avg_sentiment);
-        const avgLabel = summary.avg_sentiment >= 0.2 ? '偏多' :
-            summary.avg_sentiment <= -0.2 ? '偏空' : '中性';
+        wrapper.style.display = 'block';
+        emptyState.style.display = 'none';
+
+        // 標題與時間
+        document.getElementById('newsStockTitle').textContent = `${summary.stock_id} 消息面分析`;
+        document.getElementById('newsAnalysisDate').textContent = `最後分析：${formatTime(summary.updated_at)}`;
+
+        const avgColor = scoreColor(summary.weighted_score);
+        const avgLabel = summary.weighted_score >= 0.2 ? '偏多' :
+            summary.weighted_score <= -0.2 ? '偏空' : '中性';
 
         el.innerHTML = `
             <div class="news-stats-grid">
                 <div class="news-stat-card">
-                    <div class="news-stat-value">${summary.total_news}</div>
-                    <div class="news-stat-label">新聞總數</div>
+                    <div class="news-stat-value">${summary.news_count}</div>
+                    <div class="news-stat-label">近${summary.period_days}天相關新聞數</div>
                 </div>
                 <div class="news-stat-card">
-                    <div class="news-stat-value">${summary.analyzed_news}</div>
-                    <div class="news-stat-label">已分析</div>
-                </div>
-                <div class="news-stat-card">
-                    <div class="news-stat-value" style="color:${avgColor}">${(summary.avg_sentiment >= 0 ? '+' : '') + summary.avg_sentiment.toFixed(3)}</div>
-                    <div class="news-stat-label">平均情緒 (${avgLabel})</div>
-                </div>
-                <div class="news-stat-card">
-                    <div class="news-stat-value">${summary.period_days}天</div>
-                    <div class="news-stat-label">統計區間</div>
+                    <div class="news-stat-value" style="color:${avgColor}">${(summary.weighted_score >= 0 ? '+' : '') + summary.weighted_score.toFixed(3)}</div>
+                    <div class="news-stat-label">加權情緒分數 (${avgLabel})</div>
                 </div>
             </div>
-            <div class="news-updated">更新時間：${formatTime(summary.updated_at)}</div>
         `;
     }
 
@@ -91,7 +94,7 @@
         const labels = { 'Bullish': '看多', 'Somewhat-Bullish': '偏多', 'Neutral': '中性', 'Somewhat-Bearish': '偏空', 'Bearish': '看空' };
         const colors = { 'Bullish': '#22c55e', 'Somewhat-Bullish': '#86efac', 'Neutral': '#94a3b8', 'Somewhat-Bearish': '#fca5a5', 'Bearish': '#ef4444' };
 
-        const total = Object.values(dist).reduce((a, b) => a + b, 0) || 1;
+        const total = summary.news_count || Object.values(dist).reduce((a, b) => a + b, 0) || 1;
 
         let html = '<div class="sentiment-bars">';
         for (const key of order) {
@@ -111,48 +114,16 @@
         el.innerHTML = html;
     }
 
-    // ===== 渲染：排名表 =====
-    function renderRanking(containerId, items, type) {
-        const el = document.getElementById(containerId);
-        if (!items || items.length === 0) {
-            el.innerHTML = `<div class="news-empty">尚無${type === 'bullish' ? '看多' : '看空'}排名資料</div>`;
-            return;
-        }
-
-        let html = '<table class="news-rank-table"><thead><tr>';
-        html += '<th>#</th><th>股票</th><th>情緒分數</th><th>標籤</th><th>新聞數</th><th>相關新聞</th>';
-        html += '</tr></thead><tbody>';
-
-        for (const item of items) {
-            const sColor = scoreColor(item.weighted_score);
-            const newsLinks = (item.latest_news || []).map(n =>
-                `<a href="${n.url}" target="_blank" rel="noopener" title="${n.summary || n.title}" class="news-link">${n.title?.substring(0, 30) || '新聞'}${n.title?.length > 30 ? '...' : ''}</a>`
-            ).join('<br>');
-
-            html += `<tr>
-                <td class="rank-num">${item.rank}</td>
-                <td><a href="javascript:void(0)" class="ticker-link" onclick="document.getElementById('stockInput').value='${item.ticker}';document.getElementById('searchBtn').click()">${item.ticker}</a></td>
-                <td style="color:${sColor};font-weight:700">${item.weighted_score >= 0 ? '+' : ''}${item.weighted_score.toFixed(3)}</td>
-                <td>${labelBadge(item.label)}</td>
-                <td>${item.news_count}</td>
-                <td class="news-links-cell">${newsLinks || '--'}</td>
-            </tr>`;
-        }
-
-        html += '</tbody></table>';
-        el.innerHTML = html;
-    }
-
     // ===== 渲染：最新新聞 =====
     function renderRecentNews(summary) {
         const el = document.getElementById('recentNews');
-        if (!summary || !summary.recent_news || summary.recent_news.length === 0) {
-            el.innerHTML = '<div class="news-empty">尚無最新新聞</div>';
+        if (!summary || !summary.news || summary.news.length === 0) {
+            el.innerHTML = '<div class="news-empty">尚無相關新聞</div>';
             return;
         }
 
         let html = '';
-        for (const news of summary.recent_news) {
+        for (const news of summary.news) {
             const sColor = scoreColor(news.score || 0);
             html += `
                 <div class="recent-news-item">
@@ -174,16 +145,28 @@
 
     // ===== 主載入 =====
     async function loadNewsTab() {
-        const [ranking, summary] = await Promise.all([
-            loadData('sentiment_ranking.json'),
-            loadData('market_summary.json')
-        ]);
+        const stockInput = document.getElementById('stockInput');
+        let stockId = stockInput ? stockInput.value.trim() : '';
+
+        // 如果上面沒選股票，看 newsTab 自己的 input
+        if (!stockId) {
+            const newsInput = document.getElementById('newsSearchInput');
+            stockId = newsInput ? newsInput.value.trim() : '';
+        }
+
+        if (!stockId || !/^\d{4,5}$/.test(stockId)) {
+            renderOverview(null); // Show empty state
+            return;
+        }
+
+        renderOverview(null); // 先清空或顯示 loading (其實可以直接等 fetch 完)
+        const summary = await loadData(`${stockId}.json`);
 
         renderOverview(summary);
-        renderDistribution(summary);
-        renderRanking('bullishRanking', ranking?.bullish, 'bullish');
-        renderRanking('bearishRanking', ranking?.bearish, 'bearish');
-        renderRecentNews(summary);
+        if (summary) {
+            renderDistribution(summary);
+            renderRecentNews(summary);
+        }
     }
 
     // ===== News Search Dispatch =====

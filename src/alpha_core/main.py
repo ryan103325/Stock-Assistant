@@ -75,8 +75,14 @@ def main():
             asyncio.run(run_analyze(limit=inserted + 5))
         
         # Step 3: 匯出 JSON
-        from .export_sentiment import main as export_main
-        export_main()
+        from .export_sentiment import export_single_stock, OUTPUT_DIR
+        import json
+        import os
+        summary = export_single_stock(ticker)
+        file_path = os.path.join(OUTPUT_DIR, f"{ticker}.json")
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(summary, f, ensure_ascii=False, indent=2)
+        print(f"✅ 完成匯出: {file_path}")
     
     else:
         print(f"❌ Unknown command: {command}")

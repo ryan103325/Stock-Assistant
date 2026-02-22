@@ -127,6 +127,10 @@ def fetch_and_store(ticker: str, max_results: int = 10, db_path: str = None):
     inserted = 0
     with db:
         db.create_tables()
+        deleted = db.delete_old_records(days=30)
+        if deleted > 0:
+            print(f"   🧹 自動清理了 {deleted} 筆超過 30 天的舊新聞資料")
+            
         for item in results:
             result = db.insert_raw_news(
                 url=item['url'],

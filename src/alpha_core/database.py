@@ -233,3 +233,29 @@ class SentimentDB:
             'total_sentiments': total_sentiments,
             'total_reflections': total_reflections
         }
+    
+    def delete_old_records(self, days: int = 30):
+        """刪除超過指定天數的舊新聞與相關紀錄"""
+        cutoff_date = (datetime.now() - __import__('datetime').timedelta(days=days)).isoformat()
+        cursor = self.conn.cursor()
+        
+        # 找出過期的新聞 ID
+        cursor.execute('SELECT id FROM news_articles WHERE publish_time < ?', (cutoff_date,))
+        old_news_ids = [row[0] for row in cursor.fetchall()]
+        
+        if not old_news_ids:
+            return 0
+            
+        placeholders = ','.join('?' * len(old_news_ids))
+        
+        # 刪除相關的 ticker_sentiments
+        cursor.execute(f'DELETE FROM ticker_sentiments WHERE news_id IN ({placeholders})', old_news_ids)
+        
+        # 刪除 news_articles 本身
+        cursor.execute(f'DELETE FROM news_articles WHERE id IN ({placeholders})', old_news_ids)
+        
+        # 順便刪除過期的 reflection_logs
+        cursor.execute('DELETE FROM reflection_logs WHERE date < ?', (cutoff_date[:10],))
+        
+        self.conn.commit()
+        return len(old_news_ids)

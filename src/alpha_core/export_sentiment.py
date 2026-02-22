@@ -211,28 +211,110 @@ def export_market_summary(db_path: str = None):
     return summary
 
 
+def export_single_stock(ticker: str, db_path: str = None):
+    """匯出單一股票情緒分析"""
+    db = SentimentDB(db_path)
+    cutoff = (datetime.now() - timedelta(days=30)).isoformat()  # 單股取近30天新聞
+    
+    with db:
+        db.create_tables()
+        cursor = db.conn.cursor()
+        
+        # 個股加權平均情緒
+        cursor.execute('''
+            SELECT 
+                ROUND(SUM(ts.sentiment_score * ts.relevance_score) / SUM(ts.relevance_score), 4) as weighted_score,
+                COUNT(DISTINCT ts.news_id) as news_count
+            FROM ticker_sentiments ts
+            JOIN news_articles na ON ts.news_id = na.id
+            WHERE ts.ticker = ?
+              AND na.publish_time >= ?
+              AND na.analyzed = 1
+        ''', (ticker, cutoff))
+        
+        row = cursor.fetchone()
+        weighted_score = row[0] if row[0] is not None else 0
+        news_count = row[1] if row[1] is not None else 0
+        
+        # 取得這檔股票的相關新聞
+        cursor.execute('''
+            SELECT na.title, na.source, na.url, 
+                   ts.sentiment_score, na.confidence, na.summary, na.publish_time,
+                   ts.sentiment_label
+            FROM ticker_sentiments ts
+            JOIN news_articles na ON ts.news_id = na.id
+            WHERE ts.ticker = ?
+              AND na.publish_time >= ?
+              AND na.analyzed = 1
+            ORDER BY na.publish_time DESC
+            LIMIT 20
+        ''', (ticker, cutoff))
+        
+        news_list = []
+        distribution = {
+            "Bullish": 0, "Somewhat-Bullish": 0, "Neutral": 0,
+            "Somewhat-Bearish": 0, "Bearish": 0
+        }
+        
+        for news_row in cursor.fetchall():
+            score = news_row[3]
+            label = news_row[7]
+            if label in distribution:
+                distribution[label] += 1
+                
+            news_list.append({
+                "title": news_row[0],
+                "source": news_row[1],
+                "url": news_row[2],
+                "score": score,
+                "confidence": news_row[4],
+                "summary": (news_row[5] or "").strip(),
+                "publish_time": news_row[6],
+                "label": label
+            })
+            
+        summary = {
+            "stock_id": ticker,
+            "updated_at": datetime.now().isoformat(timespec='seconds'),
+            "period_days": 30,
+            "news_count": news_count,
+            "weighted_score": weighted_score,
+            "sentiment_distribution": distribution,
+            "news": news_list
+        }
+    
+    return summary
+
+
 def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     
-    print("📊 匯出新聞情緒排名...")
-    ranking = export_sentiment_ranking()
-    ranking_path = os.path.join(OUTPUT_DIR, "sentiment_ranking.json")
-    with open(ranking_path, 'w', encoding='utf-8') as f:
-        json.dump(ranking, f, ensure_ascii=False, indent=2)
-    print(f"   ✅ 排名匯出完成: {ranking_path}")
-    print(f"   看多 {len(ranking['bullish'])} 檔 / 看空 {len(ranking['bearish'])} 檔 / 總計 {ranking['total_tickers']} 檔")
-    
-    print("\n📈 匯出市場情緒統計...")
-    summary = export_market_summary()
-    summary_path = os.path.join(OUTPUT_DIR, "market_summary.json")
-    with open(summary_path, 'w', encoding='utf-8') as f:
-        json.dump(summary, f, ensure_ascii=False, indent=2)
-    print(f"   ✅ 統計匯出完成: {summary_path}")
-    print(f"   近 {RANKING_DAYS} 天: {summary['total_news']} 則新聞, {summary['analyzed_news']} 則已分析")
-    print(f"   平均情緒: {summary['avg_sentiment']}")
+    if len(sys.argv) > 1:
+        # 單股匯出模式
+        ticker = sys.argv[1]
+        print(f"📊 匯出個股 {ticker} 新聞情緒...")
+        summary = export_single_stock(ticker)
+        file_path = os.path.join(OUTPUT_DIR, f"{ticker}.json")
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(summary, f, ensure_ascii=False, indent=2)
+        print(f"   ✅ 完成: {file_path} (共 {summary['news_count']} 則新聞)")
+    else:
+        # 原本的全市場排名模式
+        print("📊 匯出新聞情緒排名...")
+        ranking = export_sentiment_ranking()
+        ranking_path = os.path.join(OUTPUT_DIR, "sentiment_ranking.json")
+        with open(ranking_path, 'w', encoding='utf-8') as f:
+            json.dump(ranking, f, ensure_ascii=False, indent=2)
+        print(f"   ✅ 排名匯出完成: {ranking_path}")
+        
+        print("\n📈 匯出市場情緒統計...")
+        summary = export_market_summary()
+        summary_path = os.path.join(OUTPUT_DIR, "market_summary.json")
+        with open(summary_path, 'w', encoding='utf-8') as f:
+            json.dump(summary, f, ensure_ascii=False, indent=2)
+        print(f"   ✅ 統計匯出完成: {summary_path}")
     
     print("\n🎉 匯出完成！")
-
 
 if __name__ == "__main__":
     main()

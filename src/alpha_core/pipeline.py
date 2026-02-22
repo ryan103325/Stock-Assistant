@@ -53,6 +53,12 @@ class SentimentPipeline:
         # 2. 存入資料庫 (去重由 URL UNIQUE 處理)
         with self.db as db:
             db.create_tables()
+            
+            # 自動清理超過 30 天的舊資料
+            deleted = db.delete_old_records(days=30)
+            if deleted > 0:
+                print(f"🧹 自動清理了 {deleted} 筆超過 30 天的舊新聞資料")
+                
             inserted = 0
             for item in all_news:
                 result = db.insert_raw_news(
@@ -82,6 +88,12 @@ class SentimentPipeline:
         
         with self.db as db:
             db.create_tables()
+            
+            # 自動清理超過 30 天的舊資料
+            deleted = db.delete_old_records(days=30)
+            if deleted > 0:
+                print(f"🧹 自動清理了 {deleted} 筆超過 30 天的舊新聞資料")
+                
             pending = db.get_pending_news(limit=limit)
         
         if not pending:
@@ -131,11 +143,10 @@ class SentimentPipeline:
                             )
                             total_analyzed += 1
                             
-                            # 插入個股情緒 (只保留有效股票)
+                            # 插入各股情緒 (不過濾 validity，讓其他股票也能共用這則新聞的分析)
                             for ticker_item in item.get('ticker_sentiment', []):
                                 ticker = ticker_item.get('ticker', '')
-                                # 過濾：只保留 history 資料夾中有的股票
-                                if ticker not in self.valid_tickers:
+                                if not ticker:
                                     continue
                                     
                                 db.insert_ticker_sentiment(

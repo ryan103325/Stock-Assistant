@@ -220,35 +220,35 @@
                     <button id="configNewsToken" class="config-btn" title="設定 GitHub Token">⚙️</button>
                     <div id="newsSearchStatus" class="analysis-status"></div>
                 </div>
-                <div class="fund-section">
-                    <h3 class="section-title">📰 市場情緒總覽</h3>
-                    <div id="newsOverview" class="news-overview">
-                        <div class="news-loading">載入中...</div>
+
+                <div id="newsContentWrapper" style="display:none;">
+                    <div class="fund-header">
+                        <div class="fund-title-group">
+                            <h2 id="newsStockTitle" class="fund-stock-title">--</h2>
+                            <div id="newsAnalysisDate" class="fund-date">最後分析：--</div>
+                        </div>
+                    </div>
+
+                    <div class="fund-section">
+                        <h3 class="section-title">📰 個股情緒總覽</h3>
+                        <div id="newsOverview" class="news-overview"></div>
+                    </div>
+
+                    <!-- 情緒分佈 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">📊 情緒分佈</h3>
+                        <div id="sentimentDistribution" class="sentiment-distribution"></div>
+                    </div>
+
+                    <!-- 最新相關新聞 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">📝 相關新聞列表</h3>
+                        <div id="recentNews" class="recent-news-list"></div>
                     </div>
                 </div>
 
-                <!-- 情緒分佈 -->
-                <div class="fund-section">
-                    <h3 class="section-title">📊 情緒分佈</h3>
-                    <div id="sentimentDistribution" class="sentiment-distribution"></div>
-                </div>
-
-                <!-- 看多排名 -->
-                <div class="fund-section">
-                    <h3 class="section-title">🟢 情緒看多排名</h3>
-                    <div id="bullishRanking" class="news-ranking"></div>
-                </div>
-
-                <!-- 看空排名 -->
-                <div class="fund-section">
-                    <h3 class="section-title">🔴 情緒看空排名</h3>
-                    <div id="bearishRanking" class="news-ranking"></div>
-                </div>
-
-                <!-- 最新新聞 -->
-                <div class="fund-section">
-                    <h3 class="section-title">📋 最新分析新聞</h3>
-                    <div id="recentNews" class="recent-news-list"></div>
+                <div id="newsEmptyState" class="news-empty" style="margin-top:20px;">
+                    請輸入股票代碼並點擊「搜尋個股新聞」以載入資料
                 </div>
             </div>
         </div>
