@@ -1,7 +1,131 @@
 {
-  "updated_at": "2026-02-21T09:31:31",
+  "updated_at": "2026-02-22T01:19:55",
   "period_days": 3,
-  "bullish": [],
-  "bearish": [],
-  "total_tickers": 0
+  "bullish": [
+    {
+      "ticker": "2317",
+      "weighted_score": 0.5,
+      "label": "Bullish",
+      "news_count": 2,
+      "avg_relevance": 0.9,
+      "latest_news": [
+        {
+          "title": "劉揚偉一件外套帶火「企業小物」，鴻海聯手在地品牌，把台灣代工一起帶上台",
+          "source": "TechNews",
+          "url": "https://finance.technews.tw/2026/02/22/hon-hai-branded-products/",
+          "score": 0.4,
+          "confidence": 0.8,
+          "summary": "鴻海積極發展企業小物，透過結合自身文化與在地品牌，提升企業識別與品牌價值。董事長劉揚偉親自帶貨，使得鋪棉外套成為熱銷商品。鴻海小物不僅是員工禮贈品，也透過與台灣本土廠商合作，支持在地經濟。此舉有助於提升鴻海品牌形象，並可能帶動相關合作廠商的業績。\n關鍵事實：鴻海積極發展企業小物，提升企業識別；董事長劉揚偉親自帶貨，帶動商品熱銷；鴻海與台灣本土廠商合作，支持在地經濟",
+          "publish_time": "2026-02-22T00:00:39"
+        },
+        {
+          "title": "強化印半導體在地生態，印度攜手 HCL、鴻海推 OSAT 封測案",
+          "source": "TechNews",
+          "url": "https://finance.technews.tw/2026/02/21/india-hcl-foxconn/",
+          "score": 0.6,
+          "confidence": 0.8,
+          "summary": "印度政府攜手HCL與鴻海推動OSAT封測案，總投資超過3,700億盧比，旨在強化印度半導體在地生態。此舉符合印度政府降低進口依賴、打造具韌性的全球供應鏈的政策方向。該設施預期支援多個終端應用領域，並創造數以千計的就業機會。此舉對鴻海在印度市場的發展有利，並可能帶動相關供應鏈的發展。\n關鍵事實：印度政府攜手HCL與鴻海推動OSAT封測案；總投資金額超過 3,700 億盧比；該設施預期支援多個終端應用",
+          "publish_time": "2026-02-21T04:10:04"
+        }
+      ],
+      "rank": 1
+    },
+    {
+      "ticker": "2376",
+      "weighted_score": 0.4,
+      "label": "Somewhat-Bullish",
+      "news_count": 1,
+      "avg_relevance": 0.8,
+      "latest_news": [
+        {
+          "title": "技嘉攜手 NVIDIA 推出〈惡靈古堡：安魂曲〉遊戲套裝，強化沉浸遊戲體驗",
+          "source": "TechNews",
+          "url": "https://technews.tw/2026/02/21/resident-evil-requiem/",
+          "score": 0.4,
+          "confidence": 0.7,
+          "summary": "技嘉與NVIDIA合作推出〈惡靈古堡：安魂曲〉遊戲套裝，包含搭載GeForce RTX 5070以上顯示卡的桌機、筆電。RTX 50系列顯示卡採用NVIDIA Blackwell架構，透過光線追蹤、DLSS 4等技術提升遊戲體驗。技嘉提供多元散熱方案，並推出AORUS GeForce RTX 5090 INFINITY顯示卡。購買指定產品可獲得遊戲兌換碼。此合作強調了技嘉在電競硬體領域的技術實力，",
+          "publish_time": "2026-02-21T06:00:07"
+        }
+      ],
+      "rank": 2
+    },
+    {
+      "ticker": "2330",
+      "weighted_score": 0.0269,
+      "label": "Neutral",
+      "news_count": 6,
+      "avg_relevance": 0.43,
+      "latest_news": [
+        {
+          "title": "拉台灣出來墊背？川普再提「偷走晶片」，全球關稅遭最高法院推翻後仍喊有備案",
+          "source": "TechNews",
+          "url": "https://finance.technews.tw/2026/02/21/trump-taiwan-chip/",
+          "score": -0.3,
+          "confidence": 0.8,
+          "summary": "美國最高法院推翻川普政府的全球關稅政策後，川普再度提及台灣「偷走晶片產業」，並宣稱相關企業因關稅而赴美設廠。儘管全球關稅受阻，川普仍表示將尋求其他法源推動新的關稅措施，可能轉向更聚焦的品項戰與供應鏈戰。對台灣而言，美國貿易政策可能更集中指向半導體及其衍生品，面臨更細緻的合規壓力。\n關鍵事實：川普再提台灣「偷走晶片產業」；川普政府可能轉向更聚焦的品項戰與供應鏈戰；台灣企業面臨更細緻的合規壓力",
+          "publish_time": "2026-02-21T01:11:10"
+        },
+        {
+          "title": "紐時：台灣輸美半導體為主，最高院判決影響不大",
+          "source": "TechNews",
+          "url": "https://finance.technews.tw/2026/02/21/new-york-times-tariff/",
+          "score": 0.3,
+          "confidence": 0.7,
+          "summary": "《紐約時報》分析，美國最高法院裁決對台灣影響不大，因台灣輸美主要產品為半導體，多屬免徵關稅豁免條款。川普政府可能加徵新稅項，但台美對等貿易協定下，台灣享有232條款最惠待遇。中國、加拿大、墨西哥及東南亞各國受影響程度不同。此新聞對台灣半導體產業影響中性偏正面。\n關鍵事實：台灣輸美主要產品為半導體，多屬免徵關稅豁免條款；台美對等貿易協定下，台灣享有232條款最惠待遇；川普政府可能加徵新稅項",
+          "publish_time": "2026-02-21T03:45:52"
+        },
+        {
+          "title": "為與輝達競爭 AI 晶片市場，Google 祭出「鈔能力」投資更多合作夥伴",
+          "source": "TechNews",
+          "url": "https://finance.technews.tw/2026/02/21/google-using-financial-might-to-take-on-nvidias-ai-chip-dominance/",
+          "score": 0.2,
+          "confidence": 0.7,
+          "summary": "Google積極擴大AI晶片市場，挑戰輝達(NVIDIA)的主導地位，增加對資料中心合作夥伴的投資，並考慮投資雲端計算新創公司Fluidstack 1億美元。Google的資本支出大幅增加，與博通、台積電等合作夥伴共同開發Tensor晶片，旨在削弱輝達的定價權。此舉可能影響AI晶片市場的競爭格局，並帶動相關基礎設施的需求。\n關鍵事實：Google計劃投資雲端計算新創公司Fluidstack 1億美",
+          "publish_time": "2026-02-21T05:30:12"
+        }
+      ],
+      "rank": 3
+    }
+  ],
+  "bearish": [
+    {
+      "ticker": "2454",
+      "weighted_score": -0.2,
+      "label": "Neutral",
+      "news_count": 1,
+      "avg_relevance": 0.2,
+      "latest_news": [
+        {
+          "title": "為與輝達競爭 AI 晶片市場，Google 祭出「鈔能力」投資更多合作夥伴",
+          "source": "TechNews",
+          "url": "https://finance.technews.tw/2026/02/21/google-using-financial-might-to-take-on-nvidias-ai-chip-dominance/",
+          "score": -0.2,
+          "confidence": 0.7,
+          "summary": "Google積極擴大AI晶片市場，挑戰輝達(NVIDIA)的主導地位，增加對資料中心合作夥伴的投資，並考慮投資雲端計算新創公司Fluidstack 1億美元。Google的資本支出大幅增加，與博通、台積電等合作夥伴共同開發Tensor晶片，旨在削弱輝達的定價權。此舉可能影響AI晶片市場的競爭格局，並帶動相關基礎設施的需求。\n關鍵事實：Google計劃投資雲端計算新創公司Fluidstack 1億美",
+          "publish_time": "2026-02-21T05:30:12"
+        }
+      ],
+      "rank": 1
+    },
+    {
+      "ticker": "1702",
+      "weighted_score": -0.2,
+      "label": "Neutral",
+      "news_count": 1,
+      "avg_relevance": 0.9,
+      "latest_news": [
+        {
+          "title": "南僑陳飛龍逝世享壽 90 歲，開發水晶肥皂家喻戶曉",
+          "source": "TechNews",
+          "url": "https://finance.technews.tw/2026/02/21/namchow-president-passed-away/",
+          "score": -0.2,
+          "confidence": 0.7,
+          "summary": "南僑(1702)公告董事長陳飛龍逝世，享壽90歲。陳飛龍帶領南僑65年，跨足食品、餐飲、化工等多領域，並將南僑從化工廠轉型為食品廠，食品餐飲相關營收佔比超過九成。他開發的水晶肥皂家喻戶曉。新任董事長將另行公告。短期內可能對股價產生不確定性，但長期營運應不受影響。\n關鍵事實：南僑董事長陳飛龍逝世，享壽90歲；陳飛龍帶領南僑65年，跨足多領域；南僑已轉型為食品廠，食品餐飲營收佔比超過九成",
+          "publish_time": "2026-02-21T09:45:00"
+        }
+      ],
+      "rank": 2
+    }
+  ],
+  "total_tickers": 5
 }
