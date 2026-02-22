@@ -1,237 +1,320 @@
 {
-  "updated_at": "2026-02-21T13:26:57",
+  "updated_at": "2026-02-22T01:19:55",
   "period_days": 3,
-  "total_news": 20,
-  "analyzed_news": 20,
-  "avg_sentiment": 0.29,
+  "total_news": 40,
+  "analyzed_news": 40,
+  "avg_sentiment": 0.0475,
   "sentiment_distribution": {
-    "Bullish": 5,
-    "Neutral": 6,
-    "Somewhat-Bearish": 1,
-    "Somewhat-Bullish": 8
+    "Neutral": 23,
+    "Somewhat-Bearish": 6,
+    "Somewhat-Bullish": 11
   },
   "top_sources": [
     {
-      "source": "Tavily:Yahoo 財經",
-      "count": 13
-    },
-    {
-      "source": "Tavily:hk.finance.yahoo.com",
-      "count": 3
-    },
-    {
-      "source": "Tavily:MoneyDJ",
-      "count": 2
-    },
-    {
-      "source": "Tavily:鉅亨網",
-      "count": 1
-    },
-    {
-      "source": "Tavily:旺得富",
-      "count": 1
+      "source": "TechNews",
+      "count": 40
     }
   ],
   "recent_news": [
     {
-      "title": "檢視漲升結構、籌碼流向及合理估值台積電驚驚漲800元到底貴不貴？",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/news/%E6%AA%A2%E8%A6%96%E6%BC%B2%E5%8D%87%E7%B5%90%E6%A7%8B%E3%80%81%E7%B1%8C%E7%A2%BC%E6%B5%81%E5%90%91%E5%8F%8A%E5%90%88%E7%90%86%E4%BC%B0%E5%80%BC-%E5%8F%B0%E7%A9%8D%E9%9B%BB%E9%A9%9A%E9%A9%9A%E6%BC%B2-800%E5%85%83%E5%88%B0%E5%BA%95%E8%B2%B4%E4%B8%8D%E8%B2%B4%EF%BC%9F-024733633.html",
+      "title": "刪掉 15 年資歷，面試反而接到手軟！「履歷醫美」是什麼？",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/22/what-is-resume-botox/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.7,
+      "summary": "該新聞討論了職場年齡歧視現象，以及求職者如何透過「履歷醫美」來應對。文章指出，企業在不確定的經濟環境下，傾向於選擇年輕求職者，導致資深求職者面臨困境。AI篩選器也可能加劇這種歧視。文章建議求職者簡化履歷，強調近期學習的技能，以提高面試機會。此新聞與股市無直接關聯。\n關鍵事實：職場年齡歧視現象日益嚴重；AI篩選器可能加劇年齡歧視；求職者透過「履歷醫美」來應對",
+      "publish_time": "2026-02-22T01:00:42"
+    },
+    {
+      "title": "我們是發現「新物理」還是「量錯了」？",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/22/tiny-supernova-error-could-make-the-dark-energy-crisis-vanish-new-paper-suggests/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.7,
+      "summary": "該新聞報導了關於暗能量研究的最新進展。科學家們利用Ia型超新星測量宇宙膨脹速度，但最新研究指出，超新星亮度校準的微小誤差可能導致對暗能量演化的誤判。研究人員提出一套對照工具，提醒科學界在得出驚人結論前，需謹慎評估數據的精確性。此新聞與股市無直接關聯。\n關鍵事實：Ia型超新星被用來測量宇宙膨脹速度；超新星亮度校準的微小誤差可能導致對暗能量演化的誤判；研究人員提出一套對照工具，提醒科學界謹慎評估數據",
+      "publish_time": "2026-02-22T00:45:41"
+    },
+    {
+      "title": "重塑光電子學，科學家開發常溫常壓下穩定的新型半導體材料鍺錫合金",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/22/gesn-alloy-semiconductor-gesn/",
       "score": 0.3,
       "label": "Somewhat-Bullish",
       "confidence": 0.7,
-      "summary": "該新聞探討台積電股價上漲的結構、籌碼流向與合理估值。散戶減持台積電轉向ETF，但ETF未必持有台積電。機構法人預估台積電今年EPS約38元、明年46元，外資券商目標價介於700至850元。AI佔營收比重提升，CoWoS去瓶頸有利拉高比重，基本面維持穩定成長。地緣政治風險仍是壓抑股價的因子。目前本益比20倍處於過去五年波動區間的中間價。\n關鍵事實：散戶減持台積電，籌碼流向外資；機構法人預估台積電今年",
-      "publish_time": "2026-02-21T13:25:41.160884"
+      "summary": "該新聞報導了一種新型半導體材料鍺錫合金的開發。這種材料能更有效地吸收和發射光，有望成為新一代高效能半導體，並在光電領域取代矽。研究團隊在高溫高壓下成功製造出常溫常壓下穩定的鍺錫合金，為晶片光通訊帶來了新的可能性。此新聞與股市相關，可能影響相關半導體材料公司的發展。\n關鍵事實：開發出一種新型半導體材料鍺錫合金；鍺錫合金能更有效地吸收和發射光；鍺錫合金有望在光電領域取代矽",
+      "publish_time": "2026-02-22T00:30:45"
     },
     {
-      "title": "台積電2030上3000 這個結論怎麼來的？ 內行畫6大重點拆解文章神秘 ...",
-      "source": "Tavily:旺得富",
-      "url": "https://wantrich.chinatimes.com/news/20260221900002-420101",
+      "title": "劉揚偉一件外套帶火「企業小物」，鴻海聯手在地品牌，把台灣代工一起帶上台",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/22/hon-hai-branded-products/",
       "score": 0.4,
       "label": "Somewhat-Bullish",
-      "confidence": 0.75,
-      "summary": "該新聞分析台積電股價上漲的邏輯，認為市場願意給予25倍EPS的原因，是預期未來EPS將持續成長。文章引用台積電董事長魏哲家對公司未來營收成長的樂觀預估，並強調魏哲家本人也在股價低點危機入市，展現對公司股票的信心。文章並提出股價長期是企業體重計的觀點，認為公司營收增加，股價也會相應上漲。\n關鍵事實：市場預期台積電未來EPS將持續成長；台積電董事長魏哲家對公司未來營收成長樂觀；魏哲家在股價低點危機入市",
-      "publish_time": "2026-02-21T13:25:41.160843"
+      "confidence": 0.8,
+      "summary": "鴻海積極發展企業小物，透過結合自身文化與在地品牌，提升企業識別與品牌價值。董事長劉揚偉親自帶貨，使得鋪棉外套成為熱銷商品。鴻海小物不僅是員工禮贈品，也透過與台灣本土廠商合作，支持在地經濟。此舉有助於提升鴻海品牌形象，並可能帶動相關合作廠商的業績。\n關鍵事實：鴻海積極發展企業小物，提升企業識別；董事長劉揚偉親自帶貨，帶動商品熱銷；鴻海與台灣本土廠商合作，支持在地經濟",
+      "publish_time": "2026-02-22T00:00:39"
     },
     {
-      "title": "台積電(2330)營收盈餘-台股-MoneyDJ理財網",
-      "source": "Tavily:MoneyDJ",
-      "url": "https://www.moneydj.com/Z/ZC/ZCH/ZCH.djhtm?a=2330",
+      "title": "連電腦 App 都要驗年齡！美國亞利桑那州擬強制所有手機 App 檢查用戶身分",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/22/arizona-hb2920-age-verification-all-apps/",
       "score": 0.0,
       "label": "Neutral",
-      "confidence": 1.0,
-      "summary": "本篇新聞為台積電(2330)在MoneyDJ理財網上的公司資訊頁面，主要提供營收、盈餘等財務數據。由於頁面本身僅為數據呈現，並無觀點或分析，因此對股市情緒影響中性。",
-      "publish_time": "2026-02-21T13:25:41.160833"
+      "confidence": 0.7,
+      "summary": "美國亞利桑那州擬強制所有手機App檢查用戶年齡，18歲以下用戶須取得保護者同意方可使用。法案涵蓋範圍廣泛，包括預先安裝的計算機App、天氣預報及瀏覽器等。此法案可能對App開發者造成影響，小型開發者可能選擇退出市場。此新聞與股市無直接關聯。\n關鍵事實：亞利桑那州擬強制所有手機App檢查用戶年齡；18歲以下用戶須取得保護者同意方可使用；法案可能對App開發者造成影響",
+      "publish_time": "2026-02-21T23:30:59"
     },
     {
-      "title": "【Follow法人】三大法人齊站賣方！外資續砍136億提款台積電77億元",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/news/%E3%80%90follow%E6%B3%95%E4%BA%BA%E3%80%91%E4%B8%89%E5%A4%A7%E6%B3%95%E4%BA%BA%E9%BD%8A%E7%AB%99%E8%B3%A3%E6%96%B9%EF%BC%81%E5%A4%96%E8%B3%87%E7%BA%8C%E7%A0%8D136%E5%84%84-%E6%8F%90%E6%AC%BE%E5%8F%B0%E7%A9%8D%E9%9B%BB77%E5%84%84%E5%85%83-070248222.html",
+      "title": "OpenAI 推 AI 心理健康危機管理四步驟，呼籲企業注意員工使用 AI 工具隱憂",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/22/openais-playbook-for-managing-ai/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.7,
+      "summary": "OpenAI推出AI心理健康危機管理四步驟，呼籲企業注意員工使用AI工具的隱憂。文章指出，員工可能因擔心被AI取代而隱瞞使用AI工具，並對AI產生依賴。OpenAI建議企業建立即時安全防護措施、重視人類技能發展、提高透明度。此新聞與股市無直接關聯。\n關鍵事實：OpenAI推出AI心理健康危機管理四步驟；員工可能因擔心被AI取代而隱瞞使用AI工具；OpenAI建議企業建立即時安全防護措施、重視人類技",
+      "publish_time": "2026-02-21T23:00:31"
+    },
+    {
+      "title": "哈伯最新影像揭示蛋星雲中塵埃、噴流與神祕伴星的交互作用",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/22/hubble-captures-clearest-view-yet-of-egg-nebula/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.7,
+      "summary": "哈伯太空望遠鏡公布了蛋星雲的最新影像，揭示了宇宙塵埃與恆星風之間細緻而複雜的交互作用。研究指出，蛋星雲是目前已知最年輕、最接近恆星階段的原始行星狀星雲，為恆星演化末期的理論提供極為關鍵的觀測證據。此新聞與股市無直接關聯。\n關鍵事實：哈伯太空望遠鏡公布了蛋星雲的最新影像；蛋星雲是目前已知最年輕、最接近恆星階段的原始行星狀星雲；影像揭示了宇宙塵埃與恆星風之間細緻而複雜的交互作用",
+      "publish_time": "2026-02-21T16:00:01"
+    },
+    {
+      "title": "〈暗黑破壞神 II〉睽違 25 年重大更新！術士職業橫跨 D4、D2R、DI 登場",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/21/diablo-2_the-warlock/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.7,
+      "summary": "暴雪娛樂宣布《暗黑破壞神》系列遊戲的重大更新計畫，包括在〈暗黑破壞神 II：獄火重生〉中加入全新職業「術士」，並更新其他遊戲內容。此新聞主要關於遊戲更新，與股市無直接關聯。\n關鍵事實：《暗黑破壞神》系列遊戲推出重大更新計畫；〈暗黑破壞神 II：獄火重生〉加入全新職業「術士」；更新包括遊戲體驗功能及全新挑戰機制",
+      "publish_time": "2026-02-21T11:30:01"
+    },
+    {
+      "title": "特斯拉 Autopilot 致命事故判賠 2.43 億美元，法官駁回上訴",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/21/us-judge-upholds-243-million-verdict-against-tesla-over-fatal-autopilot-crash/",
+      "score": -0.6,
+      "label": "Somewhat-Bearish",
+      "confidence": 0.9,
+      "summary": "特斯拉因Autopilot自動駕駛系統導致的2019年致命車禍被判賠2.43億美元，法官駁回上訴。陪審團認定特斯拉須負部分責任，儘管事故根本原因是駕駛分心。此判決不僅對特斯拉造成經濟損失，還可能影響其將來的法律策略，並引發對自動駕駛系統安全性的質疑。\n關鍵事實：特斯拉因Autopilot致命事故被判賠2.43億美元；法官駁回特斯拉上訴；判決可能影響特斯拉將來的法律策略",
+      "publish_time": "2026-02-21T10:15:43"
+    },
+    {
+      "title": "研究揭免疫系統男女大不同，女性慢性疼痛更劇烈",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/21/monocyte-derived-il-10-drives-sex-differences-in-pain-duration/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.7,
+      "summary": "研究指出，女性感受到的慢性疼痛比男性更劇烈，這種現象可從免疫系統的生物學差異解釋。研究發現，雌鼠體內產生介白素-10的單核球活性較低，導致疼痛緩解所需時間較長。此研究有助於改善疼痛治療，並可能開發出新的緩解疼痛方法。此新聞與股市無直接關聯。\n關鍵事實：女性感受到的慢性疼痛比男性更劇烈；免疫系統的生物學差異是造成這種現象的原因；雌鼠體內產生介白素-10的單核球活性較低",
+      "publish_time": "2026-02-21T10:00:24"
+    },
+    {
+      "title": "南僑陳飛龍逝世享壽 90 歲，開發水晶肥皂家喻戶曉",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/namchow-president-passed-away/",
+      "score": -0.1,
+      "label": "Neutral",
+      "confidence": 0.7,
+      "summary": "南僑(1702)公告董事長陳飛龍逝世，享壽90歲。陳飛龍帶領南僑65年，跨足食品、餐飲、化工等多領域，並將南僑從化工廠轉型為食品廠，食品餐飲相關營收佔比超過九成。他開發的水晶肥皂家喻戶曉。新任董事長將另行公告。短期內可能對股價產生不確定性，但長期營運應不受影響。\n關鍵事實：南僑董事長陳飛龍逝世，享壽90歲；陳飛龍帶領南僑65年，跨足多領域；南僑已轉型為食品廠，食品餐飲營收佔比超過九成",
+      "publish_time": "2026-02-21T09:45:00"
+    },
+    {
+      "title": "Gemini 3.1 Pro 全面開放，推理效能較上代翻倍",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/21/gemini-3-1-pro-announcing-our-latest-gemini-ai-model/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.5,
+      "summary": "Google推出Gemini 3.1 Pro模型，強化推理能力，多項基準測試位居榜首。該模型具有高達 100 萬個 token 的上下文視窗，提升軟體工程及代理式工作流程效能，涵蓋財務及試算表等應用。3.1 Pro全面開放各平台，並支援文字產生SVG動畫。此為AI技術的進步，但對台股影響有限。\n關鍵事實：Google推出Gemini 3.1 Pro模型，強化推理能力；3.1 Pro測試邏輯推理力的",
+      "publish_time": "2026-02-21T09:00:05"
+    },
+    {
+      "title": "iPhone 用戶注意！Predator 間諜軟體能隱形竊聽竊錄",
+      "source": "TechNews",
+      "url": "https://infosecu.technews.tw/2026/02/21/how-apple-iphone-spyware-can-bypass-orange-and-green-dot-indicators/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.5,
+      "summary": "研究發現，Predator間諜軟體能繞過iPhone隱私警示系統，隱藏相機和麥克風使用指示燈，讓用戶難以察覺監控行為。該軟體利用SpringBoard隱藏指示燈，並關閉系統更新。專家建議用戶更新iOS版本並啟用鎖定模式。此新聞主要為資安議題，對台股影響有限。\n關鍵事實：Predator間諜軟體能繞過iPhone隱私警示系統；Predator利用SpringBoard隱藏指示燈，並關閉系統更新；專家",
+      "publish_time": "2026-02-21T08:45:38"
+    },
+    {
+      "title": "OpenAI 推出首款搭載 ChatGPT 的智慧音箱，能辨識臉部與物體",
+      "source": "TechNews",
+      "url": "https://ccc.technews.tw/2026/02/21/openais-first-chatgpt-gadget-could-be-a-smart-speaker-with-a-camera/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.5,
+      "summary": "OpenAI 即將推出首款搭載 ChatGPT 的智慧音箱，具攝影機功能，能辨識物體和臉部，預定售價 200~300 美元，可能於 2027 年 3 月上市。該產品由蘋果前設計主管Jony Ive合作完成。OpenAI還可能開發智慧眼鏡和智慧燈具等設備。此為科技產業新聞，對台股影響有限。\n關鍵事實：OpenAI 即將推出首款搭載 ChatGPT 的智慧音箱；智慧音箱具攝影機功能，能辨識物體和臉部；",
+      "publish_time": "2026-02-21T08:30:00"
+    },
+    {
+      "title": "SerpApi 批「Google 才是世界最大爬蟲公司」，反擊其是雙標公司",
+      "source": "TechNews",
+      "url": "https://infosecu.technews.tw/2026/02/21/serpapi-asks-court-to-dismiss-google-web-scraping-lawsuit/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.5,
+      "summary": "德州網路爬蟲公司 SerpApi 反擊 Google，指控其爬蟲存在雙重標準，並要求法院駁回 Google 的提告。SerpApi 稱 Google 才是世界最大爬蟲公司，業務根基正是依賴網路爬蟲。這場法律爭端的核心在於 Google 防止爬蟲技術是否符合法律的技術保護措施定義。此為法律爭議，對台股影響有限。\n關鍵事實：SerpApi 反擊 Google，指控其爬蟲存在雙重標準；SerpApi 稱",
+      "publish_time": "2026-02-21T08:00:56"
+    },
+    {
+      "title": "Google Play 商店 AI 應用程式安全漏洞曝光，超過 12TB 用戶資料洩露",
+      "source": "TechNews",
+      "url": "https://infosecu.technews.tw/2026/02/21/unsecured-ai-apps-are-leaking-personal-data-of-android-users/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.5,
+      "summary": "Google Play 商店的 AI 應用程式存在安全漏洞，導致超過 12TB 用戶資料洩露。其中，「Video AI Art Generator & Maker」洩露超過 150 萬張用戶圖片、385,000 支影片。另一款IDMerit應用程式也洩露25國用戶身分驗證資料。網路安全專家警告，這類人工智慧應用安全趨勢仍然對用戶構成風險。此為資安事件，對台股影響有限。\n關鍵事實：Google Pl",
+      "publish_time": "2026-02-21T07:45:33"
+    },
+    {
+      "title": "特斯拉大幅降價 Cybertruck，入門款不到 6 萬美元",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/21/teslas-cheaper-60000-cybertruck-is-still-a-cybertruck/",
       "score": -0.2,
       "label": "Somewhat-Bearish",
-      "confidence": 0.7,
-      "summary": "該新聞指出三大法人同步站在賣方，外資持續賣超台股136億元，其中提款台積電77億元。小資族可考慮零股方式布局台積電。外資賣超前三大個股為元大金、中信金、台積電，買超前三大為南亞科、鴻海、群創。林威廷建議布局不受國際政治影響、具內需支撐的族群，例如汽車AM產業。\n關鍵事實：三大法人同步賣超，外資賣超台股136億元；外資賣超台積電77億元；外資賣超前三大個股為元大金、中信金、台積電；外資買超前三大為南",
-      "publish_time": "2026-02-21T13:25:41.160823"
+      "confidence": 0.6,
+      "summary": "特斯拉大幅降價 Cybertruck，入門款不到 6 萬美元，雙電機全輪驅動型號定價為 59,990 美元。高階三電機Cyberbeast型號價格下調15,000美元，現售99,990美元。此舉旨在刺激銷售，因2025年美國銷量僅20,237輛，遠低於目標。降價可能影響特斯拉的利潤率，並加劇電動車市場的競爭。對台灣相關供應鏈廠商可能產生影響。\n關鍵事實：特斯拉大幅降價 Cybertruck，入門款",
+      "publish_time": "2026-02-21T07:30:57"
     },
     {
-      "title": "台積電超會賺！7月營收3231億同期新高又創下歷史次佳 - Yahoo股市",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/news/%E5%8F%B0%E7%A9%8D%E9%9B%BB%E8%B6%85%E6%9C%83%E8%B3%BA-7%E6%9C%88%E7%87%9F%E6%94%B63231%E5%84%84%E5%90%8C%E6%9C%9F%E6%96%B0%E9%AB%98-%E5%8F%88%E5%89%B5%E4%B8%8B%E6%AD%B7%E5%8F%B2%E6%AC%A1%E4%BD%B3-060548656.html",
-      "score": 0.4,
-      "label": "Somewhat-Bullish",
-      "confidence": 0.8,
-      "summary": "台積電公布7月營收3231億，創同期新高，且為歷史次高。累計1至7月營收較去年同期增加37.6%。台積電股價連兩天創新高。美國總統川普雖對半導體課徵100%關稅，但赴美設廠可望獲得豁免。此外，台積電爆出2奈米外洩事件，離職員工勾結前同事拍攝機密照片。\n關鍵事實：台積電7月營收3231億，創同期新高，歷史次高；累計1至7月營收較去年同期增加37.6%；台積電股價連兩天創新高；台積電爆出2奈米外洩事件",
-      "publish_time": "2026-02-21T13:25:41.160811"
-    },
-    {
-      "title": "史上最強單月！台積電1月營收首度衝破4千億元年增37％ - Yahoo股市",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/news/%E5%8F%B2%E4%B8%8A%E6%9C%80%E5%BC%B7%E5%96%AE%E6%9C%88%EF%BC%81%E5%8F%B0%E7%A9%8D%E9%9B%BB1%E6%9C%88%E7%87%9F%E6%94%B6%E9%A6%96%E5%BA%A6%E8%A1%9D%E7%A0%B44%E5%8D%83%E5%84%84%E5%85%83-%E5%B9%B4%E5%A2%9E37%EF%BC%85-053342041.html",
-      "score": 0.6,
-      "label": "Bullish",
-      "confidence": 0.85,
-      "summary": "台積電1月營收首度衝破4千億元，創史上最強單月營收，年增37％。展望今年，台積電預期2026全年營收仍有機會再成長25% 到30%。\n關鍵事實：台積電1月營收首度衝破4千億元，創史上最強單月營收；1月營收年增37％；台積電預期2026全年營收仍有機會再成長25% 到30%",
-      "publish_time": "2026-02-21T13:25:41.160802"
-    },
-    {
-      "title": "台積電(2330.TW) 財務報表- 營收表 - Yahoo股市",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/quote/2330.TW/revenue",
+      "title": "微軟遊戲部門人事變動：Phil Spencer 宣布退休，Asha Sharma 接執行長",
+      "source": "TechNews",
+      "url": "https://ccc.technews.tw/2026/02/21/phil-spencer-asha-sharma/",
       "score": 0.0,
       "label": "Neutral",
-      "confidence": 1.0,
-      "summary": "本篇新聞為台積電(2330)在Yahoo股市上的營收表，主要提供營收數據。由於頁面本身僅為數據呈現，並無觀點或分析，因此對股市情緒影響中性。數據顯示2025年7月營收較去年同期增加25.77%，2025年1至7月營收較去年同期增加37.63%。\n關鍵事實：2025年7月營收較去年同期增加25.77%；2025年1至7月營收較去年同期增加37.63%",
-      "publish_time": "2026-02-21T13:25:41.160794"
+      "confidence": 0.5,
+      "summary": "微軟遊戲部門人事變動，Phil Spencer 宣布退休，Asha Sharma 接任執行長。Spencer 自2014 年領導 Xbox，並於 2022 年任命為遊戲部門執行長。Xbox 總裁 Sarah Bond 也已離開微軟。此次重組被視為 Xbox 世代轉變，從 Spencer 時代過渡到微軟全面控制。人事變動可能影響微軟遊戲部門的策略方向，但對台股影響有限。\n關鍵事實：微軟遊戲部門人事變",
+      "publish_time": "2026-02-21T07:00:08"
     },
     {
-      "title": "台積電2026首季營收約352億美元「季增逾4%」 魏哲家現身說法",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/news/%E5%8F%B0%E7%A9%8D%E9%9B%BB2026%E9%A6%96%E5%AD%A3%E7%87%9F%E6%94%B6%E7%B4%84352%E5%84%84%E7%BE%8E%E5%85%83-%E5%AD%A3%E5%A2%9E%E9%80%BE4-%E9%AD%8F%E5%93%B2%E5%AE%B6%E7%8F%BE%E8%BA%AB%E8%AA%AA%E6%B3%95-075919965.html",
-      "score": 0.5,
-      "label": "Bullish",
-      "confidence": 0.8,
-      "summary": "台積電法說會預估2026年首季營收達346至358億美元，中間值為352億美元，季增約4.4%，毛利率與營益率也將繼續創歷史新高。台積電董事長魏哲家表示不擔心競爭對手搶走市場。\n關鍵事實：台積電預估2026年首季營收季增約4.4%；預期毛利率與營益率將繼續創歷史新高；魏哲家表示不擔心競爭對手",
-      "publish_time": "2026-02-21T13:25:41.160781"
+      "title": "川普改全面加徵 10% 關稅，政院：「對等貿易協定」是否送立院將審慎評估",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/trump-tariff-legislative-yuan/",
+      "score": -0.3,
+      "label": "Somewhat-Bearish",
+      "confidence": 0.7,
+      "summary": "川普擬對全球加徵 10% 關稅，行政院表示初判對我國衝擊影響有限，但政府將密切關注並與美方維持緊密溝通，包括是否將「對等貿易協定」送交立法院審議等。政府將審慎評估後續應處作為，爭取國家最大利益，維繫產業的國際競爭力。此政策變動可能增加台灣出口美國的成本，對相關產業產生潛在影響。\n關鍵事實：川普擬對全球加徵 10% 關稅；行政院表示初判對我國衝擊影響有限；政府將密切關注並與美方維持緊密溝通",
+      "publish_time": "2026-02-21T06:30:41"
     },
     {
-      "title": "刷新紀錄！台積電元月營收「首破4千億」大關年增36.8％暴力成長",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/news/%E5%88%B7%E6%96%B0%E7%B4%80%E9%8C%84-%E5%8F%B0%E7%A9%8D%E9%9B%BB%E5%85%83%E6%9C%88%E7%87%9F%E6%94%B6-%E9%A6%96%E7%A0%B44%E5%8D%83%E5%84%84-%E5%A4%A7%E9%97%9C-%E5%B9%B4%E5%A2%9E36-055142305.html",
-      "score": 0.6,
-      "label": "Bullish",
-      "confidence": 0.85,
-      "summary": "台積電1月營收達4012.5億元，年增36.8％、月增19.8％，單月合併營收首度衝破4千億元大關。法人認為，1月營收跳升主因在於3奈米製程及更先進製程的拉貨力道超預期。\n關鍵事實：台積電1月營收達4012.5億元，首度衝破4千億；1月營收年增36.8％、月增19.8％；3奈米製程及更先進製程拉貨力道超預期",
-      "publish_time": "2026-02-21T13:25:41.160772"
-    },
-    {
-      "title": "史上新高！台積電2025年營收3.8兆元年增32％合乎預期 - Yahoo股市",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/news/%E5%8F%B2%E4%B8%8A%E6%96%B0%E9%AB%98%EF%BC%81%E5%8F%B0%E7%A9%8D%E9%9B%BB2025%E5%B9%B4%E7%87%9F%E6%94%B638%E5%85%86%E5%85%83-%E5%B9%B4%E5%A2%9E32%EF%BC%85%E5%90%88%E4%B9%8E%E9%A0%90%E6%9C%9F-053706376.html",
-      "score": 0.5,
-      "label": "Bullish",
-      "confidence": 0.8,
-      "summary": "台積電2025年營收3.8兆元，年增32％，創史上新高。12月營收年增20.4%。統一投顧董事長黎方國認為，法人更關注1月中法說會內容，包括2026年資本支出規模、半導體產業成長動能、先進製程產能配置與價格策略。\n關鍵事實：台積電2025年營收3.8兆元，創史上新高；2025年營收年增32％；12月營收年增20.4%；法人關注法說會內容",
-      "publish_time": "2026-02-21T13:25:41.160753"
-    },
-    {
-      "title": "台積電(2330.TW) 成交彙整 - Yahoo股市",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/quote/2330.TW/time-sales",
-      "score": 0.1,
-      "label": "Neutral",
-      "confidence": 0.6,
-      "summary": "這則新聞列出台積電(2330)在2026年2月11日的成交彙整與價量變化，顯示股價在1915至1925元之間波動，並提供網友也在看的其他股票資訊，如鴻海(2317)、聯發科(2454)等。成交量數據可能有助於分析市場對台積電的興趣程度，但缺乏基本面分析，對股價的直接影響較小。\n關鍵事實：台積電(2330)股價在1915至1925元之間波動；2026年2月11日成交量為40,381張；網友也在看鴻海",
-      "publish_time": "2026-02-21T13:25:38.947888"
-    },
-    {
-      "title": "台積電平歷史最高價1495元 推升台股創新高",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/news/%E5%8F%B0%E7%A9%8D%E9%9B%BB%E5%B9%B3%E6%AD%B7%E5%8F%B2%E6%9C%80%E9%AB%98%E5%83%B91495%E5%85%83-%E6%8E%A8%E5%8D%87%E5%8F%B0%E8%82%A1%E5%89%B5%E6%96%B0%E9%AB%98-023827951.html",
-      "score": 0.6,
-      "label": "Bullish",
-      "confidence": 0.9,
-      "summary": "台積電(2330)股價曾達到歷史最高價1495元，市值達38.76兆元，貢獻大盤約361點，推升台股創歷史新高27768點。輝達(NVIDIA)執行長黃仁勳參訪台積電亞利桑那州廠，魏哲家表示將加速亞利桑那州廠產能擴充，並升級至2奈米和更先進製程技術。此外，台積電ADR的價格以及股息資訊也被提及。整體而言，新聞偏向利多。\n關鍵事實：台積電(2330)股價曾達到歷史最高價1495元；台積電市值達38.",
-      "publish_time": "2026-02-21T13:25:38.947879"
-    },
-    {
-      "title": "台積電(2330.TW) 股價、新聞、報價和記錄 - Yahoo 財經",
-      "source": "Tavily:hk.finance.yahoo.com",
-      "url": "https://hk.finance.yahoo.com/quote/2330.TW/",
+      "title": "Nvidia 下週公布最新財報，分析師估本季營收高達 657 億美元",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/what-to-expect-from-nvidia-earnings/",
       "score": 0.4,
       "label": "Somewhat-Bullish",
       "confidence": 0.8,
-      "summary": "該新聞提供台積電(2330)的股價、新聞、報價和記錄。2月11日收市價為1,915.00，上漲35.00 (+1.86%)。年初至今回報為23.55%，1年回報為75.34%，3年回報為270.81%。預計業績公佈日期為2026年4月16日，遠期股息及收益率為24.00 (1.25%)。分析師目標價為1,390.30。也列出其他半導體公司如聯電(2303)、華邦電(2344)等。\n關鍵事實：台積電",
-      "publish_time": "2026-02-21T13:25:38.947869"
+      "summary": "Nvidia 將於 25 日公布最新財報，分析師預測第四季營收將達約 657 億美元，調整後每股收益（EPS）為 1.52 美元，顯示營收年增長率達 66.7%~67%，每股收益增長 70.8%。增長主要受超大規模資料中心的人工智慧領域支出推動。市場對Nvidia的Blackwell晶片需求強勁。若財報符合或超出預期，可能帶動相關供應鏈股價上漲。\n關鍵事實：Nvidia 第四季營收預期將達約 65",
+      "publish_time": "2026-02-21T06:00:18"
     },
     {
-      "title": "台積電(2330.TW) 基本資料 - Yahoo股市",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/quote/2330.TW/profile",
-      "score": 0.1,
-      "label": "Neutral",
+      "title": "技嘉攜手 NVIDIA 推出〈惡靈古堡：安魂曲〉遊戲套裝，強化沉浸遊戲體驗",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/21/resident-evil-requiem/",
+      "score": 0.2,
+      "label": "Somewhat-Bullish",
       "confidence": 0.7,
-      "summary": "這篇新聞提供了台積電(2330)的基本資料，包含公司成立時間、總機電話、掛牌日期、產業類別、公司網站、董事長、總經理、股務代理、股本、簽證會計師、已發行普通股數、公司地址、市值、市場別、董監持股比例、所屬集團以及主要經營業務。同時也揭露了配股資訊、財務資訊(2025 Q3獲利能力、最新四季每股盈餘、最近四年每股盈餘)以及重要行事曆。整體而言，提供公司基本面資訊，對股價影響中性。\n關鍵事實：台積電(",
-      "publish_time": "2026-02-21T13:25:38.947840"
+      "summary": "技嘉與NVIDIA合作推出〈惡靈古堡：安魂曲〉遊戲套裝，包含搭載GeForce RTX 5070以上顯示卡的桌機、筆電。RTX 50系列顯示卡採用NVIDIA Blackwell架構，透過光線追蹤、DLSS 4等技術提升遊戲體驗。技嘉提供多元散熱方案，並推出AORUS GeForce RTX 5090 INFINITY顯示卡。購買指定產品可獲得遊戲兌換碼。此合作強調了技嘉在電競硬體領域的技術實力，",
+      "publish_time": "2026-02-21T06:00:07"
     },
     {
-      "title": "台積電(2330.TW) 最新股票消息和頭條新聞 - Yahoo 財經",
-      "source": "Tavily:hk.finance.yahoo.com",
-      "url": "https://hk.finance.yahoo.com/quote/2330.TW/news/",
+      "title": "為與輝達競爭 AI 晶片市場，Google 祭出「鈔能力」投資更多合作夥伴",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/google-using-financial-might-to-take-on-nvidias-ai-chip-dominance/",
       "score": 0.3,
       "label": "Somewhat-Bullish",
       "confidence": 0.7,
-      "summary": "該新聞提供台積電(2330)的最新股票消息和頭條新聞，包括股息資訊（已宣布派發 6.00 TWD 的現金股息，除息日為 2026年3月17日）以及其他媒體對台積電的報導，例如 Motley Fool、Reuters 和 Zacks 等。也提及其他公司如NVIDIA。整體而言，新聞偏向正面。\n關鍵事實：台積電(2330)已宣布派發 6.00 TWD 的現金股息，除息日為 2026年3月17日；提及多",
-      "publish_time": "2026-02-21T13:25:38.947832"
+      "summary": "Google積極擴大AI晶片市場，挑戰輝達(NVIDIA)的主導地位，增加對資料中心合作夥伴的投資，並考慮投資雲端計算新創公司Fluidstack 1億美元。Google的資本支出大幅增加，與博通、台積電等合作夥伴共同開發Tensor晶片，旨在削弱輝達的定價權。此舉可能影響AI晶片市場的競爭格局，並帶動相關基礎設施的需求。\n關鍵事實：Google計劃投資雲端計算新創公司Fluidstack 1億美",
+      "publish_time": "2026-02-21T05:30:12"
     },
     {
-      "title": "台積電(2330.TW) 過往股價及數據 - Yahoo 財經",
-      "source": "Tavily:hk.finance.yahoo.com",
-      "url": "https://hk.finance.yahoo.com/quote/2330.TW/history/",
+      "title": "選對系比選對校更重要，大學推「招生專業化」用體驗課降低休退學率",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/21/tw-college-aspiration/",
       "score": 0.0,
       "label": "Neutral",
       "confidence": 0.6,
-      "summary": "這篇新聞提供台積電(2330)在2025年9月11日至2025年12月9日期間的過往股價及數據，包含日期、開盤價、最高價、最低價、收盤價、調整後收盤價以及成交量。股價在期間內呈現波動。\n關鍵事實：提供台積電(2330)在2025年9月11日至2025年12月9日期間的過往股價及數據；包含日期、開盤價、最高價、最低價、收盤價、調整後收盤價以及成交量；股價在期間內呈現波動",
-      "publish_time": "2026-02-21T13:25:38.947823"
+      "summary": "文章探討大學選系策略，指出考生從追逐名校轉向考量CP值與專業實力。半導體與AI領域熱門，但人文科系也積極轉型，融合AI工具。企業重視跨域軟實力，如社會智力與溝通能力。大學推動招生專業化，開設體驗課程降低休退學率。選系考量職場接軌度，私校如中原、輔仁在特定領域表現突出。整體反映大學教育趨勢變化，對相關產業影響有限。\n關鍵事實：考生選校策略轉向考量CP值與專業實力；企業重視跨域軟實力，如社會智力與溝通",
+      "publish_time": "2026-02-21T05:00:34"
     },
     {
-      "title": "台積電2330 - 總覽- 台股 - Anue鉅亨網",
-      "source": "Tavily:鉅亨網",
-      "url": "https://www.cnyes.com/twstock/2330",
+      "title": "強化印半導體在地生態，印度攜手 HCL、鴻海推 OSAT 封測案",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/india-hcl-foxconn/",
       "score": 0.4,
       "label": "Somewhat-Bullish",
       "confidence": 0.8,
-      "summary": "這篇新聞提供台積電(2330)的總覽資訊，包含股價、公司簡介、營業構成、新聞快訊以及個股聊天等。2月10日市場盤中股價為1865.00，上漲50.00+2.75%。公司簡介提及董事長為魏哲家，成立日期為1987/02/21，上市日期為1994/09/05，資本額為2593.25億。新聞快訊列出近期營收速報以及公司治理主管異動等訊息。\n關鍵事實：台積電(2330)2月10日市場盤中股價為1865.0",
-      "publish_time": "2026-02-21T13:25:38.947814"
+      "summary": "印度政府攜手HCL與鴻海推動OSAT封測案，總投資超過3,700億盧比，旨在強化印度半導體在地生態。此舉符合印度政府降低進口依賴、打造具韌性的全球供應鏈的政策方向。該設施預期支援多個終端應用領域，並創造數以千計的就業機會。此舉對鴻海在印度市場的發展有利，並可能帶動相關供應鏈的發展。\n關鍵事實：印度政府攜手HCL與鴻海推動OSAT封測案；總投資金額超過 3,700 億盧比；該設施預期支援多個終端應用",
+      "publish_time": "2026-02-21T04:10:04"
     },
     {
-      "title": "台積電(2330.TW) 相關新聞 - Yahoo股市",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/quote/2330.TW/news",
-      "score": 0.4,
+      "title": "十週年了你還抓寶嗎？Pokémon GO 為何還能讓訓練家走出門、玩十年",
+      "source": "TechNews",
+      "url": "https://technews.tw/2026/02/21/pokemon-go-tainan/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.6,
+      "summary": "Pokémon GO在台南舉辦「Pokémon GO Tour：卡洛斯─台南」活動，吸引大量玩家參與。遊戲強調「出去旅遊」與「連結人與人」的特色，透過真實社交互動維持玩家黏著度。活動與城市連動性強，結合城市景點，讓玩家在遊戲中探索城市。台灣玩家更愛走路且更願意社交，社群氛圍濃厚。活動選在年假期間舉辦，吸引家庭一同參與。此新聞對遊戲股影響有限。\n關鍵事實：Pokémon GO在台南舉辦大型活動；遊戲",
+      "publish_time": "2026-02-21T04:00:50"
+    },
+    {
+      "title": "紐時：台灣輸美半導體為主，最高院判決影響不大",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/new-york-times-tariff/",
+      "score": 0.2,
       "label": "Somewhat-Bullish",
-      "confidence": 0.8,
-      "summary": "這篇新聞包含多則關於台積電(2330)的消息，包括台積電ADR的漲跌幅、美股主要指數的走勢、股息資訊以及投信法人看旺開紅盤金馬報喜等。其中，台積電ADR的漲跌互見，美股主要指數全面走揚，投信法人看好AI供應鏈。整體而言，新聞偏向正面。\n關鍵事實：台積電ADR的漲跌互見；美股主要指數全面走揚；投信法人看好AI供應鏈；台積電今年股息24元起跳",
-      "publish_time": "2026-02-21T13:25:38.947804"
+      "confidence": 0.7,
+      "summary": "《紐約時報》分析，美國最高法院裁決對台灣影響不大，因台灣輸美主要產品為半導體，多屬免徵關稅豁免條款。川普政府可能加徵新稅項，但台美對等貿易協定下，台灣享有232條款最惠待遇。中國、加拿大、墨西哥及東南亞各國受影響程度不同。此新聞對台灣半導體產業影響中性偏正面。\n關鍵事實：台灣輸美主要產品為半導體，多屬免徵關稅豁免條款；台美對等貿易協定下，台灣享有232條款最惠待遇；川普政府可能加徵新稅項",
+      "publish_time": "2026-02-21T03:45:52"
     },
     {
-      "title": "台積電(2330.TW) 個股公告 - Yahoo股市",
-      "source": "Tavily:Yahoo 財經",
-      "url": "https://tw.stock.yahoo.com/quote/2330/announcement",
+      "title": "中國內捲式競爭難破除，學者指網路巨頭有恃無恐",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/cn-web-inc-wont-stop-inner-roll/",
+      "score": 0.0,
+      "label": "Neutral",
+      "confidence": 0.6,
+      "summary": "中國官方整治「內捲式」競爭，但網路平台補貼大戰難以禁絕。學者認為，網路巨頭有成長焦慮，前期累積實力使其有恃無恐。補貼戰未擴大市場，反帶來負面影響。監管聚焦壟斷行為，難以制約掠奪性定價。平台競爭蔓延至輿論場和社會領域，危害不容小覷。此新聞對台灣股市影響有限。\n關鍵事實：中國官方整治「內捲式」競爭，但網路平台補貼大戰難以禁絕；網路巨頭有成長焦慮，前期累積實力使其有恃無恐；補貼戰未擴大市場，反帶來負面影",
+      "publish_time": "2026-02-21T03:30:10"
+    },
+    {
+      "title": "最高法院推翻川普關稅，分析：蘋果公司衝擊可望減緩",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/apple-shock-may-slow-down/",
       "score": 0.3,
       "label": "Somewhat-Bullish",
-      "confidence": 0.8,
-      "summary": "這則新聞列出台積電(2330)的個股公告，包含代子公司 TSMC Global Ltd. 公告取得固定收益證券、民國114年度合併財務報告業經董事會決議通過以及董事會核准增資子公司 TSMC Global。財務報告顯示，114年度累計至本期止歸屬於母公司業主淨利為1,717,882,627仟元，基本每股盈餘為66.26元。整體而言，提供公司營運資訊，對股價影響中性偏多。\n關鍵事實：TSMC Glo",
-      "publish_time": "2026-02-21T13:25:38.947795"
+      "confidence": 0.7,
+      "summary": "美國最高法院推翻川普關稅，分析指出，科技產品多已列入豁免或轉移生產線，蘋果公司衝擊可望減緩。蘋果股價上漲。川普政府可能轉向加徵10%全球關稅。蘋果近年加強印度iPhone製造產能。蘋果關稅支出預料開始縮減。此新聞對蘋果供應鏈廠商可能產生正面影響。\n關鍵事實：美國最高法院推翻川普關稅；科技產品多已列入豁免或轉移生產線，蘋果公司衝擊可望減緩；蘋果近年加強印度iPhone製造產能",
+      "publish_time": "2026-02-21T03:15:30"
     },
     {
-      "title": "台積電(2330)個股新聞-台股-MoneyDJ理財網",
-      "source": "Tavily:MoneyDJ",
-      "url": "https://www.moneydj.com/Z/ZC/ZCV/ZCV.djhtm?a=2330&b=E&c=1",
-      "score": 0.1,
+      "title": "美食街抽成 25% 仍搶進，進百貨前必做好的三道生死算盤",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/restaurant-migration/",
+      "score": 0.0,
       "label": "Neutral",
+      "confidence": 0.6,
+      "summary": "餐飲業面臨街邊店人潮流失、轉往百貨商場的趨勢。街邊店受超商、外送、團購等「跨維度競爭」影響，經營環境嚴峻。百貨競爭單純，且自帶用餐人流。進駐百貨前需評估營收結構、現金流及管理模式。百貨抽成高，但可省下處理投訴等心力。此新聞對股市影響有限。\n關鍵事實：餐飲業面臨街邊店人潮流失、轉往百貨商場的趨勢；街邊店受超商、外送、團購等「跨維度競爭」影響；進駐百貨前需評估營收結構、現金流及管理模式",
+      "publish_time": "2026-02-21T03:00:11"
+    },
+    {
+      "title": "最高法院才剛推翻全球關稅，白宮改口推「臨時進口附加費」",
+      "source": "TechNews",
+      "url": "https://finance.technews.tw/2026/02/21/trump-temporary-import-surcharge/",
+      "score": -0.3,
+      "label": "Somewhat-Bearish",
       "confidence": 0.7,
-      "summary": "這篇新聞列出台積電(2330)的個股新聞標題，包含取得固定收益證券、證交所盤後交易排行、1月營收創新高、去年Q4每股配息6元以及董事會通過募集無擔保普通公司債等。整體而言，提供公司近期相關新聞，對股價影響中性。\n關鍵事實：台積電(2330)取得固定收益證券；1月營收創新高；去年Q4每股配息6元；董事會通過募集無擔保普通公司債",
-      "publish_time": "2026-02-21T13:25:38.947775"
+      "summary": "白宮宣布將依《1974 年貿易法》第 122 條啟動臨時進口附加費，對多數進口商品加徵 10% 從價稅，為期 150 天，以處理國際收支失衡問題。部分品項如關鍵礦物、藥品、部分電子產品等不納入。此舉在最高法院推翻川普全球關稅政策後推出，可能引發新一輪關稅談判。對台灣出口至美國的電子產品影響需視豁免清單而定。\n關鍵事實：美國將對多數進口商品加徵 10% 從價稅；部分品項如關鍵礦物、藥品、部分電子產品",
+      "publish_time": "2026-02-21T02:52:36"
     }
   ]
 }
