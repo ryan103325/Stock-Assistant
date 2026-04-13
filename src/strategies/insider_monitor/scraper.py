@@ -245,7 +245,7 @@ def format_report(all_increases):
             name_display = r["姓名"] if r["姓名"] else "(配偶/子女)"
             # 簡化身分別
             identity_short = r["身分別"].replace("之配偶及未成年子女", "").replace("之法人代表人", "(法代)")
-            lines.append(f"　└ {identity_short} {name_display}：**{lots_str}** 張")
+            lines.append(f"　└ {name_display}：**{lots_str}** 張（{identity_short}）")
         lines.append("")
 
     return "\n".join(lines)
