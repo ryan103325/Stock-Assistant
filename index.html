@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台股分析工具</title>
+    <meta name="description" content="互動式台股技術分析與基本面分析工具">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📈 台股分析工具</h1>
+            <div class="search-box">
+                <input type="text" id="stockInput" placeholder="輸入股票代碼或名稱 (例: 2330、台積電)" autocomplete="off">
+                <button id="searchBtn">查詢</button>
+            </div>
+        </header>
+
+        <div class="stock-info" id="stockInfo">
+            <span class="stock-id" id="stockId">--</span>
+            <span class="stock-name" id="stockName">請輸入股票代碼</span>
+            <span class="stock-price" id="stockPrice">--</span>
+            <span class="stock-change" id="stockChange">--</span>
+        </div>
+
+        <div class="controls">
+            <div class="tab-btns">
+                <button class="tab-btn active" data-tab="technical">技術分析</button>
+                <button class="tab-btn" data-tab="fundamental">基本面分析</button>
+                <button class="tab-btn" data-tab="chip">籌碼面分析</button>
+                <button class="tab-btn" data-tab="news">消息面分析</button>
+            </div>
+            <div class="timeframe-btns" id="timeframeBtns">
+                <button class="tf-btn active" data-tf="D">日線</button>
+                <button class="tf-btn" data-tf="W">週線</button>
+            </div>
+        </div>
+
+        <!-- 技術分析頁籤 -->
+        <div id="technical-tab" class="tab-content active">
+            <div class="chart-container">
+                <div class="indicator-label"><span>K線</span></div>
+                <div class="chart-wrapper">
+                    <div id="chart"></div>
+                    <canvas id="vpCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="volume-container">
+                <div class="indicator-label"><span>成交量</span></div>
+                <div id="volumeChart"></div>
+            </div>
+
+            <div class="rsi-container">
+                <div class="indicator-label"><span>RSI</span></div>
+                <div id="rsiChart"></div>
+            </div>
+        </div>
+
+        <!-- 基本面分析頁籤 -->
+        <div id="fundamental-tab" class="tab-content">
+            <div class="fundamental-panel">
+                <!-- 分析控制 -->
+                <div class="fund-control">
+                    <button id="startAnalysis" class="analysis-btn">
+                        <span class="btn-icon">🔬</span>
+                        <span class="btn-text">開始基本面分析</span>
+                    </button>
+                    <button id="configToken" class="config-btn" title="設定 GitHub Token">⚙️</button>
+                    <div id="analysisStatus" class="analysis-status"></div>
+                </div>
+
+                <!-- 分析結果 -->
+                <div id="fundResult" class="fund-result" style="display: none;">
+                    <!-- 評分卡片 -->
+                    <div class="score-grid">
+                        <div class="score-card" id="zScoreCard">
+                            <div class="score-label">Z-Score</div>
+                            <div class="score-value" id="zScoreValue">--</div>
+                            <div class="score-badge" id="zScoreBadge">--</div>
+                        </div>
+                        <div class="score-card" id="fScoreCard">
+                            <div class="score-label">F-Score</div>
+                            <div class="score-value" id="fScoreValue">--</div>
+                            <div class="score-badge" id="fScoreBadge">--</div>
+                        </div>
+                        <div class="score-card" id="mScoreCard">
+                            <div class="score-label">M-Score</div>
+                            <div class="score-value" id="mScoreValue">--</div>
+                            <div class="score-badge" id="mScoreBadge">--</div>
+                        </div>
+                        <div class="score-card" id="roicCard">
+                            <div class="score-label">ROIC</div>
+                            <div class="score-value" id="roicValue">--</div>
+                            <div class="score-badge" id="roicBadge">--</div>
+                        </div>
+                        <div class="score-card" id="lynchCard">
+                            <div class="score-label">Lynch 分類</div>
+                            <div class="score-value" id="lynchValue">--</div>
+                            <div class="score-badge" id="lynchBadge">--</div>
+                        </div>
+                        <div class="score-card" id="eyCard">
+                            <div class="score-label">盈餘殖利率</div>
+                            <div class="score-value" id="eyValue">--</div>
+                            <div class="score-badge" id="eyBadge">--</div>
+                        </div>
+                    </div>
+
+                    <!-- 財務比率 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">📊 財務比率</h3>
+                        <div class="ratio-grid" id="ratioGrid"></div>
+                    </div>
+
+                    <!-- AI 分析 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">🤖 AI 分析摘要</h3>
+                        <div class="ai-summary" id="aiSummary">
+                            <p>尚未分析</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 籌碼面分析頁籤 -->
+        <div id="chip-tab" class="tab-content">
+            <div class="fundamental-panel">
+                <!-- 分析控制 -->
+                <div class="fund-control">
+                    <button id="startChipAnalysis" class="analysis-btn">
+                        <span class="btn-icon">📊</span>
+                        <span class="btn-text">開始籌碼面分析</span>
+                    </button>
+                    <button id="configChipToken" class="config-btn" title="設定 GitHub Token">⚙️</button>
+                    <div id="chipAnalysisStatus" class="analysis-status"></div>
+                </div>
+
+                <!-- 分析結果 -->
+                <div id="chipResult" class="fund-result" style="display: none;">
+
+                    <!-- 總分儀表 -->
+                    <div class="chip-score-panel">
+                        <div class="chip-score-left">
+                            <div class="chip-score-number" id="chipTotalScore">--</div>
+                            <div class="chip-score-label">/ 100 分</div>
+                        </div>
+                        <div class="chip-score-right">
+                            <div class="chip-rating-badge" id="chipRatingBadge">
+                                <span id="chipRating">--</span>
+                                <span class="chip-rating-en" id="chipRatingEn"></span>
+                            </div>
+                            <div class="chip-score-bar-bg">
+                                <div class="chip-score-bar-fill" id="chipScoreBar" style="width:0%"></div>
+                            </div>
+                            <div class="chip-analysis-date" id="chipAnalysisDate"></div>
+                        </div>
+                    </div>
+
+                    <!-- 低成交量警示 -->
+                    <div id="chipLowVolWarning" class="chip-warning-banner" style="display:none;">
+                        ⚠️ 成交量過低，分點評分已減半，整體評級已降一級
+                    </div>
+
+                    <!-- 四維度卡片 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">📐 四維度評分</h3>
+                        <div class="chip-dim-grid">
+                            <div class="chip-dim-card" id="dimInstitutional"></div>
+                            <div class="chip-dim-card" id="dimOwnership"></div>
+                            <div class="chip-dim-card" id="dimBroker"></div>
+                            <div class="chip-dim-card" id="dimSentiment"></div>
+                        </div>
+                    </div>
+
+                    <!-- 關鍵亮點 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">✅ 關鍵亮點</h3>
+                        <div id="chipHighlights" class="chip-highlights"></div>
+                    </div>
+
+                    <!-- 風險警示 -->
+                    <div class="fund-section" id="chipRisksSection" style="display:none;">
+                        <h3 class="section-title">⚠️ 風險警示</h3>
+                        <div id="chipRisks" class="chip-risks"></div>
+                    </div>
+
+                    <!-- 策略建議 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">💡 策略建議</h3>
+                        <div class="ai-summary">
+                            <p id="chipStrategy">--</p>
+                        </div>
+                    </div>
+
+                    <!-- 原始資料 -->
+                    <div class="fund-section">
+                        <h3 class="section-title" style="cursor:pointer;" onclick="toggleRawData()">📋 原始資料 <span
+                                id="rawToggleIcon">▼</span></h3>
+                        <div id="chipRawData" class="ratio-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新聞面分析頁籤 -->
+        <div id="news-tab" class="tab-content">
+            <div class="fundamental-panel">
+                <!-- 搜尋控制 -->
+                <div class="fund-control">
+                    <input type="text" id="newsSearchInput" placeholder="輸入股票代碼 (例: 2330)" class="news-search-input">
+                    <button id="startNewsSearch" class="analysis-btn">
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">搜尋個股新聞</span>
+                    </button>
+                    <button id="configNewsToken" class="config-btn" title="設定 GitHub Token">⚙️</button>
+                    <div id="newsSearchStatus" class="analysis-status"></div>
+                </div>
+
+                <div id="newsContentWrapper" style="display:none;">
+                    <div class="fund-header">
+                        <div class="fund-title-group">
+                            <h2 id="newsStockTitle" class="fund-stock-title">--</h2>
+                            <div id="newsAnalysisDate" class="fund-date">最後分析：--</div>
+                        </div>
+                    </div>
+
+                    <div class="fund-section">
+                        <h3 class="section-title">📰 個股情緒總覽</h3>
+                        <div id="newsOverview" class="news-overview"></div>
+                    </div>
+
+                    <!-- 情緒分佈 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">📊 情緒分佈</h3>
+                        <div id="sentimentDistribution" class="sentiment-distribution"></div>
+                    </div>
+
+                    <!-- 最新相關新聞 -->
+                    <div class="fund-section">
+                        <h3 class="section-title">📝 相關新聞列表</h3>
+                        <div id="recentNews" class="recent-news-list"></div>
+                    </div>
+                </div>
+
+                <div id="newsEmptyState" class="news-empty" style="margin-top:20px;">
+                    請輸入股票代碼並點擊「搜尋個股新聞」以載入資料
+                </div>
+            </div>
+        </div>
+
+        <div class="suggestions" id="suggestions"></div>
+
+        <!-- 浮動資訊面板 -->
+        <div id="tooltip" class="chart-tooltip"></div>
+    </div>
+
+    <!-- 任務排隊面板 -->
+    <div id="tqPanel" class="tq-panel">
+        <div class="tq-header">
+            <span class="tq-title">📋 分析任務</span>
+            <div class="tq-actions">
+                <button class="tq-clear-btn" onclick="TaskQueue.clearDone()" title="清除已完成">🗑️</button>
+                <button class="tq-close-btn" onclick="TaskQueue.togglePanel()" title="收合">✕</button>
+            </div>
+        </div>
+        <div id="tqList" class="tq-list"></div>
+    </div>
+
+    <!-- 排隊觸發浮鈕 -->
+    <button class="tq-fab" onclick="TaskQueue.togglePanel()" title="分析任務佇列">
+        📋<span id="tqBadge" class="tq-badge" style="display:none"></span>
+    </button>
+
+    <script src="app.js"></script>
+    <script src="taskqueue.js"></script>
+    <script src="fundamental.js"></script>
+    <script src="volume_profile.js"></script>
+    <script src="chip.js"></script>
+    <script src="news.js"></script>
+    <script>
+        function toggleRawData() {
+            const el = document.getElementById('chipRawData');
+            const icon = document.getElementById('rawToggleIcon');
+            const hidden = el.style.display === 'none';
+            el.style.display = hidden ? 'grid' : 'none';
+            icon.textContent = hidden ? '▲' : '▼';
+        }
+        // 初始隱藏原始資料
+        document.addEventListener('DOMContentLoaded', () => {
+            const raw = document.getElementById('chipRawData');
+            if (raw) raw.style.display = 'none';
+        });
+    </script>
+</body>
+
+</html>

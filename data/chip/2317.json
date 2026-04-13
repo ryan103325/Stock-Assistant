@@ -1,0 +1,1930 @@
+{
+  "stock_id": "2317",
+  "stock_name": "鴻海",
+  "analysis_date": "2026-02-20",
+  "analysis_time": "2026-02-20 10:35:32",
+  "current_price": 227.0,
+  "total_volume_1d": 67662,
+  "total_score": 32.7,
+  "rating": "觀望/中性",
+  "rating_en": "Neutral",
+  "low_volume_penalty": false,
+  "dimensions": {
+    "institutional": {
+      "score": 11.0,
+      "max": 30.0,
+      "trust": 1.5,
+      "trust_note": "投信近5日買超 938 張（連續 1 天）",
+      "trust_turning": "",
+      "foreign": 4.5,
+      "foreign_note": "外資近5日買超 46,676 張（連續 3 天）",
+      "dealer_5d": -424,
+      "foreign_align": 5.0,
+      "align_note": "二買一賣（自營商賣超）"
+    },
+    "ownership": {
+      "score": 7.7,
+      "max": 30.0,
+      "whale": 7.7,
+      "whale_note": "大戶持股趨勢上升（1週 +0.29%, 4週 -0.17%, 13週 -1.93%, 長期 +1.93%）",
+      "whale_warning": "",
+      "holders": 0.0,
+      "holders_note": "股東人數近4週增加 519 人（籌碼分散），13週亦增 74,233 人（目前 1,139,898 人）",
+      "avg_shares": 0.0,
+      "avg_note": "股東人數與平均張數皆持平（12.29 張/人）"
+    },
+    "broker": {
+      "score": 4.0,
+      "max": 20.0,
+      "long_term": 0.0,
+      "long_note": "60日前5大賣超 173,006 張＞買超 65,645 張（主力偏空）",
+      "exit_detect": 0.0,
+      "exit_note": "⚠️ 60日主力反手：元大證券（賣超 10,830 張，原買 6,976 張）",
+      "intent_label": "🔴 主力反手出脫",
+      "period_align": 4.0,
+      "period_note": "多時框偏多，20d,60d 偏空（小分歧）"
+    },
+    "sentiment": {
+      "score": 10.0,
+      "max": 20.0,
+      "margin": 10,
+      "margin_note": "融資近5日減少 3,317 張（籌碼健康）",
+      "squeeze": 0.0,
+      "squeeze_note": "券資比 2.4%（軋空壓力不足）"
+    }
+  },
+  "highlights": [
+    "融資近5日減少 3,317 張（籌碼健康）",
+    "大戶持股趨勢上升（1週 +0.29%, 4週 -0.17%, 13週 -1.93%, 長期 +1.93%）",
+    "二買一賣（自營商賣超）",
+    "外資近5日買超 46,676 張（連續 3 天）"
+  ],
+  "risks": [],
+  "strategy": "主力出脫訊號明確，不宜加碼，已持有者考慮分批出場；融資減少 3,317 張，浮額消化健康",
+  "raw_data": {
+    "institutional": {
+      "trust_buy_5d": 938,
+      "trust_consecutive_days": 1,
+      "foreign_buy_5d": 46676,
+      "foreign_consecutive_days": 3,
+      "dealer_buy_5d": -424,
+      "dealer_consecutive_days": 3,
+      "institutional_daily": [
+        {
+          "date": "26/02/11",
+          "volume": 67662,
+          "foreign_net": 31320,
+          "trust_net": 1784,
+          "dealer_net": 340
+        },
+        {
+          "date": "26/02/10",
+          "volume": 47159,
+          "foreign_net": 18687,
+          "trust_net": -447,
+          "dealer_net": 485
+        },
+        {
+          "date": "26/02/09",
+          "volume": 31064,
+          "foreign_net": 6431,
+          "trust_net": -91,
+          "dealer_net": 111
+        },
+        {
+          "date": "26/02/06",
+          "volume": 56581,
+          "foreign_net": -2461,
+          "trust_net": -747,
+          "dealer_net": -729
+        },
+        {
+          "date": "26/02/05",
+          "volume": 43304,
+          "foreign_net": -7301,
+          "trust_net": 439,
+          "dealer_net": -631
+        },
+        {
+          "date": "26/02/04",
+          "volume": 27678,
+          "foreign_net": 3896,
+          "trust_net": 162,
+          "dealer_net": 541
+        },
+        {
+          "date": "26/02/03",
+          "volume": 42920,
+          "foreign_net": 3344,
+          "trust_net": -986,
+          "dealer_net": 1001
+        },
+        {
+          "date": "26/02/02",
+          "volume": 65660,
+          "foreign_net": -20473,
+          "trust_net": -321,
+          "dealer_net": -1204
+        },
+        {
+          "date": "26/01/30",
+          "volume": 72547,
+          "foreign_net": -13628,
+          "trust_net": -607,
+          "dealer_net": -395
+        },
+        {
+          "date": "26/01/29",
+          "volume": 56613,
+          "foreign_net": 13645,
+          "trust_net": -780,
+          "dealer_net": -1478
+        },
+        {
+          "date": "26/01/28",
+          "volume": 80017,
+          "foreign_net": -3926,
+          "trust_net": -786,
+          "dealer_net": 772
+        },
+        {
+          "date": "26/01/27",
+          "volume": 37140,
+          "foreign_net": 1814,
+          "trust_net": -863,
+          "dealer_net": -270
+        },
+        {
+          "date": "26/01/26",
+          "volume": 39852,
+          "foreign_net": 2956,
+          "trust_net": -416,
+          "dealer_net": -471
+        },
+        {
+          "date": "26/01/23",
+          "volume": 34323,
+          "foreign_net": -12232,
+          "trust_net": -309,
+          "dealer_net": 270
+        },
+        {
+          "date": "26/01/22",
+          "volume": 47823,
+          "foreign_net": 8768,
+          "trust_net": -644,
+          "dealer_net": 1355
+        },
+        {
+          "date": "26/01/21",
+          "volume": 81042,
+          "foreign_net": -24422,
+          "trust_net": -1408,
+          "dealer_net": 936
+        },
+        {
+          "date": "26/01/20",
+          "volume": 77124,
+          "foreign_net": -25854,
+          "trust_net": -6967,
+          "dealer_net": -1778
+        },
+        {
+          "date": "26/01/19",
+          "volume": 53439,
+          "foreign_net": -16169,
+          "trust_net": -2620,
+          "dealer_net": -1291
+        },
+        {
+          "date": "26/01/16",
+          "volume": 48950,
+          "foreign_net": 7024,
+          "trust_net": -6847,
+          "dealer_net": 867
+        },
+        {
+          "date": "26/01/15",
+          "volume": 35042,
+          "foreign_net": 2219,
+          "trust_net": -1748,
+          "dealer_net": -437
+        }
+      ]
+    },
+    "ownership": {
+      "whale_pct_this": 67.99,
+      "whale_pct_last": 67.7,
+      "total_holders_this": 1139898,
+      "avg_shares_this": 12.29,
+      "data_date": "20260211",
+      "ownership_weekly": [
+        {
+          "date": "20260211",
+          "total_holders": 1139898,
+          "avg_shares": 12.29,
+          "whale_400_pct": 67.99,
+          "whale_1000_pct": 65.09,
+          "retail_count": 1138475,
+          "retail_pct": 32.01,
+          "price": 227.0
+        },
+        {
+          "date": "20260206",
+          "total_holders": 1151214,
+          "avg_shares": 12.17,
+          "whale_400_pct": 67.7,
+          "whale_1000_pct": 64.76,
+          "retail_count": 1149788,
+          "retail_pct": 32.3,
+          "price": 215.0
+        },
+        {
+          "date": "20260130",
+          "total_holders": 1142270,
+          "avg_shares": 12.26,
+          "whale_400_pct": 68.04,
+          "whale_1000_pct": 65.18,
+          "retail_count": 1140854,
+          "retail_pct": 31.96,
+          "price": 220.5
+        },
+        {
+          "date": "20260123",
+          "total_holders": 1139379,
+          "avg_shares": 12.29,
+          "whale_400_pct": 68.16,
+          "whale_1000_pct": 65.28,
+          "retail_count": 1137964,
+          "retail_pct": 31.84,
+          "price": 221.5
+        },
+        {
+          "date": "20260116",
+          "total_holders": 1117844,
+          "avg_shares": 12.53,
+          "whale_400_pct": 68.75,
+          "whale_1000_pct": 65.84,
+          "retail_count": 1116422,
+          "retail_pct": 31.25,
+          "price": 234.5
+        },
+        {
+          "date": "20260109",
+          "total_holders": 1118763,
+          "avg_shares": 12.52,
+          "whale_400_pct": 68.76,
+          "whale_1000_pct": 65.85,
+          "retail_count": 1117331,
+          "retail_pct": 31.24,
+          "price": 230.5
+        },
+        {
+          "date": "20260102",
+          "total_holders": 1110736,
+          "avg_shares": 12.61,
+          "whale_400_pct": 69.03,
+          "whale_1000_pct": 66.14,
+          "retail_count": 1109300,
+          "retail_pct": 30.97,
+          "price": 232.0
+        },
+        {
+          "date": "20251226",
+          "total_holders": 1114250,
+          "avg_shares": 12.57,
+          "whale_400_pct": 68.95,
+          "whale_1000_pct": 66.06,
+          "retail_count": 1112810,
+          "retail_pct": 31.05,
+          "price": 225.5
+        },
+        {
+          "date": "20251219",
+          "total_holders": 1115987,
+          "avg_shares": 12.55,
+          "whale_400_pct": 68.93,
+          "whale_1000_pct": 66.03,
+          "retail_count": 1114549,
+          "retail_pct": 31.07,
+          "price": 221.5
+        },
+        {
+          "date": "20251212",
+          "total_holders": 1097514,
+          "avg_shares": 12.76,
+          "whale_400_pct": 69.31,
+          "whale_1000_pct": 66.43,
+          "retail_count": 1096079,
+          "retail_pct": 30.69,
+          "price": 227.0
+        },
+        {
+          "date": "20251205",
+          "total_holders": 1094490,
+          "avg_shares": 12.79,
+          "whale_400_pct": 69.42,
+          "whale_1000_pct": 66.58,
+          "retail_count": 1093051,
+          "retail_pct": 30.58,
+          "price": 231.0
+        },
+        {
+          "date": "20251128",
+          "total_holders": 1086979,
+          "avg_shares": 12.88,
+          "whale_400_pct": 69.54,
+          "whale_1000_pct": 66.69,
+          "retail_count": 1085533,
+          "retail_pct": 30.46,
+          "price": 225.5
+        },
+        {
+          "date": "20251121",
+          "total_holders": 1065665,
+          "avg_shares": 13.14,
+          "whale_400_pct": 69.92,
+          "whale_1000_pct": 67.1,
+          "retail_count": 1064210,
+          "retail_pct": 30.08,
+          "price": 225.0
+        },
+        {
+          "date": "20251114",
+          "total_holders": 1037494,
+          "avg_shares": 13.49,
+          "whale_400_pct": 70.48,
+          "whale_1000_pct": 67.6,
+          "retail_count": 1036042,
+          "retail_pct": 29.52,
+          "price": 241.0
+        },
+        {
+          "date": "20251107",
+          "total_holders": 1030243,
+          "avg_shares": 13.59,
+          "whale_400_pct": 70.57,
+          "whale_1000_pct": 67.73,
+          "retail_count": 1028796,
+          "retail_pct": 29.43,
+          "price": 244.0
+        },
+        {
+          "date": "20251031",
+          "total_holders": 993743,
+          "avg_shares": 14.09,
+          "whale_400_pct": 71.05,
+          "whale_1000_pct": 68.27,
+          "retail_count": 992303,
+          "retail_pct": 28.95,
+          "price": 257.5
+        },
+        {
+          "date": "20251023",
+          "total_holders": 984294,
+          "avg_shares": 14.14,
+          "whale_400_pct": 70.78,
+          "whale_1000_pct": 67.99,
+          "retail_count": 982877,
+          "retail_pct": 29.22,
+          "price": 239.0
+        },
+        {
+          "date": "20251017",
+          "total_holders": 996070,
+          "avg_shares": 13.97,
+          "whale_400_pct": 70.23,
+          "whale_1000_pct": 67.49,
+          "retail_count": 994662,
+          "retail_pct": 29.77,
+          "price": 226.5
+        },
+        {
+          "date": "20251009",
+          "total_holders": 976652,
+          "avg_shares": 14.23,
+          "whale_400_pct": 70.38,
+          "whale_1000_pct": 67.61,
+          "retail_count": 975240,
+          "retail_pct": 29.62,
+          "price": 221.5
+        },
+        {
+          "date": "20251003",
+          "total_holders": 971053,
+          "avg_shares": 14.31,
+          "whale_400_pct": 70.41,
+          "whale_1000_pct": 67.68,
+          "retail_count": 969655,
+          "retail_pct": 29.59,
+          "price": 226.5
+        },
+        {
+          "date": "20250926",
+          "total_holders": 964044,
+          "avg_shares": 14.41,
+          "whale_400_pct": 70.5,
+          "whale_1000_pct": 67.77,
+          "retail_count": 962652,
+          "retail_pct": 29.5,
+          "price": 219.5
+        },
+        {
+          "date": "20250919",
+          "total_holders": 997091,
+          "avg_shares": 13.93,
+          "whale_400_pct": 69.54,
+          "whale_1000_pct": 66.78,
+          "retail_count": 995700,
+          "retail_pct": 30.46,
+          "price": 214.0
+        },
+        {
+          "date": "20250912",
+          "total_holders": 1003772,
+          "avg_shares": 13.84,
+          "whale_400_pct": 69.33,
+          "whale_1000_pct": 66.6,
+          "retail_count": 1002389,
+          "retail_pct": 30.67,
+          "price": 217.5
+        },
+        {
+          "date": "20250905",
+          "total_holders": 1035249,
+          "avg_shares": 13.42,
+          "whale_400_pct": 68.5,
+          "whale_1000_pct": 65.77,
+          "retail_count": 1033872,
+          "retail_pct": 31.5,
+          "price": 205.0
+        },
+        {
+          "date": "20250829",
+          "total_holders": 1037750,
+          "avg_shares": 13.39,
+          "whale_400_pct": 68.37,
+          "whale_1000_pct": 65.61,
+          "retail_count": 1036374,
+          "retail_pct": 31.63,
+          "price": 203.5
+        },
+        {
+          "date": "20250822",
+          "total_holders": 1042045,
+          "avg_shares": 13.33,
+          "whale_400_pct": 68.3,
+          "whale_1000_pct": 65.57,
+          "retail_count": 1040685,
+          "retail_pct": 31.7,
+          "price": 202.5
+        },
+        {
+          "date": "20250815",
+          "total_holders": 1065120,
+          "avg_shares": 13.04,
+          "whale_400_pct": 67.53,
+          "whale_1000_pct": 64.8,
+          "retail_count": 1063767,
+          "retail_pct": 32.47,
+          "price": 207.0
+        },
+        {
+          "date": "20250808",
+          "total_holders": 1084057,
+          "avg_shares": 12.81,
+          "whale_400_pct": 66.91,
+          "whale_1000_pct": 64.16,
+          "retail_count": 1082717,
+          "retail_pct": 33.09,
+          "price": 194.5
+        },
+        {
+          "date": "20250801",
+          "total_holders": 1104265,
+          "avg_shares": 12.58,
+          "whale_400_pct": 66.26,
+          "whale_1000_pct": 63.59,
+          "retail_count": 1102958,
+          "retail_pct": 33.74,
+          "price": 181.5
+        },
+        {
+          "date": "20250725",
+          "total_holders": 1111243,
+          "avg_shares": 12.5,
+          "whale_400_pct": 66.09,
+          "whale_1000_pct": 63.42,
+          "retail_count": 1109951,
+          "retail_pct": 33.91,
+          "price": 174.5
+        },
+        {
+          "date": "20250718",
+          "total_holders": 1135428,
+          "avg_shares": 12.23,
+          "whale_400_pct": 65.43,
+          "whale_1000_pct": 62.75,
+          "retail_count": 1134155,
+          "retail_pct": 34.57,
+          "price": 165.5
+        },
+        {
+          "date": "20250711",
+          "total_holders": 1141019,
+          "avg_shares": 12.17,
+          "whale_400_pct": 65.33,
+          "whale_1000_pct": 62.64,
+          "retail_count": 1139745,
+          "retail_pct": 34.67,
+          "price": 161.5
+        },
+        {
+          "date": "20250704",
+          "total_holders": 1144760,
+          "avg_shares": 12.14,
+          "whale_400_pct": 65.24,
+          "whale_1000_pct": 62.61,
+          "retail_count": 1143491,
+          "retail_pct": 34.76,
+          "price": 161.0
+        },
+        {
+          "date": "20250627",
+          "total_holders": 1156241,
+          "avg_shares": 12.01,
+          "whale_400_pct": 64.9,
+          "whale_1000_pct": 62.19,
+          "retail_count": 1154965,
+          "retail_pct": 35.1,
+          "price": 165.0
+        },
+        {
+          "date": "20250620",
+          "total_holders": 1166199,
+          "avg_shares": 11.91,
+          "whale_400_pct": 64.62,
+          "whale_1000_pct": 61.86,
+          "retail_count": 1164915,
+          "retail_pct": 35.38,
+          "price": 155.5
+        },
+        {
+          "date": "20250613",
+          "total_holders": 1166917,
+          "avg_shares": 11.9,
+          "whale_400_pct": 64.63,
+          "whale_1000_pct": 61.92,
+          "retail_count": 1165636,
+          "retail_pct": 35.37,
+          "price": 156.5
+        },
+        {
+          "date": "20250606",
+          "total_holders": 1169237,
+          "avg_shares": 11.88,
+          "whale_400_pct": 64.64,
+          "whale_1000_pct": 61.94,
+          "retail_count": 1167957,
+          "retail_pct": 35.36,
+          "price": 153.0
+        },
+        {
+          "date": "20250529",
+          "total_holders": 1172549,
+          "avg_shares": 11.85,
+          "whale_400_pct": 64.57,
+          "whale_1000_pct": 61.88,
+          "retail_count": 1171273,
+          "retail_pct": 35.43,
+          "price": 156.0
+        },
+        {
+          "date": "20250523",
+          "total_holders": 1171718,
+          "avg_shares": 11.86,
+          "whale_400_pct": 64.59,
+          "whale_1000_pct": 61.94,
+          "retail_count": 1170444,
+          "retail_pct": 35.41,
+          "price": 154.0
+        },
+        {
+          "date": "20250516",
+          "total_holders": 1165109,
+          "avg_shares": 11.92,
+          "whale_400_pct": 64.84,
+          "whale_1000_pct": 62.22,
+          "retail_count": 1163835,
+          "retail_pct": 35.16,
+          "price": 158.0
+        },
+        {
+          "date": "20250509",
+          "total_holders": 1172673,
+          "avg_shares": 11.85,
+          "whale_400_pct": 64.64,
+          "whale_1000_pct": 62.02,
+          "retail_count": 1171405,
+          "retail_pct": 35.36,
+          "price": 147.0
+        },
+        {
+          "date": "20250502",
+          "total_holders": 1181233,
+          "avg_shares": 11.76,
+          "whale_400_pct": 64.38,
+          "whale_1000_pct": 61.78,
+          "retail_count": 1179971,
+          "retail_pct": 35.62,
+          "price": 147.5
+        },
+        {
+          "date": "20250425",
+          "total_holders": 1188378,
+          "avg_shares": 11.69,
+          "whale_400_pct": 64.19,
+          "whale_1000_pct": 61.6,
+          "retail_count": 1187121,
+          "retail_pct": 35.81,
+          "price": 139.0
+        },
+        {
+          "date": "20250418",
+          "total_holders": 1191727,
+          "avg_shares": 11.66,
+          "whale_400_pct": 64.1,
+          "whale_1000_pct": 61.46,
+          "retail_count": 1190455,
+          "retail_pct": 35.9,
+          "price": 135.5
+        },
+        {
+          "date": "20250411",
+          "total_holders": 1185673,
+          "avg_shares": 11.72,
+          "whale_400_pct": 64.11,
+          "whale_1000_pct": 61.41,
+          "retail_count": 1184383,
+          "retail_pct": 35.89,
+          "price": 134.5
+        },
+        {
+          "date": "20250402",
+          "total_holders": 1154120,
+          "avg_shares": 12.04,
+          "whale_400_pct": 64.79,
+          "whale_1000_pct": 62.01,
+          "retail_count": 1152793,
+          "retail_pct": 35.21,
+          "price": 153.5
+        },
+        {
+          "date": "20250328",
+          "total_holders": 1146846,
+          "avg_shares": 12.11,
+          "whale_400_pct": 65.01,
+          "whale_1000_pct": 62.23,
+          "retail_count": 1145511,
+          "retail_pct": 34.99,
+          "price": 154.0
+        },
+        {
+          "date": "20250321",
+          "total_holders": 1135368,
+          "avg_shares": 12.24,
+          "whale_400_pct": 65.34,
+          "whale_1000_pct": 62.51,
+          "retail_count": 1134019,
+          "retail_pct": 34.66,
+          "price": 165.0
+        },
+        {
+          "date": "20250314",
+          "total_holders": 1116696,
+          "avg_shares": 12.44,
+          "whale_400_pct": 65.8,
+          "whale_1000_pct": 62.93,
+          "retail_count": 1115326,
+          "retail_pct": 34.2,
+          "price": 170.0
+        },
+        {
+          "date": "20250307",
+          "total_holders": 1107926,
+          "avg_shares": 12.54,
+          "whale_400_pct": 66.06,
+          "whale_1000_pct": 63.2,
+          "retail_count": 1106556,
+          "retail_pct": 33.94,
+          "price": 172.0
+        }
+      ]
+    },
+    "broker": {
+      "main_force_net_5d": 40881,
+      "main_force_consecutive": 2,
+      "main_force_trend": [
+        {
+          "date": "1209",
+          "price": 235,
+          "net_buy": 3460
+        },
+        {
+          "date": "1211",
+          "price": 226,
+          "net_buy": -17160
+        },
+        {
+          "date": "1212",
+          "price": 227,
+          "net_buy": -3896
+        },
+        {
+          "date": "1216",
+          "price": 218,
+          "net_buy": -18822
+        },
+        {
+          "date": "1218",
+          "price": 216,
+          "net_buy": -3146
+        },
+        {
+          "date": "1222",
+          "price": 224,
+          "net_buy": -674
+        },
+        {
+          "date": "1223",
+          "price": 224,
+          "net_buy": 672
+        },
+        {
+          "date": "1224",
+          "price": 224,
+          "net_buy": -1941
+        },
+        {
+          "date": "1229",
+          "price": 231,
+          "net_buy": 11783
+        },
+        {
+          "date": "1230",
+          "price": 228,
+          "net_buy": -9676
+        },
+        {
+          "date": "0102",
+          "price": 232,
+          "net_buy": -89
+        },
+        {
+          "date": "0106",
+          "price": 236,
+          "net_buy": -11471
+        },
+        {
+          "date": "0121",
+          "price": 219,
+          "net_buy": -30239
+        },
+        {
+          "date": "0126",
+          "price": 224,
+          "net_buy": -1316
+        },
+        {
+          "date": "0129",
+          "price": 224,
+          "net_buy": 5480
+        },
+        {
+          "date": "0204",
+          "price": 219,
+          "net_buy": 1819
+        },
+        {
+          "date": "0206",
+          "price": 215,
+          "net_buy": -4395
+        },
+        {
+          "date": "0210",
+          "price": 221,
+          "net_buy": 12754
+        },
+        {
+          "date": "0211",
+          "price": 227,
+          "net_buy": 25223
+        }
+      ],
+      "broker_1d": {
+        "top_buy_broker": "摩根大通",
+        "top_buy_net": 7237,
+        "top_sell_broker": "臺銀",
+        "top_sell_net": 1079,
+        "buy_brokers": [
+          {
+            "broker": "摩根大通",
+            "buy": "8,561",
+            "sell": "1,324",
+            "net": "7,237",
+            "ratio": "10.7%"
+          },
+          {
+            "broker": "台灣摩根士丹利",
+            "buy": "8,394",
+            "sell": "1,399",
+            "net": "6,995",
+            "ratio": "10.34%"
+          },
+          {
+            "broker": "新加坡商瑞銀",
+            "buy": "7,558",
+            "sell": "1,570",
+            "net": "5,988",
+            "ratio": "8.85%"
+          },
+          {
+            "broker": "美林",
+            "buy": "4,824",
+            "sell": "1,106",
+            "net": "3,718",
+            "ratio": "5.49%"
+          },
+          {
+            "broker": "美商高盛",
+            "buy": "4,992",
+            "sell": "1,831",
+            "net": "3,161",
+            "ratio": "4.67%"
+          },
+          {
+            "broker": "元大證券",
+            "buy": "3,932",
+            "sell": "2,455",
+            "net": "1,477",
+            "ratio": "2.18%"
+          },
+          {
+            "broker": "凱基-台北",
+            "buy": "4,056",
+            "sell": "2,893",
+            "net": "1,163",
+            "ratio": "1.72%"
+          },
+          {
+            "broker": "花旗環球",
+            "buy": "1,442",
+            "sell": "575",
+            "net": "867",
+            "ratio": "1.28%"
+          },
+          {
+            "broker": "中國信託",
+            "buy": "1,038",
+            "sell": "172",
+            "net": "866",
+            "ratio": "1.28%"
+          },
+          {
+            "broker": "凱基",
+            "buy": "663",
+            "sell": "57",
+            "net": "606",
+            "ratio": "0.9%"
+          },
+          {
+            "broker": "第一金-忠孝",
+            "buy": "665",
+            "sell": "154",
+            "net": "511",
+            "ratio": "0.76%"
+          },
+          {
+            "broker": "香港上海匯豐",
+            "buy": "609",
+            "sell": "106",
+            "net": "503",
+            "ratio": "0.74%"
+          },
+          {
+            "broker": "港商野村",
+            "buy": "555",
+            "sell": "64",
+            "net": "491",
+            "ratio": "0.73%"
+          },
+          {
+            "broker": "法銀巴黎",
+            "buy": "480",
+            "sell": "73",
+            "net": "407",
+            "ratio": "0.6%"
+          },
+          {
+            "broker": "永豐金證券",
+            "buy": "811",
+            "sell": "437",
+            "net": "374",
+            "ratio": "0.55%"
+          }
+        ],
+        "sell_brokers": [
+          {
+            "broker": "臺銀",
+            "buy": "35",
+            "sell": "1,114",
+            "net": "1,079",
+            "ratio": "1.59%"
+          },
+          {
+            "broker": "華南永昌",
+            "buy": "32",
+            "sell": "1,023",
+            "net": "991",
+            "ratio": "1.46%"
+          },
+          {
+            "broker": "國泰-敦南",
+            "buy": "595",
+            "sell": "1,524",
+            "net": "929",
+            "ratio": "1.37%"
+          },
+          {
+            "broker": "台新證券",
+            "buy": "274",
+            "sell": "1,203",
+            "net": "929",
+            "ratio": "1.37%"
+          },
+          {
+            "broker": "國泰證券",
+            "buy": "16",
+            "sell": "905",
+            "net": "889",
+            "ratio": "1.31%"
+          },
+          {
+            "broker": "元大-彰化",
+            "buy": "17",
+            "sell": "740",
+            "net": "723",
+            "ratio": "1.07%"
+          },
+          {
+            "broker": "新光",
+            "buy": "235",
+            "sell": "922",
+            "net": "687",
+            "ratio": "1.02%"
+          },
+          {
+            "broker": "永豐金-匯立",
+            "buy": "384",
+            "sell": "923",
+            "net": "539",
+            "ratio": "0.8%"
+          },
+          {
+            "broker": "元富",
+            "buy": "30",
+            "sell": "564",
+            "net": "534",
+            "ratio": "0.79%"
+          },
+          {
+            "broker": "元大-華山",
+            "buy": "25",
+            "sell": "529",
+            "net": "504",
+            "ratio": "0.74%"
+          },
+          {
+            "broker": "富邦-永和",
+            "buy": "118",
+            "sell": "421",
+            "net": "303",
+            "ratio": "0.45%"
+          },
+          {
+            "broker": "台新-台中",
+            "buy": "49",
+            "sell": "313",
+            "net": "264",
+            "ratio": "0.39%"
+          },
+          {
+            "broker": "國泰-板橋",
+            "buy": "58",
+            "sell": "322",
+            "net": "264",
+            "ratio": "0.39%"
+          },
+          {
+            "broker": "新光-台中",
+            "buy": "85",
+            "sell": "342",
+            "net": "257",
+            "ratio": "0.38%"
+          },
+          {
+            "broker": "國泰-台中",
+            "buy": "110",
+            "sell": "359",
+            "net": "249",
+            "ratio": "0.37%"
+          }
+        ]
+      },
+      "broker_5d": {
+        "top_buy_broker": "美林",
+        "top_buy_net": 18705,
+        "top_sell_broker": "台灣摩根士丹利",
+        "top_sell_net": 8170,
+        "buy_brokers": [
+          {
+            "broker": "美林",
+            "buy": "25,700",
+            "sell": "6,995",
+            "net": "18,705",
+            "ratio": "7.62%"
+          },
+          {
+            "broker": "摩根大通",
+            "buy": "16,642",
+            "sell": "5,333",
+            "net": "11,309",
+            "ratio": "4.61%"
+          },
+          {
+            "broker": "美商高盛",
+            "buy": "20,980",
+            "sell": "9,807",
+            "net": "11,173",
+            "ratio": "4.55%"
+          },
+          {
+            "broker": "港商野村",
+            "buy": "9,732",
+            "sell": "1,651",
+            "net": "8,081",
+            "ratio": "3.29%"
+          },
+          {
+            "broker": "新加坡商瑞銀",
+            "buy": "22,643",
+            "sell": "18,496",
+            "net": "4,147",
+            "ratio": "1.69%"
+          },
+          {
+            "broker": "香港上海匯豐",
+            "buy": "4,342",
+            "sell": "1,704",
+            "net": "2,638",
+            "ratio": "1.07%"
+          },
+          {
+            "broker": "凱基",
+            "buy": "2,873",
+            "sell": "822",
+            "net": "2,051",
+            "ratio": "0.84%"
+          },
+          {
+            "broker": "凱基-台北",
+            "buy": "13,711",
+            "sell": "11,985",
+            "net": "1,726",
+            "ratio": "0.7%"
+          },
+          {
+            "broker": "港商麥格理",
+            "buy": "2,250",
+            "sell": "695",
+            "net": "1,555",
+            "ratio": "0.63%"
+          },
+          {
+            "broker": "富邦證券",
+            "buy": "3,120",
+            "sell": "2,448",
+            "net": "672",
+            "ratio": "0.27%"
+          },
+          {
+            "broker": "第一金-忠孝",
+            "buy": "841",
+            "sell": "385",
+            "net": "456",
+            "ratio": "0.19%"
+          },
+          {
+            "broker": "元大-士林",
+            "buy": "535",
+            "sell": "150",
+            "net": "385",
+            "ratio": "0.16%"
+          },
+          {
+            "broker": "元大-大統",
+            "buy": "348",
+            "sell": "94",
+            "net": "254",
+            "ratio": "0.1%"
+          },
+          {
+            "broker": "高橋",
+            "buy": "374",
+            "sell": "163",
+            "net": "211",
+            "ratio": "0.09%"
+          },
+          {
+            "broker": "富邦-公益",
+            "buy": "528",
+            "sell": "359",
+            "net": "169",
+            "ratio": "0.07%"
+          }
+        ],
+        "sell_brokers": [
+          {
+            "broker": "台灣摩根士丹利",
+            "buy": "16,779",
+            "sell": "24,949",
+            "net": "8,170",
+            "ratio": "3.33%"
+          },
+          {
+            "broker": "永豐金證券",
+            "buy": "1,825",
+            "sell": "5,931",
+            "net": "4,106",
+            "ratio": "1.67%"
+          },
+          {
+            "broker": "台新證券",
+            "buy": "2,383",
+            "sell": "4,956",
+            "net": "2,573",
+            "ratio": "1.05%"
+          },
+          {
+            "broker": "臺銀",
+            "buy": "336",
+            "sell": "2,361",
+            "net": "2,025",
+            "ratio": "0.82%"
+          },
+          {
+            "broker": "國泰-敦南",
+            "buy": "2,381",
+            "sell": "3,750",
+            "net": "1,369",
+            "ratio": "0.56%"
+          },
+          {
+            "broker": "永豐金-匯立",
+            "buy": "1,166",
+            "sell": "2,531",
+            "net": "1,365",
+            "ratio": "0.56%"
+          },
+          {
+            "broker": "國泰證券",
+            "buy": "321",
+            "sell": "1,497",
+            "net": "1,176",
+            "ratio": "0.48%"
+          },
+          {
+            "broker": "元大證券",
+            "buy": "10,990",
+            "sell": "12,101",
+            "net": "1,111",
+            "ratio": "0.45%"
+          },
+          {
+            "broker": "統一",
+            "buy": "641",
+            "sell": "1,730",
+            "net": "1,089",
+            "ratio": "0.44%"
+          },
+          {
+            "broker": "元富",
+            "buy": "579",
+            "sell": "1,581",
+            "net": "1,002",
+            "ratio": "0.41%"
+          },
+          {
+            "broker": "新光",
+            "buy": "1,051",
+            "sell": "1,963",
+            "net": "912",
+            "ratio": "0.37%"
+          },
+          {
+            "broker": "花旗環球",
+            "buy": "3,573",
+            "sell": "4,433",
+            "net": "860",
+            "ratio": "0.35%"
+          },
+          {
+            "broker": "國泰-館前",
+            "buy": "367",
+            "sell": "1,195",
+            "net": "828",
+            "ratio": "0.34%"
+          },
+          {
+            "broker": "大和國泰",
+            "buy": "0",
+            "sell": "801",
+            "net": "801",
+            "ratio": "0.33%"
+          },
+          {
+            "broker": "兆豐證券",
+            "buy": "277",
+            "sell": "1,015",
+            "net": "738",
+            "ratio": "0.3%"
+          }
+        ]
+      },
+      "broker_10d": {
+        "top_buy_broker": "美商高盛",
+        "top_buy_net": 23602,
+        "top_sell_broker": "國泰證券",
+        "top_sell_net": 9503,
+        "buy_brokers": [
+          {
+            "broker": "美商高盛",
+            "buy": "54,564",
+            "sell": "30,962",
+            "net": "23,602",
+            "ratio": "4.66%"
+          },
+          {
+            "broker": "美林",
+            "buy": "32,764",
+            "sell": "22,490",
+            "net": "10,274",
+            "ratio": "2.03%"
+          },
+          {
+            "broker": "摩根大通",
+            "buy": "28,529",
+            "sell": "21,381",
+            "net": "7,148",
+            "ratio": "1.41%"
+          },
+          {
+            "broker": "凱基",
+            "buy": "6,478",
+            "sell": "1,810",
+            "net": "4,668",
+            "ratio": "0.92%"
+          },
+          {
+            "broker": "港商麥格理",
+            "buy": "6,238",
+            "sell": "1,990",
+            "net": "4,248",
+            "ratio": "0.84%"
+          },
+          {
+            "broker": "港商野村",
+            "buy": "12,474",
+            "sell": "8,359",
+            "net": "4,115",
+            "ratio": "0.81%"
+          },
+          {
+            "broker": "香港上海匯豐",
+            "buy": "5,618",
+            "sell": "3,444",
+            "net": "2,174",
+            "ratio": "0.43%"
+          },
+          {
+            "broker": "第一金-忠孝",
+            "buy": "1,527",
+            "sell": "572",
+            "net": "955",
+            "ratio": "0.19%"
+          },
+          {
+            "broker": "凱基-新店",
+            "buy": "503",
+            "sell": "79",
+            "net": "424",
+            "ratio": "0.08%"
+          },
+          {
+            "broker": "凱基-彰化",
+            "buy": "867",
+            "sell": "451",
+            "net": "416",
+            "ratio": "0.08%"
+          },
+          {
+            "broker": "凱基-桃園",
+            "buy": "812",
+            "sell": "452",
+            "net": "360",
+            "ratio": "0.07%"
+          },
+          {
+            "broker": "國票-台中",
+            "buy": "472",
+            "sell": "115",
+            "net": "357",
+            "ratio": "0.07%"
+          },
+          {
+            "broker": "國票-安和",
+            "buy": "501",
+            "sell": "189",
+            "net": "312",
+            "ratio": "0.06%"
+          },
+          {
+            "broker": "元大-士林",
+            "buy": "692",
+            "sell": "390",
+            "net": "302",
+            "ratio": "0.06%"
+          },
+          {
+            "broker": "第一金-高雄",
+            "buy": "611",
+            "sell": "314",
+            "net": "297",
+            "ratio": "0.06%"
+          }
+        ],
+        "sell_brokers": [
+          {
+            "broker": "國泰證券",
+            "buy": "634",
+            "sell": "10,137",
+            "net": "9,503",
+            "ratio": "1.88%"
+          },
+          {
+            "broker": "永豐金證券",
+            "buy": "3,659",
+            "sell": "12,426",
+            "net": "8,767",
+            "ratio": "1.73%"
+          },
+          {
+            "broker": "台灣摩根士丹利",
+            "buy": "31,726",
+            "sell": "38,878",
+            "net": "7,152",
+            "ratio": "1.41%"
+          },
+          {
+            "broker": "元大證券",
+            "buy": "20,028",
+            "sell": "26,873",
+            "net": "6,845",
+            "ratio": "1.35%"
+          },
+          {
+            "broker": "大和國泰",
+            "buy": "1,000",
+            "sell": "4,364",
+            "net": "3,364",
+            "ratio": "0.66%"
+          },
+          {
+            "broker": "中國信託",
+            "buy": "2,224",
+            "sell": "5,548",
+            "net": "3,324",
+            "ratio": "0.66%"
+          },
+          {
+            "broker": "台新證券",
+            "buy": "5,026",
+            "sell": "7,931",
+            "net": "2,905",
+            "ratio": "0.57%"
+          },
+          {
+            "broker": "花旗環球",
+            "buy": "7,613",
+            "sell": "10,492",
+            "net": "2,879",
+            "ratio": "0.57%"
+          },
+          {
+            "broker": "富邦證券",
+            "buy": "3,565",
+            "sell": "5,662",
+            "net": "2,097",
+            "ratio": "0.41%"
+          },
+          {
+            "broker": "第一金",
+            "buy": "221",
+            "sell": "2,238",
+            "net": "2,017",
+            "ratio": "0.4%"
+          },
+          {
+            "broker": "臺銀",
+            "buy": "698",
+            "sell": "2,573",
+            "net": "1,875",
+            "ratio": "0.37%"
+          },
+          {
+            "broker": "永豐金-匯立",
+            "buy": "3,083",
+            "sell": "4,929",
+            "net": "1,846",
+            "ratio": "0.36%"
+          },
+          {
+            "broker": "兆豐證券",
+            "buy": "499",
+            "sell": "2,174",
+            "net": "1,675",
+            "ratio": "0.33%"
+          },
+          {
+            "broker": "國票-敦北法人",
+            "buy": "91",
+            "sell": "1,705",
+            "net": "1,614",
+            "ratio": "0.32%"
+          },
+          {
+            "broker": "致和證券",
+            "buy": "82",
+            "sell": "1,431",
+            "net": "1,349",
+            "ratio": "0.27%"
+          }
+        ]
+      },
+      "broker_20d": {
+        "top_buy_broker": "花旗環球",
+        "top_buy_net": 7047,
+        "top_sell_broker": "台灣摩根士丹利",
+        "top_sell_net": 25507,
+        "buy_brokers": [
+          {
+            "broker": "花旗環球",
+            "buy": "24,471",
+            "sell": "17,424",
+            "net": "7,047",
+            "ratio": "0.68%"
+          },
+          {
+            "broker": "摩根大通",
+            "buy": "45,278",
+            "sell": "38,254",
+            "net": "7,024",
+            "ratio": "0.68%"
+          },
+          {
+            "broker": "凱基",
+            "buy": "10,780",
+            "sell": "5,278",
+            "net": "5,502",
+            "ratio": "0.53%"
+          },
+          {
+            "broker": "香港上海匯豐",
+            "buy": "10,376",
+            "sell": "4,951",
+            "net": "5,425",
+            "ratio": "0.52%"
+          },
+          {
+            "broker": "美商高盛",
+            "buy": "84,921",
+            "sell": "79,637",
+            "net": "5,284",
+            "ratio": "0.51%"
+          },
+          {
+            "broker": "港商麥格理",
+            "buy": "10,523",
+            "sell": "5,722",
+            "net": "4,801",
+            "ratio": "0.46%"
+          },
+          {
+            "broker": "國泰-敦南",
+            "buy": "14,508",
+            "sell": "11,956",
+            "net": "2,552",
+            "ratio": "0.25%"
+          },
+          {
+            "broker": "凱基-桃園",
+            "buy": "2,298",
+            "sell": "893",
+            "net": "1,405",
+            "ratio": "0.14%"
+          },
+          {
+            "broker": "第一金-忠孝",
+            "buy": "2,182",
+            "sell": "1,071",
+            "net": "1,111",
+            "ratio": "0.11%"
+          },
+          {
+            "broker": "第一金-新竹",
+            "buy": "1,398",
+            "sell": "440",
+            "net": "958",
+            "ratio": "0.09%"
+          },
+          {
+            "broker": "玉山-新莊",
+            "buy": "1,959",
+            "sell": "1,041",
+            "net": "918",
+            "ratio": "0.09%"
+          },
+          {
+            "broker": "台新-高雄",
+            "buy": "2,543",
+            "sell": "1,690",
+            "net": "853",
+            "ratio": "0.08%"
+          },
+          {
+            "broker": "富邦-台北",
+            "buy": "2,427",
+            "sell": "1,644",
+            "net": "783",
+            "ratio": "0.08%"
+          },
+          {
+            "broker": "群益金鼎-古亭",
+            "buy": "1,446",
+            "sell": "670",
+            "net": "776",
+            "ratio": "0.07%"
+          },
+          {
+            "broker": "玉山-高雄",
+            "buy": "1,727",
+            "sell": "961",
+            "net": "766",
+            "ratio": "0.07%"
+          }
+        ],
+        "sell_brokers": [
+          {
+            "broker": "台灣摩根士丹利",
+            "buy": "46,386",
+            "sell": "71,893",
+            "net": "25,507",
+            "ratio": "2.46%"
+          },
+          {
+            "broker": "美林",
+            "buy": "54,942",
+            "sell": "70,097",
+            "net": "15,155",
+            "ratio": "1.46%"
+          },
+          {
+            "broker": "國泰證券",
+            "buy": "1,390",
+            "sell": "16,363",
+            "net": "14,973",
+            "ratio": "1.45%"
+          },
+          {
+            "broker": "大和國泰",
+            "buy": "2,000",
+            "sell": "14,391",
+            "net": "12,391",
+            "ratio": "1.2%"
+          },
+          {
+            "broker": "富邦證券",
+            "buy": "6,701",
+            "sell": "18,141",
+            "net": "11,440",
+            "ratio": "1.11%"
+          },
+          {
+            "broker": "元大證券",
+            "buy": "41,568",
+            "sell": "52,398",
+            "net": "10,830",
+            "ratio": "1.05%"
+          },
+          {
+            "broker": "永豐金證券",
+            "buy": "11,271",
+            "sell": "21,655",
+            "net": "10,384",
+            "ratio": "1%"
+          },
+          {
+            "broker": "統一",
+            "buy": "2,637",
+            "sell": "11,588",
+            "net": "8,951",
+            "ratio": "0.86%"
+          },
+          {
+            "broker": "台新證券",
+            "buy": "13,059",
+            "sell": "21,026",
+            "net": "7,967",
+            "ratio": "0.77%"
+          },
+          {
+            "broker": "元富",
+            "buy": "2,364",
+            "sell": "7,714",
+            "net": "5,350",
+            "ratio": "0.52%"
+          },
+          {
+            "broker": "新加坡商瑞銀",
+            "buy": "67,724",
+            "sell": "72,423",
+            "net": "4,699",
+            "ratio": "0.45%"
+          },
+          {
+            "broker": "凱基-台北",
+            "buy": "41,296",
+            "sell": "45,990",
+            "net": "4,694",
+            "ratio": "0.45%"
+          },
+          {
+            "broker": "群益金鼎",
+            "buy": "2,214",
+            "sell": "6,262",
+            "net": "4,048",
+            "ratio": "0.39%"
+          },
+          {
+            "broker": "兆豐證券",
+            "buy": "940",
+            "sell": "4,783",
+            "net": "3,843",
+            "ratio": "0.37%"
+          },
+          {
+            "broker": "國票-敦北法人",
+            "buy": "250",
+            "sell": "3,425",
+            "net": "3,175",
+            "ratio": "0.31%"
+          }
+        ]
+      },
+      "broker_60d": {
+        "top_buy_broker": "凱基",
+        "top_buy_net": 39377,
+        "top_sell_broker": "台灣摩根士丹利",
+        "top_sell_net": 46497,
+        "buy_brokers": [
+          {
+            "broker": "凱基",
+            "buy": "70,253",
+            "sell": "30,876",
+            "net": "39,377",
+            "ratio": "1.23%"
+          },
+          {
+            "broker": "元大證券",
+            "buy": "140,604",
+            "sell": "133,628",
+            "net": "6,976",
+            "ratio": "0.22%"
+          },
+          {
+            "broker": "國泰-敦南",
+            "buy": "44,825",
+            "sell": "38,103",
+            "net": "6,722",
+            "ratio": "0.21%"
+          },
+          {
+            "broker": "群益金鼎-古亭",
+            "buy": "8,821",
+            "sell": "2,311",
+            "net": "6,510",
+            "ratio": "0.2%"
+          },
+          {
+            "broker": "凱基-台北",
+            "buy": "124,777",
+            "sell": "118,717",
+            "net": "6,060",
+            "ratio": "0.19%"
+          },
+          {
+            "broker": "兆豐-南門",
+            "buy": "6,375",
+            "sell": "573",
+            "net": "5,802",
+            "ratio": "0.18%"
+          },
+          {
+            "broker": "香港上海匯豐",
+            "buy": "24,334",
+            "sell": "21,284",
+            "net": "3,050",
+            "ratio": "0.1%"
+          },
+          {
+            "broker": "富邦-仁愛",
+            "buy": "9,391",
+            "sell": "6,692",
+            "net": "2,699",
+            "ratio": "0.08%"
+          },
+          {
+            "broker": "福邦證券",
+            "buy": "3,363",
+            "sell": "1,266",
+            "net": "2,097",
+            "ratio": "0.07%"
+          },
+          {
+            "broker": "宏遠證券",
+            "buy": "5,802",
+            "sell": "3,823",
+            "net": "1,979",
+            "ratio": "0.06%"
+          },
+          {
+            "broker": "富邦-台北",
+            "buy": "7,798",
+            "sell": "5,875",
+            "net": "1,923",
+            "ratio": "0.06%"
+          },
+          {
+            "broker": "國票-安和",
+            "buy": "4,559",
+            "sell": "2,675",
+            "net": "1,884",
+            "ratio": "0.06%"
+          },
+          {
+            "broker": "凱基-桃園",
+            "buy": "4,965",
+            "sell": "3,121",
+            "net": "1,844",
+            "ratio": "0.06%"
+          },
+          {
+            "broker": "凱基-站前",
+            "buy": "9,386",
+            "sell": "7,628",
+            "net": "1,758",
+            "ratio": "0.05%"
+          },
+          {
+            "broker": "玉山-嘉義",
+            "buy": "4,257",
+            "sell": "2,558",
+            "net": "1,699",
+            "ratio": "0.05%"
+          }
+        ],
+        "sell_brokers": [
+          {
+            "broker": "台灣摩根士丹利",
+            "buy": "137,976",
+            "sell": "184,473",
+            "net": "46,497",
+            "ratio": "1.45%"
+          },
+          {
+            "broker": "新加坡商瑞銀",
+            "buy": "205,620",
+            "sell": "240,191",
+            "net": "34,571",
+            "ratio": "1.08%"
+          },
+          {
+            "broker": "群益金鼎",
+            "buy": "15,604",
+            "sell": "48,157",
+            "net": "32,553",
+            "ratio": "1.02%"
+          },
+          {
+            "broker": "美商高盛",
+            "buy": "228,742",
+            "sell": "259,494",
+            "net": "30,752",
+            "ratio": "0.96%"
+          },
+          {
+            "broker": "摩根大通",
+            "buy": "123,776",
+            "sell": "152,409",
+            "net": "28,633",
+            "ratio": "0.9%"
+          },
+          {
+            "broker": "富邦證券",
+            "buy": "55,336",
+            "sell": "81,574",
+            "net": "26,238",
+            "ratio": "0.82%"
+          },
+          {
+            "broker": "花旗環球",
+            "buy": "54,347",
+            "sell": "77,168",
+            "net": "22,821",
+            "ratio": "0.71%"
+          },
+          {
+            "broker": "美林",
+            "buy": "136,628",
+            "sell": "159,423",
+            "net": "22,795",
+            "ratio": "0.71%"
+          },
+          {
+            "broker": "大和國泰",
+            "buy": "4,492",
+            "sell": "26,210",
+            "net": "21,718",
+            "ratio": "0.68%"
+          },
+          {
+            "broker": "國泰證券",
+            "buy": "12,856",
+            "sell": "27,722",
+            "net": "14,866",
+            "ratio": "0.46%"
+          },
+          {
+            "broker": "國票-敦北法人",
+            "buy": "3,140",
+            "sell": "17,831",
+            "net": "14,691",
+            "ratio": "0.46%"
+          },
+          {
+            "broker": "合庫證券",
+            "buy": "4,725",
+            "sell": "15,098",
+            "net": "10,373",
+            "ratio": "0.32%"
+          },
+          {
+            "broker": "港商麥格理",
+            "buy": "27,975",
+            "sell": "35,851",
+            "net": "7,876",
+            "ratio": "0.25%"
+          },
+          {
+            "broker": "永豐金證券",
+            "buy": "46,562",
+            "sell": "52,900",
+            "net": "6,338",
+            "ratio": "0.2%"
+          },
+          {
+            "broker": "兆豐-城中",
+            "buy": "1,326",
+            "sell": "7,053",
+            "net": "5,727",
+            "ratio": "0.18%"
+          }
+        ]
+      }
+    },
+    "sentiment": {
+      "margin_change": -3317,
+      "short_ratio": 2.37
+    }
+  }
+}
