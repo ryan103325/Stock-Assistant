@@ -1,9 +1,9 @@
 name: "[Step] Run Strategies"
 
 on:
-  schedule:
-    # 每天早上 08:00 (UTC+8 = 00:00 UTC) 執行前一天的策略
-    - cron: '0 0 * * 1-5'
+  # [已停用] 改由 step_strategies_00981A.yml 獨立排程
+  # schedule:
+  #   - cron: '0 0 * * 1-5'
   workflow_dispatch:
     inputs:
       force_mode:

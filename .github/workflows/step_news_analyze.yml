@@ -8,9 +8,9 @@ on:
         required: false
         type: boolean
         default: true
-  schedule:
-    # 每天早上 08:00 (UTC+8 = 00:00 UTC) - 與 daily_analysis 同時
-    - cron: '0 0 * * *'
+  # [已停用] 僅保留 00981A 排程，節省資源
+  # schedule:
+  #   - cron: '0 0 * * *'
 
 jobs:
   news-analysis:

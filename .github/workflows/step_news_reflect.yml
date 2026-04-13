@@ -1,9 +1,9 @@
 name: "[Step] News Reflect"
 
 on:
-  schedule:
-    # 每天下午 16:00 (UTC+8 = 08:00 UTC)
-    - cron: '0 8 * * 1-5'
+  # [已停用] 僅保留 00981A 排程，節省資源
+  # schedule:
+  #   - cron: '0 8 * * 1-5'
   workflow_dispatch:
     inputs:
       force_mode:

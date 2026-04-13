@@ -1,9 +1,9 @@
 name: "[Step] Weekly Maintenance"
 
 on:
-  schedule:
-    # 每週六 10:00 (UTC+8 = 02:00 UTC)
-    - cron: '0 2 * * 6'
+  # [已停用] 僅保留 00981A 排程，節省資源
+  # schedule:
+  #   - cron: '0 2 * * 6'
   workflow_dispatch:
     inputs:
       force_mode:

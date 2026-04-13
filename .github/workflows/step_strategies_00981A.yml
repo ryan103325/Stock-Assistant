@@ -1,6 +1,9 @@
 name: "[Step]strategies_00981A"
 
 on:
+  schedule:
+    # 每天 UTC 10:00 (台灣 18:00) 自動執行，僅工作日
+    - cron: '0 10 * * 1-5'
   workflow_dispatch:
     inputs:
       force_mode:
