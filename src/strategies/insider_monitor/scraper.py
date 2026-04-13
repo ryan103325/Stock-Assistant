@@ -145,9 +145,12 @@ def parse_insider_increases(html, stock_id, stock_name=""):
         if total_increase <= 0:
             continue
 
+        # 沒有姓名的（配偶/子女行）直接跳過
+        if not name:
+            continue
+
         # 去重: 同一支股票同一個姓名，只保留第一筆
-        # 姓名為空時（配偶/子女行），改用「身分別」作 key
-        dedup_key = (stock_id, name) if name else (stock_id, identity)
+        dedup_key = (stock_id, name)
         if dedup_key in seen_names:
             continue
         seen_names.add(dedup_key)
