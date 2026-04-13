@@ -17,6 +17,8 @@ import requests
 import urllib3
 from datetime import datetime
 from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -31,8 +33,9 @@ HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
 }
 
-# 請求間隔 (秒)
-REQUEST_DELAY = 0.5
+# 並行設定
+WORKERS = 5        # 同時執行的 worker 數
+REQUEST_DELAY = 0.15  # 每個 worker 的請求間隔 (秒)
 
 # Discord Webhook
 DISCORD_WEBHOOK_URL = os.getenv(
@@ -279,44 +282,55 @@ def run(test_mode=False):
     else:
         print(f"📋 股票清單: {total} 檔")
 
-    # 2. 逐一查詢 MOPS
-    session = requests.Session()
+    # 2. 並行查詢 MOPS
     all_increases = []
     success = 0
     fail = 0
     empty = 0
+    lock = threading.Lock()
+    completed = [0]  # mutable counter for threads
 
-    print(f"\n🚀 開始掃描 MOPS (間隔 {REQUEST_DELAY}s)...\n")
+    print(f"\n🚀 開始掃描 MOPS ({WORKERS} workers, 間隔 {REQUEST_DELAY}s)...\n")
     t_start = time.time()
 
-    for i, sid in enumerate(stock_ids):
+    def process_stock(sid):
+        """單一股票處理 (thread worker)"""
         sname = stock_map.get(sid, "")
-
+        session = requests.Session()
         status, html = query_mops(session, sid)
-
-        if status != 200:
-            fail += 1
-            print(f"  ❌ [{i+1}/{len(stock_ids)}] {sid} {sname}: HTTP {status}")
-            # 如果連續失敗，增加等待
-            time.sleep(3)
-            continue
-
-        increases = parse_insider_increases(html, sid, sname)
-
-        if increases:
-            success += 1
-            all_increases.extend(increases)
-            names = ", ".join(f"{r['姓名']}({r['增加張數']}張)" for r in increases)
-            print(f"  📈 [{i+1}/{len(stock_ids)}] {sid} {sname}: {names}")
-        else:
-            empty += 1
-            # 只每 100 檔印一次進度
-            if (i + 1) % 100 == 0:
-                elapsed = time.time() - t_start
-                eta = elapsed / (i + 1) * (len(stock_ids) - i - 1)
-                print(f"  ⏳ [{i+1}/{len(stock_ids)}] 已掃描 {success} 有增加 / {empty} 無 / {fail} 失敗 (ETA: {eta/60:.1f}分)")
-
         time.sleep(REQUEST_DELAY)
+        return sid, sname, status, html
+
+    with ThreadPoolExecutor(max_workers=WORKERS) as executor:
+        futures = {executor.submit(process_stock, sid): sid for sid in stock_ids}
+
+        for future in as_completed(futures):
+            sid, sname, status, html = future.result()
+
+            with lock:
+                completed[0] += 1
+                idx = completed[0]
+
+            if status != 200:
+                with lock:
+                    fail += 1
+                print(f"  ❌ [{idx}/{len(stock_ids)}] {sid} {sname}: HTTP {status}")
+                continue
+
+            increases = parse_insider_increases(html, sid, sname)
+
+            with lock:
+                if increases:
+                    success += 1
+                    all_increases.extend(increases)
+                    names = ", ".join(f"{r['姓名']}({r['增加張數']}張)" for r in increases)
+                    print(f"  📈 [{idx}/{len(stock_ids)}] {sid} {sname}: {names}")
+                else:
+                    empty += 1
+                    if idx % 200 == 0:
+                        elapsed = time.time() - t_start
+                        eta = elapsed / idx * (len(stock_ids) - idx)
+                        print(f"  ⏳ [{idx}/{len(stock_ids)}] {success} 有增加 / {empty} 無 / {fail} 失敗 (ETA: {eta/60:.1f}分)")
 
     elapsed = time.time() - t_start
     print(f"\n✅ 掃描完成！耗時 {elapsed/60:.1f} 分鐘")
